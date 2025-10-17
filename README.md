@@ -14,6 +14,13 @@ This installs all necessary local packages in editable mode.
 
 ## Development History
 
+### 2025-10-18: Documentation Overhaul
+
+- **Change**: A comprehensive review and update of all project documentation was completed.
+- **Details**:
+    - `InstallationGuide.md`, `NinjaUserGuide.md`, and `NinjaDevGuide.md` were corrected, updated, and refined to ensure they are accurate and provide complete information for users and developers.
+    - A new `NinjaCodeSpec.md` document was generated, providing a detailed, code-level specification of the entire project, including file structures, imported libraries, and detailed descriptions of every function and method.
+
 ### 2025-09-27: Fixed Sound Playback Crash
 
 - **Problem**: The application would crash with an `AttributeError` when the AI agent tried to play a sound, particularly after a voice command.
