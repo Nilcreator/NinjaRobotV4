@@ -251,74 +251,201 @@
 
 This section provides a detailed description of every function and method found in each file, including their required commands/arguments.
 
-### `main_robot_control.py`
+### `pi0ninja_v3` Library Specifications
+
+#### `pi0ninja_v3/src/pi0ninja_v3/detect_distance.py`
 
 **Imported Libraries:**
-- `time`
-- `json`
 - `pigpio`
-- `threading`
-- `PIL`
-- `piservo0`
-- `pi0disp`
-- `pi0buzzer`
+- `time`
+- `sys`
+- `select`
+- `tty`
+- `termios`
+- `os`
 - `vl53l0x_pigpio`
-- `pi0ninja_v3`
-- `pathlib`
+
+---
+
+##### **Classes**
+
+##### `DistanceDetector`
+- **Description:** A class to detect distance using the VL53L0X sensor.
+- **Methods:**
+    - `__init__(self)`: Initializes the DistanceDetector.
+    - `timed_detection(self, count: int, delay: float)`: Performs a specified number of distance measurements with a delay.
+        - `count` (int): The number of measurements to take.
+        - `delay` (float): The delay between measurements in seconds.
+    - `continuous_detection(self)`: Performs continuous distance measurement at 5Hz until 'q' is pressed.
+    - `cleanup(self)`: Cleans up the pigpio resources.
 
 ---
 
 #### **Functions**
-
-##### `load_pins_from_config()`
-- **Description:** Loads servo and buzzer pins from their respective JSON files.
-- **Arguments:** None
-- **Returns:** A tuple containing a list of servo pins and the buzzer pin.
 
 ##### `main()`
-- **Description:** Main function to control the NinjaRobotV3 components.
+- **Description:** Main function to run the interactive distance detector.
 - **Arguments:** None
 - **Returns:** None
 
-### `pi0buzzer/src/pi0buzzer/__main__.py`
+### `pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py`
 
 **Imported Libraries:**
-- `click`
-- `pigpio`
-- `json`
 - `time`
-- `pi0buzzer.driver`
+- `math`
+- `threading`
+- `PIL`
+- `pi0disp.disp.st7789v`
+
+---
+
+##### **Classes**
+
+##### `AnimatedFaces`
+- **Description:** Generates and displays programmatically drawn, animated facial expressions. This class is thread-safe.
+- **Methods:**
+    - `__init__(self, lcd: ST7789V)`: Initializes the AnimatedFaces class.
+        - `lcd`: An instance of the `ST7789V` class.
+    - `stop(self)`: Stops the current animation thread and waits for it to exit.
+    - `play_idle(self, duration_s=float('inf'))`: Plays the idle animation.
+    - `play_happy(self, duration_s=3)`: Plays the happy animation.
+    - `play_laughing(self, duration_s=3)`: Plays the laughing animation.
+    - `play_sad(self, duration_s=3)`: Plays the sad animation.
+    - `play_cry(self, duration_s=3)`: Plays the crying animation.
+    - `play_angry(self, duration_s=3)`: Plays the angry animation.
+    - `play_surprising(self, duration_s=3)`: Plays the surprising animation.
+    - `play_sleepy(self, duration_s=3)`: Plays the sleepy animation.
+    - `play_speaking(self, duration_s=3)`: Plays the speaking animation.
+    - `play_shy(self, duration_s=3)`: Plays the shy animation.
+    - `play_embarrassing(self, duration_s=3)`: Plays the embarrassing animation.
+    - `play_scary(self, duration_s=3)`: Plays the scary animation.
+    - `play_exciting(self, duration_s=3)`: Plays the exciting animation.
+    - `play_confusing(self, duration_s=3)`: Plays the confusing animation.
+
+### `pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py`
+
+**Imported Libraries:**
+- `json`
+- `os`
+- `time`
+- `pigpio`
+- `sys`
+- `select`
+- `termios`
+- `tty`
+- `copy`
+- `piservo0.core.calibrable_servo`
+
+---
+
+##### **Classes**
+
+##### `ServoController`
+- **Description:** A custom controller to manage multiple servos based on `servo.json`.
+- **Methods:**
+    - `__init__(self)`: Initializes the ServoController.
+    - `get_servo_definitions(self)`: Returns the raw servo definitions from the JSON file.
+    - `move_servos(self, movements, speed='M')`: Executes a set of servo movements with smooth interpolation.
+        - `movements` (dict): A dictionary of `{pin: angle}`.
+        - `speed` (str, optional): The speed of the movement ('S', 'M', or 'F'). Defaults to 'M'.
+    - `get_current_angles(self)`: Returns a dictionary of `{pin: current_angle}`.
+    - `center_all_servos(self)`: Moves all servos to their center position.
+    - `cleanup(self)`: Turns off all servos and disconnects from pigpio.
+
+##### `NonBlockingKeyboard`
+- **Description:** A class to handle non-blocking keyboard input.
+- **Methods:**
+    - `__enter__(self)`: Enters a non-blocking keyboard input context.
+    - `__exit__(self, type, value, traceback)`: Exits the non-blocking keyboard input context.
+    - `kbhit(self)`: Checks if a key has been pressed.
+    - `getch(self)`: Gets the pressed character.
 
 ---
 
 #### **Functions**
 
-##### `cli()`
-- **Description:** Defines the command-line interface group.
+##### `load_movements()`
+- **Description:** Loads movement sequences from the JSON file.
+- **Arguments:** None
+- **Returns:** A dictionary of movement sequences.
+
+##### `save_movements(movements)`
+- **Description:** Saves movement sequences to the JSON file.
+- **Arguments:**
+    - `movements` (dict): A dictionary of movement sequences.
+- **Returns:** None
+
+##### `parse_movement_command(command_str, definitions)`
+- **Description:** Parses the user's command string.
+- **Arguments:**
+    - `command_str` (str): The command string to parse.
+    - `definitions` (dict): The servo definitions.
+- **Returns:** A tuple containing the speed and a dictionary of movements.
+
+##### `record_new_movement(controller)`
+- **Description:** Handles the UI and logic for recording a new movement sequence.
+- **Arguments:**
+    - `controller`: An instance of the `ServoController` class.
+- **Returns:** None
+
+##### `execute_movement(controller)`
+- **Description:** Handles the UI and logic for executing a saved movement with looping and interruption.
+- **Arguments:**
+    - `controller`: An instance of the `ServoController` class.
+- **Returns:** None
+
+##### `edit_sequence_menu(controller, sequence_to_edit)`
+- **Description:** UI for editing a sequence.
+- **Arguments:**
+    - `controller`: An instance of the `ServoController` class.
+    - `sequence_to_edit` (list): The sequence to edit.
+- **Returns:** The modified sequence or `None` if aborted.
+
+##### `modify_existing_movement(controller)`
+- **Description:** Handles the non-destructive modification of a movement sequence.
+- **Arguments:**
+    - `controller`: An instance of the `ServoController` class.
+- **Returns:** None
+
+##### `clear_movement(controller)`
+- **Description:** Handles the UI and logic for clearing a movement sequence.
+- **Arguments:**
+    - `controller`: An instance of the `ServoController` class.
+- **Returns:** None
+
+##### `main_menu()`
+- **Description:** Displays the main menu and handles user selection.
 - **Arguments:** None
 - **Returns:** None
 
-##### `init(pin)`
-- **Description:** Initializes the buzzer on the specified GPIO pin.
-- **Arguments:**
-    - `pin` (int): The GPIO pin number.
-- **Returns:** None
+### `pi0ninja_v3/src/pi0ninja_v3/ninja_agent.py`
 
-##### `beep(pin, frequency, duration)`
-- **Description:** Plays a simple beep.
-- **Arguments:**
-    - `--pin` (int, optional): GPIO pin for the buzzer. Reads from `buzzer.json` if not provided.
-    - `frequency` (float, default: 440.0): The frequency of the beep in Hz.
-    - `duration` (float, default: 0.5): The duration of the beep in seconds.
-- **Returns:** None
+**Imported Libraries:**
+- `os`
+- `json`
+- `time`
+- `google.generativeai`
+- `pi0ninja_v3.facial_expressions`
+- `pi0ninja_v3.robot_sound`
+- `googlesearch`
 
-##### `playmusic(pin)`
-- **Description:** Play music with the buzzer using the keyboard.
-- **Arguments:**
-    - `--pin` (int, optional): GPIO pin for the buzzer.
-- **Returns:** None
+---
 
-### `pi0buzzer/src/pi0buzzer/driver.py`
+##### **Classes**
+
+##### `NinjaAgent`
+- **Description:** An AI agent for the NinjaRobot that handles text-based conversations.
+- **Methods:**
+    - `__init__(self, api_key: str)`: Initializes the NinjaAgent.
+        - `api_key` (str): The Gemini API key.
+    - `web_search(self, query: str) -> list[str]`: Performs a web search and returns the results.
+        - `query` (str): The search query.
+    - `process_command(self, user_input: str) -> dict`: Processes a text-based user command.
+        - `user_input` (str): The user's text input.
+    - `process_audio_command(self, audio_file_path: str) -> dict`: Processes a voice command from an audio file.
+        - `audio_file_path` (str): The path to the audio file.
+
+### `pi0ninja_v3/src/pi0ninja_v3/robot_sound.py`
 
 **Imported Libraries:**
 - `pigpio`
@@ -326,280 +453,94 @@ This section provides a detailed description of every function and method found 
 - `json`
 - `os`
 - `sys`
-- `tty`
-- `termios`
+- `pi0buzzer.driver`
+
+---
+
+##### **Classes**
+
+##### `RobotSoundPlayer`
+- **Description:** A class to play sounds corresponding to robot emotions using a buzzer.
+- **Methods:**
+    - `__init__(self)`: Initializes the RobotSoundPlayer.
+    - `play(self, emotion: str)`: Plays the sound for the given emotion.
+        - `emotion` (str): The name of the emotion.
+    - `cleanup(self)`: Cleans up the pigpio resources.
+
+---
+
+#### **Functions**
+
+##### `main()`
+- **Description:** Main function to run the interactive sound player.
+- **Arguments:** None
+- **Returns:** None
+
+### `pi0ninja_v3/src/pi0ninja_v3/show_faces.py`
+
+**Imported Libraries:**
+- `sys`
 - `select`
-
----
-
-#### **Classes**
-
-##### `Buzzer`
-- **Description:** A class to control a buzzer.
-- **Methods:**
-    - `__init__(self, pi, pin, config_file='buzzer.json')`: Initializes the buzzer.
-        - `pi`: pigpio.pi object.
-        - `pin`: The GPIO pin number.
-        - `config_file` (str, optional): The configuration file. Defaults to 'buzzer.json'.
-    - `save_config(self)`: Saves the pin configuration to a file.
-    - `play_hello(self)`: Plays a simple melody.
-    - `play_sound(self, frequency, duration)`: Plays a sound with a given frequency and duration.
-        - `frequency` (float): The frequency of the sound in Hz.
-        - `duration` (float): The duration of the sound in seconds.
-    - `off(self)`: Turns the buzzer off.
-
-##### `MusicBuzzer(Buzzer)`
-- **Description:** A class to play music with the buzzer. Inherits from `Buzzer`.
-- **Methods:**
-    - `__init__(self, pi, pin, config_file='buzzer.json')`: Initializes the music buzzer.
-        - `pi`: pigpio.pi object.
-        - `pin`: The GPIO pin number.
-        - `config_file` (str, optional): The configuration file. Defaults to 'buzzer.json'.
-    - `play_song(self, song)`: Plays a song defined as a list of (note_key, duration) tuples.
-        - `song` (list): A list of tuples, where each tuple is (note_key, duration).
-    - `play_music(self)`: Plays "Happy Birthday" and then enters a mode where the user can play notes with the keyboard.
-
-### `pi0disp/samples/basic_usage.py`
-
-**Imported Libraries:**
+- `termios`
+- `tty`
+- `inspect`
 - `time`
-- `pi0disp`
-- `PIL`
-
----
-
-This script demonstrates the basic usage of the `pi0disp` library. It initializes the display, draws a blue circle on a black background, displays it for 5 seconds, then draws a red rectangle on top of it and displays the result for another 5 seconds.
-
-### `pi0disp/samples/robot_face1.py`
-
-**Imported Libraries:**
-- `time`
-- `sys`
-- `pathlib`
-- `typing`
-- `click`
-- `PIL`
-- `pi0disp.disp.st7789v`
-- `pi0disp.utils.my_logger`
-- `pi0disp.utils.utils`
-
----
-
-#### **Classes**
-
-##### `RobotFace`
-- **Description:** Manages drawing and animating the geometric robot face.
-- **Methods:**
-    - `__init__(self, lcd: ST7789V, font: ImageFont.FreeTypeFont | ImageFont.ImageFont)`: Initializes the RobotFace.
-        - `lcd`: An instance of the `ST7789V` class.
-        - `font`: A PIL ImageFont object.
-    - `_get_eye_bbox(self, center_x: int, center_y: int, radius: int) -> Tuple[int, int, int, int]`: Calculates the bounding box for an eye.
-    - `_draw_overlay_text(self, text: str, y_offset_ratio: float = 0.0) -> Tuple[int, int, int, int]`: Draws overlay text.
-    - `_clear_overlay_text(self) -> Optional[Tuple[int, int, int, int]]`: Clears any existing overlay text.
-    - `draw_eyes(self, state: str = "open", color: Tuple[int, int, int] = (255, 255, 255)) -> Tuple[int, int, int, int]`: Draws the eyes with a given state and color.
-    - `draw_mouth(self, state: str = "neutral", color: Tuple[int, int, int] = (255, 255, 255)) -> Tuple[int, int, int, int]`: Draws the mouth with a given state and color.
-    - `animate_blink(self, num_blinks: int = 1, blink_duration: float = 0.1)`: Animates blinking.
-    - `animate_expression(self, expression: str, duration: float = 1.0, save_screenshot_flag: bool = False)`: Animates a facial expression.
-    - `save_screenshot(self, filename: str = "screenshot.png")`: Saves the current display buffer to a PNG file.
-
----
-
-#### **Functions**
-
-##### `main(screenshot, face, debug)`
-- **Description:** Main function to run the geometric robot face animation.
-- **Arguments:**
-    - `--screenshot` (bool, optional): Save screenshot for each expression.
-    - `--face` (str, optional): Display a specific face and exit.
-    - `--debug` (bool, optional): Enable debug logging.
-- **Returns:** None
-
-### `pi0disp/samples/robot_face2.py`
-
-**Imported Libraries:**
-- `time`
-- `sys`
-- `pathlib`
-- `typing`
-- `math`
-- `PIL`
-- `pi0disp.disp.st7789v`
-- `pi0disp.utils.sprite`
-- `pi0disp.utils.performance_core`
-
----
-
-#### **Classes**
-
-##### `RobotFace(Sprite)`
-- **Description:** A robot face class that inherits from `Sprite`.
-- **Methods:**
-    - `__init__(self, x: int, y: int, width: int, height: int)`: Initializes the RobotFace sprite.
-        - `x` (int): The x-coordinate of the top-left corner.
-        - `y` (int): The y-coordinate of the top-left corner.
-        - `width` (int): The width of the sprite.
-        - `height` (int): The height of the sprite.
-    - `update(self, delta_t: float)`: Updates the expression based on time.
-    - `draw(self, draw: ImageDraw.ImageDraw)`: Draws the current expression of the face.
-    - `_draw_open_eye(self, draw: ImageDraw.ImageDraw, center_x: int)`: Draws an open eye.
-    - `_draw_closed_eye(self, draw: ImageDraw.ImageDraw, center_x: int)`: Draws a closed eye.
-    - `_draw_happy_eye(self, draw: ImageDraw.ImageDraw, center_x: int)`: Draws a happy eye.
-
----
-
-#### **Functions**
-
-##### `main()`
-- **Description:** Main function to run the robot face animation using the `Sprite` class.
-- **Arguments:** None
-- **Returns:** None
-
-### `pi0disp/samples/sprite_usage.py`
-
-**Imported Libraries:**
-- `time`
-- `sys`
-- `pathlib`
 - `random`
-- `colorsys`
-- `typing`
-- `PIL`
 - `pi0disp.disp.st7789v`
-- `pi0disp.utils.sprite`
-- `pi0disp.utils.performance_core`
-- `pi0disp.utils.utils`
+- `pi0ninja_v3.facial_expressions`
 
 ---
 
-#### **Classes**
+##### **Classes**
 
-##### `Ball(Sprite)`
-- **Description:** A bouncing ball sprite that inherits from the `Sprite` class.
+##### `NonBlockingKeyboard`
+- **Description:** A class to handle non-blocking keyboard input.
 - **Methods:**
-    - `__init__(self, x, y, radius, speed_x, speed_y, color, screen_width, screen_height)`: Initializes the Ball sprite.
-        - `x` (float): The initial x-coordinate.
-        - `y` (float): The initial y-coordinate.
-        - `radius` (int): The radius of the ball.
-        - `speed_x` (float): The initial speed in the x-direction.
-        - `speed_y` (float): The initial speed in the y-direction.
-        - `color` (tuple): The color of the ball.
-        - `screen_width` (int): The width of the screen.
-        - `screen_height` (int): The height of the screen.
-    - `update(self, delta_t: float)`: Updates the ball's position and handles bouncing off the screen edges.
-    - `draw(self, draw: ImageDraw.ImageDraw)`: Draws the ball on the provided `ImageDraw` object.
+    - `__enter__(self)`: Enters a non-blocking keyboard input context.
+    - `__exit__(self, type, value, traceback)`: Exits the non-blocking keyboard input context.
+    - `kbhit(self)`: Checks if a key has been pressed.
+    - `getch(self)`: Gets the pressed character.
 
 ---
 
 #### **Functions**
+
+##### `get_face_methods(animated_faces_instance)`
+- **Description:** Inspects the `AnimatedFaces` instance and returns a dictionary of face-playing methods.
+- **Arguments:**
+    - `animated_faces_instance`: An instance of the `AnimatedFaces` class.
+- **Returns:** A dictionary of face-playing methods.
+
+##### `draw_idle_frame(faces, is_blinking)`
+- **Description:** Draws a single frame of the idle animation.
+- **Arguments:**
+    - `faces`: An instance of the `AnimatedFaces` class.
+    - `is_blinking` (bool): Whether the eyes should be blinking.
+- **Returns:** None
 
 ##### `main()`
-- **Description:** Main function to run the bouncing ball animation.
+- **Description:** Main function with a non-blocking idle loop and a blocking menu to display facial expressions.
 - **Arguments:** None
 - **Returns:** None
 
-### `pi0disp/src/pi0disp/__main__.py`
+### `piservo0` Library Specifications
+
+#### `piservo0/command/cmd_apiclient.py`
 
 **Imported Libraries:**
-- `click`
-- `pi0disp`
-- `pi0disp.commands.off`
-- `pi0disp.commands.sleep`
-- `pi0disp.commands.ball_anime`
-- `pi0disp.commands.wake`
-- `pi0disp.commands.rgb`
-- `pi0disp.commands.image`
-- `pi0disp.utils.my_logger`
+- `piservo0.utils.my_logger`
+- `piservo0.web.api_client`
 
 ---
 
-#### **Functions**
+##### **Classes**
 
-##### `cli()`
-- **Description:** Defines the command-line interface group for the ST7789V Display Driver. It provides basic commands to test and interact with the display.
-- **Arguments:** None
-- **Returns:** None
-
-### `pi0disp/src/pi0disp/commands/ball_anime.py`
-
-**Imported Libraries:**
-- `time`
-- `colorsys`
-- `typing`
-- `math`
-- `click`
-- `numpy`
-- `PIL`
-- `pi0disp.disp.st7789v`
-- `pi0disp.utils.my_logger`
-- `pi0disp.utils.performance_core`
-- `pi0disp.utils.utils`
-
----
-
-#### **Classes**
-
-##### `Ball`
-- **Description:** An optimized ball class for the animation demo.
+##### `CmdApiClient`
+- **Description:** A class to handle the command-line API client.
 - **Methods:**
-    - `__init__(self, x, y, radius, speed, angle, fill_color)`: Initializes the Ball object.
-    - `update_position(self, delta_t, screen_width, screen_height)`: Updates the ball's position.
-    - `get_bbox(self)`: Returns the bounding box of the ball.
-    - `draw(self, draw: ImageDraw.ImageDraw)`: Draws the ball.
-
-##### `FpsCounter`
-- **Description:** An optimized FPS counter.
-- **Methods:**
-    - `__init__(self)`: Initializes the FpsCounter.
-    - `update(self) -> bool`: Updates the FPS counter.
-
----
-
-#### **Functions**
-
-##### `fast_sqrt(value)`
-- **Description:** A fast square root calculation with caching.
-- **Arguments:**
-    - `value` (float): The value to calculate the square root of.
-- **Returns:** The square root of the value.
-
-##### `fast_cos_sin(angle)`
-- **Description:** A fast cosine and sine calculation with caching.
-- **Arguments:**
-    - `angle` (float): The angle in radians.
-- **Returns:** A tuple containing the cosine and sine of the angle.
-
-##### `_initialize_balls_optimized(num_balls: int, width: int, height: int, ball_speed: float) -> List[Ball]`
-- **Description:** Initializes the balls for the animation.
-- **Arguments:**
-    - `num_balls` (int): The number of balls.
-    - `width` (int): The width of the screen.
-    - `height` (int): The height of the screen.
-    - `ball_speed` (float): The speed of the balls.
-- **Returns:** A list of `Ball` objects.
-
-##### `_handle_ball_collisions_optimized(balls: List[Ball], frame_count: int)`
-- **Description:** Handles collisions between balls.
-- **Arguments:**
-    - `balls` (List[Ball]): A list of `Ball` objects.
-    - `frame_count` (int): The current frame count.
-- **Returns:** None
-
-##### `_main_loop_optimized(lcd: ST7789V, background: Image.Image, balls: List[Ball], fps_counter: FpsCounter, font, target_fps: float)`
-- **Description:** The main loop for the animation.
-- **Arguments:**
-    - `lcd`: An instance of the `ST7789V` class.
-    - `background` (Image.Image): The background image.
-    - `balls` (List[Ball]): A list of `Ball` objects.
-    - `fps_counter` (FpsCounter): An instance of the `FpsCounter` class.
-    - `font`: A PIL ImageFont object.
-    - `target_fps` (float): The target frames per second.
-- **Returns:** None
-
-##### `ball_anime(spi_mhz: float, fps: float, num_balls: int, ball_speed: float)`
-- **Description:** Runs the physics-based animation demo.
-- **Arguments:**
-    - `--spi-mhz` (float, optional): SPI speed in MHz.
-    - `--fps` (float, optional): Target frames per second.
-    - `--num-balls` (int, optional): Number of balls to display.
-    - `--ball-speed` (float, optional): Absolute speed of balls (pixels/second).
-- **Returns:** None
+    - `__init__(self, url: str, history_file: str, debug=False)`: Initializes the CmdApiClient.
+        - `url` (str): The API URL.
+        - `history_file` (str): The path to the history file.
+        - `debug` (bool, optional): Enable debug logging. Defaults to False.
+    - `main(self, cmdline: str)`: The main loop of the API client.
+        - `cmdline` (str): The command line string to execute.
