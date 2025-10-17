@@ -523,24 +523,21 @@ This section provides a detailed description of every function and method found 
 - **Arguments:** None
 - **Returns:** None
 
-### `piservo0` Library Specifications
+### `vl53l0x_pigpio` Library Specifications
 
-#### `piservo0/command/cmd_apiclient.py`
+#### `vl53l0x_pigpio/my_logger.py`
 
 **Imported Libraries:**
-- `piservo0.utils.my_logger`
-- `piservo0.web.api_client`
+- `logging`
+- `inspect`
 
 ---
 
-##### **Classes**
+#### **Functions**
 
-##### `CmdApiClient`
-- **Description:** A class to handle the command-line API client.
-- **Methods:**
-    - `__init__(self, url: str, history_file: str, debug=False)`: Initializes the CmdApiClient.
-        - `url` (str): The API URL.
-        - `history_file` (str): The path to the history file.
-        - `debug` (bool, optional): Enable debug logging. Defaults to False.
-    - `main(self, cmdline: str)`: The main loop of the API client.
-        - `cmdline` (str): The command line string to execute.
+##### `get_logger(name: str, debug: bool = False) -> logging.Logger`
+- **Description:** Configures and returns a logger instance.
+- **Arguments:**
+    - `name` (str): The name for the logger, typically `__name__`.
+    - `debug` (bool): If True, the logger's level is set to DEBUG, otherwise it defaults to INFO.
+- **Returns:** The configured logger instance.
