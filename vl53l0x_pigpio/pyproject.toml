@@ -1,6 +1,6 @@
 [project]
 name = "vl53l0x_pigpio"
-version = "0.1.0"
+dynamic = ["version"]
 description = "VL53L0X distance sensor using pigpio"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -25,8 +25,11 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
 
 [project.scripts]
 vl53l0x_pigpio = "vl53l0x_pigpio.__main__:cli"
