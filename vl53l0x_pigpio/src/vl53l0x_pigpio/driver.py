@@ -437,11 +437,11 @@ class VL53L0X:
         self.set_measurement_timing_budget(self.measurement_timing_budget_us)
 
         # 単一のリファレンスキャリブレーションを実行
-        self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_01)
-        self.perform_single_ref_calibration(CALIBRATION_VALUE_40)
+        # self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_01)
+        # self.perform_single_ref_calibration(CALIBRATION_VALUE_40)
 
-        self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_02)
-        self.perform_single_ref_calibration(VALUE_00)
+        # self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_02)
+        # self.perform_single_ref_calibration(VALUE_00)
 
         # キャリブレーション後に以前のシーケンス設定を復元
         self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_E8)
