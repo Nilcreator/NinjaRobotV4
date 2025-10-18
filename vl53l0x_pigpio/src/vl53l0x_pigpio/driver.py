@@ -624,9 +624,9 @@ class VL53L0X:
     def perform_single_ref_calibration(self, vhv_init_byte: int) -> None:
         self.write_byte(SYSRANGE_START, VALUE_01 | vhv_init_byte)
         start = time.time()
-        # 2秒上限で待つ（環境により1秒だと落ちる場合がある）
+        # 5秒上限で待つ（環境により1秒だと落ちる場合がある）
         while (self.read_byte(RESULT_INTERRUPT_STATUS) & INTERRUPT_STATUS_MASK) == VALUE_00:
-            if time.time() - start > 2.0:
+            if time.time() - start > 5.0:
                 raise Exception("Timeout during ref calibration")
         self.write_byte(SYSTEM_INTERRUPT_CLEAR, VALUE_01)
         self.write_byte(SYSRANGE_START, VALUE_00)
