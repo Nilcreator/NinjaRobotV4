@@ -424,26 +424,17 @@ class VL53L0X:
         """
         タイミングバジェットを設定し、キャリブレーションを実行します。
         """
-        # 測定タイミングバジェットを取得して設定
-        self.measurement_timing_budget_us = self.get_measurement_timing_budget()
-        self.__log.debug(
-            "measurement_timing_budget_us=%s",
-            self.measurement_timing_budget_us
-        )
+        # Set the measurement timing budget
         self.set_measurement_timing_budget(self.measurement_timing_budget_us)
 
-        # 以前のシーケンス設定を復元し、再度タイミングバジェットを設定
-        self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_E8)
-        self.set_measurement_timing_budget(self.measurement_timing_budget_us)
-
-        # 単一のリファレンスキャリブレーションを実行
+        # Perform single reference calibrations
         self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_01)
         self.perform_single_ref_calibration(CALIBRATION_VALUE_40)
 
         self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_02)
         self.perform_single_ref_calibration(VALUE_00)
 
-        # キャリブレーション後に以前のシーケンス設定を復元
+        # Restore the previous sequence config
         self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_E8)
 
     def initialize(self) -> None:
