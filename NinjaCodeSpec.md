@@ -1,543 +1,312 @@
-# NinjaCodeSpec.md
+# NinjaRobotV3 Code Specification
 
-## File Structure
+This document provides a detailed, code-level specification of the entire NinjaRobotV3 project, including file structures, imported libraries, and detailed descriptions of every function and method.
+
+## 1. Project File Structure
 
 ```
 /
-├── assets/
-│   ├── angry.jpg
-│   └── face_expression.jpg
-├── buzzer.json
-├── GEMINI.md
-├── InstallationGuide.md
-├── main_robot_control.py
-├── ngrok
-├── ngrok.zip
-├── NinjaDevGuide.md
-├── NinjaUserGuide.md
-├── pi0buzzer/
-│   ├── buzzer.json
-│   ├── implementation.md
-│   ├── pyproject.toml
-│   ├── README.md
-│   ├── src/
-│   │   └── pi0buzzer/
-│   │       ├── __init__.py
-│   │       ├── __main__.py
-│   │       └── driver.py
-│   └── uv.lock
-├── pi0disp/
-│   ├── .gitignore
-│   ├── .python-version
-│   ├── docs/
-│   │   ├── ImageProcessor_usage.md
-│   │   ├── pi0disp-test3.mp4
-│   │   ├── PXL_20250820_192440131.jpg
-│   │   ├── PXL_20250820_195152207.jpg
-│   │   ├── samples
-│   │   └── ST7789V.pdf
-│   ├── GEMINI.md
-│   ├── LICENSE
-│   ├── Memo.md
-│   ├── pyproject.toml
-│   ├── README.md
-│   ├── samples/
-│   │   ├── basic_usage.py
-│   │   ├── faces/
-│   │   │   ├── 155542.png
-│   │   │   ├── 155650.png
-│   │   │   ├── 155722.png
-│   │   │   ├── 155802.png
-│   │   │   ├── 155904.png
-│   │   │   ├── 155943.png
-│   │   │   └── 160023.png
-│   │   ├── my_photo.jpg
-│   │   ├── robot_face1.py
-│   │   ├── robot_face2.py
-│   │   └── sprite_usage.py
-│   ├── src/
-│   │   └── pi0disp/
-│   │       ├── 20250821a-Claude.ai/
-│   │       │   ├── modular_architecture_doc.md
-│   │       │   └── optimization_summary.md
-│   │       ├── __init__.py
-│   │       ├── __main__.py
-│   │       ├── commands/
-│   │       │   ├── __init__.py
-│   │       │   ├── ball_anime.py
-│   │       │   ├── image.py
-│   │       │   ├── off.py
-│   │       │   ├── rgb.py
-│   │       │   ├── sleep.py
-│   │       │   └── wake.py
-│   │       ├── disp/
-│   │       │   ├── __init__.py
-│   │       │   └── st7789v.py
-│   │       ├── py.typed
-│   │       └── utils/
-│   │           ├── __init__.py
-│   │           ├── my_logger.py
-│   │           ├── performance_core.py
-│   │           ├── sprite.py
-│   │           └── utils.py
-│   ├── ToDo.md
-│   └── uv.lock
 ├── pi0ninja_v3/
-│   ├── .gitignore
-│   ├── .python-version
-│   ├── pyproject.toml
-│   ├── README.md
-│   └── src/
-│       └── pi0ninja_v3/
-│           ├── __init__.py
-│           ├── detect_distance.py
-│           ├── facial_expressions.py
-│           ├── movement_recorder.py
-│           ├── ninja_agent.py
-│           ├── py.typed
-│           ├── robot_sound.py
-│           ├── show_faces.py
-│           ├── static/
-│           │   ├── main.js
-│           │   └── style.css
-│           ├── templates/
-│           │   └── index.html
-│           └── web_server.py
+│   └── src/pi0ninja_v3/
+│       ├── __init__.py
+│       ├── detect_distance.py
+│       ├── facial_expressions.py
+│       ├── movement_recorder.py
+│       ├── ninja_agent.py
+│       ├── robot_sound.py
+│       ├── show_faces.py
+│       └── web_server.py
 ├── piservo0/
-│   ├── .gitignore
-│   ├── .python-version
-│   ├── docs/
-│   │   ├── 20250802a-test-bipad01.mp4
-│   │   ├── api_reference.rst
-│   │   ├── conf.py
-│   │   ├── index.rst
-│   │   ├── JSONCMD_SAMPLES.md
-│   │   ├── MEMO-keybindings.md
-│   │   ├── Memo1.md
-│   │   ├── SG90_a.pdf
-│   │   ├── SoftwareArchitecture1.png
-│   │   ├── SoftwareArchitecture2.png
-│   │   └── STR_CMD.md
-│   ├── GEMINI.md
-│   ├── GEMINI2.md
-│   ├── LICENSE
-│   ├── Memo.md
-│   ├── piservo0/
-│   │   ├── __init__.py
-│   │   ├── __main__.py
-│   │   ├── command/
-│   │   │   ├── __init__.py
-│   │   │   ├── cmd_apiclient.py
-│   │   │   ├── cmd_calib.py
-│   │   │   ├── cmd_servo.py
-│   │   │   └── cmd_strclient.py
-│   │   ├── core/
-│   │   │   ├── __init__.py
-│   │   │   ├── calibrable_servo.py
-│   │   │   ├── multi_servo.py
-│   │   │   └── piservo.py
-│   │   ├── helper/
-│   │   │   ├── __init__.py
-│   │   │   ├── str_cmd_to_json.md
-│   │   │   ├── str_cmd_to_json.py
-│   │   │   ├── thread_multi_servo.py
-│   │   │   └── thread_worker.py
-│   │   ├── py.typed
-│   │   ├── utils/
-│   │   │   ├── __init__.py
-│   │   │   ├── my_logger.py
-│   │   │   └── servo_config_manager.py
-│   │   └── web/
-│   │       ├── __init__.py
-│   │       ├── api_client.py
-│   │       ├── json_api.py
-│   │       └── sample_json.js
-│   ├── pyproject.toml
-│   ├── README.md
-│   ├── REFERENCE.md
-│   ├── samples/
-│   │   ├── sample_01_piservo.py
-│   │   ├── sample_02_calibrable_servo.py
-│   │   ├── sample_03_multi_servo.py
-│   │   └── tiny_robot/
-│   │       ├── __init__.py
-│   │       ├── __main__.py
-│   │       ├── exec.py
-│   │       ├── manual.py
-│   │       ├── py.typed
-│   │       ├── README.md
-│   │       ├── right.txt
-│   │       ├── script1-walk.txt
-│   │       ├── script2-hi.txt
-│   │       ├── script3-happy.txt
-│   │       ├── script4-walk2.txt
-│   │       ├── thr_manual.py
-│   │       ├── tiny_robot_app.py
-│   │       ├── tiny_robot1.jpg
-│   │       ├── walk1.txt
-│   │       ├── walk2.txt
-│   │       └── web.py
-│   ├── tasks/
-│   │   ├── 01_specification_analysis.md
-│   │   └── 02_document_correction.md
-│   ├── tests/
-│   │   ├── conftest.py
-│   │   ├── README.md
-│   │   ├── test_01_piservo.py
-│   │   ├── test_02_servo_config_manager.py
-│   │   ├── test_03_calibrable_servo.py
-│   │   ├── TEST_04_MULTI_SERVO.md
-│   │   ├── test_04_multi_servo.py
-│   │   └── test_05_thread_multi_servo.py
-│   └── uv.lock
-├── README.md
-├── servo_movement.json
-├── servo.json
+│   └── piservo0/
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── command/
+│       │   ├── cmd_apiclient.py
+│       │   ├── cmd_calib.py
+│       │   ├── cmd_servo.py
+│       │   └── cmd_strclient.py
+│       ├── core/
+│       │   ├── calibrable_servo.py
+│       │   ├── multi_servo.py
+│       │   └── piservo.py
+│       └── helper/
+│           ├── str_cmd_to_json.py
+│           └── thread_multi_servo.py
+├── pi0disp/
+│   └── src/pi0disp/
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── commands/
+│       │   ├── ball_anime.py
+│       │   ├── image.py
+│       │   └── off.py
+│       ├── disp/
+│       │   └── st7789v.py
+│       └── utils/
+│           ├── performance_core.py
+│           └── sprite.py
+├── pi0buzzer/
+│   └── src/pi0buzzer/
+│       ├── __init__.py
+│       ├── __main__.py
+│       └── driver.py
 └── vl53l0x_pigpio/
-    ├── .gitignore
-    ├── .python-version
-    ├── archives/
-    │   ├── 20250903-2325-Tasks-done.md
-    │   ├── 20250904-0318-Tasks-done.md
-    │   ├── 20250904-0346-Tasks-done.md
-    │   ├── 20250904-1715-Tasks-done.md
-    │   ├── 20250904-1728-Tasks-done.md
-    │   ├── 20250904-1738-Tasks-done.md
-    │   ├── 20250904-1801-Tasks-done.md
-    │   ├── 20250904-1843-Tasks-done.md
-    │   ├── 20250904-HHMM-Tasks-done.md
-    │   ├── 20250905-1352-Tasks-done.md
-    │   ├── 20250905-1449-Tasks-done.md
-    │   ├── 20250905-1505-Tasks-done.md
-│   ├── 20250905-1528-Tasks-done.md
-    │   ├── 20250905-1550-Tasks-done.md
-    │   ├── 20250905-1601-Tasks-done.md
-    │   ├── 20250905-1601-ToDo.md
-    │   ├── 20250905-1644-Tasks-done.md
-    │   ├── 20250905-1707-ToDo.md
-    │   ├── 20250908-0523-Tasks-done.md
-    │   ├── 20250908-0613-Tasks-done.md
-    │   └── 20250908-0638-ToDo-done.md
-    ├── calibrate_output.txt
-    ├── docs/
-    │   └── PyPI.md
-    ├── GEMINI.md
-    ├── LICENSE
-    ├── pyproject.toml
-    ├── README.md
-    ├── rename_task.py
-    ├── samples/
-    │   ├── calibrate_example.py
-    │   ├── example.py
-    │   └── numpy_example.py
-    ├── src/
-    │   └── vl53l0x_pigpio/
-    │       ├── __init__.py
-    │       ├── __main__.py
-    │       ├── click_utils.py
-    │       ├── config_manager.py
-    │       ├── constants.py
-    │       ├── driver.py
-    │       ├── my_logger.py
-    │       └── py.typed
-    ├── tests/
-    │   ├── test_01_driver.py
-    │   ├── test_02_offset.py
-    │   └── test_03_config_manager.py
-    └── uv.lock
+    └── src/vl53l0x_pigpio/
+        ├── __init__.py
+        ├── __main__.py
+        ├── click_utils.py
+        ├── config_manager.py
+        ├── constants.py
+        └── driver.py
 ```
 
-## Code-level Specifications
-
-This section provides a detailed description of every function and method found in each file, including their required commands/arguments.
-
-### `pi0ninja_v3` Library Specifications
-
-#### `pi0ninja_v3/src/pi0ninja_v3/detect_distance.py`
-
-**Imported Libraries:**
-- `pigpio`
-- `time`
-- `sys`
-- `select`
-- `tty`
-- `termios`
-- `os`
-- `vl53l0x_pigpio`
-
 ---
 
-##### **Classes**
+## 2. Library: `pi0ninja_v3`
 
-##### `DistanceDetector`
+This is the main application that integrates all other hardware libraries and provides the user-facing web interface and AI agent.
+
+### File: `pi0ninja_v3/src/pi0ninja_v3/detect_distance.py`
+
+**Imported Libraries:**
+- `pigpio`, `time`, `sys`, `select`, `termios`, `tty`, `os`, `vl53l0x_pigpio`
+
+**Classes:**
+
+#### `DistanceDetector`
 - **Description:** A class to detect distance using the VL53L0X sensor.
 - **Methods:**
-    - `__init__(self)`: Initializes the DistanceDetector.
+    - `__init__(self)`: Initializes the pigpio connection.
     - `timed_detection(self, count: int, delay: float)`: Performs a specified number of distance measurements with a delay.
-        - `count` (int): The number of measurements to take.
-        - `delay` (float): The delay between measurements in seconds.
     - `continuous_detection(self)`: Performs continuous distance measurement at 5Hz until 'q' is pressed.
-    - `cleanup(self)`: Cleans up the pigpio resources.
+    - `cleanup(self)`: Stops the pigpio connection.
 
----
-
-#### **Functions**
-
-##### `main()`
-- **Description:** Main function to run the interactive distance detector.
-- **Arguments:** None
-- **Returns:** None
-
-### `pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py`
+### File: `pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py`
 
 **Imported Libraries:**
-- `time`
-- `math`
-- `threading`
-- `PIL`
-- `pi0disp.disp.st7789v`
+- `time`, `math`, `threading`, `PIL` (Image, ImageDraw, ImageFont), `pi0disp`
 
----
+**Classes:**
 
-##### **Classes**
-
-##### `AnimatedFaces`
+#### `AnimatedFaces`
 - **Description:** Generates and displays programmatically drawn, animated facial expressions. This class is thread-safe.
 - **Methods:**
-    - `__init__(self, lcd: ST7789V)`: Initializes the AnimatedFaces class.
-        - `lcd`: An instance of the `ST7789V` class.
-    - `stop(self)`: Stops the current animation thread and waits for it to exit.
-    - `play_idle(self, duration_s=float('inf'))`: Plays the idle animation.
-    - `play_happy(self, duration_s=3)`: Plays the happy animation.
-    - `play_laughing(self, duration_s=3)`: Plays the laughing animation.
-    - `play_sad(self, duration_s=3)`: Plays the sad animation.
-    - `play_cry(self, duration_s=3)`: Plays the crying animation.
-    - `play_angry(self, duration_s=3)`: Plays the angry animation.
-    - `play_surprising(self, duration_s=3)`: Plays the surprising animation.
-    - `play_sleepy(self, duration_s=3)`: Plays the sleepy animation.
-    - `play_speaking(self, duration_s=3)`: Plays the speaking animation.
-    - `play_shy(self, duration_s=3)`: Plays the shy animation.
-    - `play_embarrassing(self, duration_s=3)`: Plays the embarrassing animation.
-    - `play_scary(self, duration_s=3)`: Plays the scary animation.
-    - `play_exciting(self, duration_s=3)`: Plays the exciting animation.
-    - `play_confusing(self, duration_s=3)`: Plays the confusing animation.
+    - `__init__(self, lcd: ST7789V)`: Initializes the face controller with an LCD instance.
+    - `stop(self)`: Stops the current animation thread.
+    - `play_idle(self, duration_s=float('inf'))`: Displays a blinking idle face.
+    - `play_happy(self, duration_s=3)`: Displays a happy face.
+    - `play_sad(self, duration_s=3)`: Displays a sad face.
+    - `play_angry(self, duration_s=3)`: Displays an angry face.
+    - `play_surprising(self, duration_s=3)`: Displays a surprised face.
+    - `play_sleepy(self, duration_s=3)`: Displays a sleepy face.
+    - `play_speaking(self, duration_s=3)`: Displays a speaking animation.
+    - `play_shy(self, duration_s=3)`: Displays a shy face.
+    - `play_cry(self, duration_s=3)`: Displays a crying face.
+    - `play_laughing(self, duration_s=3)`: Displays a laughing face.
+    - `play_embarrassing(self, duration_s=3)`: Displays an embarrassed face.
+    - `play_scary(self, duration_s=3)`: Displays a scary face.
+    - `play_exciting(self, duration_s=3)`: Displays an excited face.
+    - `play_confusing(self, duration_s=3)`: Displays a confused face.
 
-### `pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py`
+### File: `pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py`
 
 **Imported Libraries:**
-- `json`
-- `os`
-- `time`
-- `pigpio`
-- `sys`
-- `select`
-- `termios`
-- `tty`
-- `copy`
-- `piservo0.core.calibrable_servo`
+- `json`, `os`, `time`, `pigpio`, `sys`, `select`, `termios`, `tty`, `copy`, `piservo0`
 
----
+**Classes:**
 
-##### **Classes**
-
-##### `ServoController`
+#### `ServoController`
 - **Description:** A custom controller to manage multiple servos based on `servo.json`.
 - **Methods:**
-    - `__init__(self)`: Initializes the ServoController.
-    - `get_servo_definitions(self)`: Returns the raw servo definitions from the JSON file.
+    - `__init__(self)`: Initializes servos from the config file.
     - `move_servos(self, movements, speed='M')`: Executes a set of servo movements with smooth interpolation.
-        - `movements` (dict): A dictionary of `{pin: angle}`.
-        - `speed` (str, optional): The speed of the movement ('S', 'M', or 'F'). Defaults to 'M'.
-    - `get_current_angles(self)`: Returns a dictionary of `{pin: current_angle}`.
+    - `get_current_angles(self)`: Returns a dictionary of current servo angles.
     - `center_all_servos(self)`: Moves all servos to their center position.
-    - `cleanup(self)`: Turns off all servos and disconnects from pigpio.
+    - `cleanup(self)`: Turns off all servos.
 
-##### `NonBlockingKeyboard`
-- **Description:** A class to handle non-blocking keyboard input.
-- **Methods:**
-    - `__enter__(self)`: Enters a non-blocking keyboard input context.
-    - `__exit__(self, type, value, traceback)`: Exits the non-blocking keyboard input context.
-    - `kbhit(self)`: Checks if a key has been pressed.
-    - `getch(self)`: Gets the pressed character.
+**Functions:**
+- `load_movements()`: Loads movement sequences from `servo_movement.json`.
+- `save_movements(movements)`: Saves movement sequences to `servo_movement.json`.
+- `parse_movement_command(command_str, definitions)`: Parses a user's command string into a speed and a dictionary of movements.
+- `record_new_movement(controller)`: Handles the UI for recording a new movement sequence.
+- `execute_movement(controller)`: Handles the UI for executing a saved movement.
+- `modify_existing_movement(controller)`: Handles the non-destructive modification of a movement sequence.
+- `clear_movement(controller)`: Handles the UI for deleting a movement sequence.
 
----
-
-#### **Functions**
-
-##### `load_movements()`
-- **Description:** Loads movement sequences from the JSON file.
-- **Arguments:** None
-- **Returns:** A dictionary of movement sequences.
-
-##### `save_movements(movements)`
-- **Description:** Saves movement sequences to the JSON file.
-- **Arguments:**
-    - `movements` (dict): A dictionary of movement sequences.
-- **Returns:** None
-
-##### `parse_movement_command(command_str, definitions)`
-- **Description:** Parses the user's command string.
-- **Arguments:**
-    - `command_str` (str): The command string to parse.
-    - `definitions` (dict): The servo definitions.
-- **Returns:** A tuple containing the speed and a dictionary of movements.
-
-##### `record_new_movement(controller)`
-- **Description:** Handles the UI and logic for recording a new movement sequence.
-- **Arguments:**
-    - `controller`: An instance of the `ServoController` class.
-- **Returns:** None
-
-##### `execute_movement(controller)`
-- **Description:** Handles the UI and logic for executing a saved movement with looping and interruption.
-- **Arguments:**
-    - `controller`: An instance of the `ServoController` class.
-- **Returns:** None
-
-##### `edit_sequence_menu(controller, sequence_to_edit)`
-- **Description:** UI for editing a sequence.
-- **Arguments:**
-    - `controller`: An instance of the `ServoController` class.
-    - `sequence_to_edit` (list): The sequence to edit.
-- **Returns:** The modified sequence or `None` if aborted.
-
-##### `modify_existing_movement(controller)`
-- **Description:** Handles the non-destructive modification of a movement sequence.
-- **Arguments:**
-    - `controller`: An instance of the `ServoController` class.
-- **Returns:** None
-
-##### `clear_movement(controller)`
-- **Description:** Handles the UI and logic for clearing a movement sequence.
-- **Arguments:**
-    - `controller`: An instance of the `ServoController` class.
-- **Returns:** None
-
-##### `main_menu()`
-- **Description:** Displays the main menu and handles user selection.
-- **Arguments:** None
-- **Returns:** None
-
-### `pi0ninja_v3/src/pi0ninja_v3/ninja_agent.py`
+### File: `pi0ninja_v3/src/pi0ninja_v3/ninja_agent.py`
 
 **Imported Libraries:**
-- `os`
-- `json`
-- `time`
-- `google.generativeai`
-- `pi0ninja_v3.facial_expressions`
-- `pi0ninja_v3.robot_sound`
-- `googlesearch`
+- `os`, `json`, `time`, `google.generativeai`, `googlesearch`
 
----
+**Classes:**
 
-##### **Classes**
-
-##### `NinjaAgent`
-- **Description:** An AI agent for the NinjaRobot that handles text-based conversations.
+#### `NinjaAgent`
+- **Description:** The AI agent for the NinjaRobot that handles text and audio-based conversations.
 - **Methods:**
-    - `__init__(self, api_key: str)`: Initializes the NinjaAgent.
-        - `api_key` (str): The Gemini API key.
-    - `web_search(self, query: str) -> list[str]`: Performs a web search and returns the results.
-        - `query` (str): The search query.
-    - `process_command(self, user_input: str) -> dict`: Processes a text-based user command.
-        - `user_input` (str): The user's text input.
-    - `process_audio_command(self, audio_file_path: str) -> dict`: Processes a voice command from an audio file.
-        - `audio_file_path` (str): The path to the audio file.
+    - `__init__(self, api_key: str)`: Initializes the Gemini model and defines the system prompt.
+    - `web_search(self, query: str)`: Performs a web search using the `googlesearch` library.
+    - `process_command(self, user_input: str)`: Processes a text-based user command and returns an action plan.
+    - `process_audio_command(self, audio_file_path: str)`: Processes a voice command from an audio file.
 
-### `pi0ninja_v3/src/pi0ninja_v3/robot_sound.py`
+### File: `pi0ninja_v3/src/pi0ninja_v3/robot_sound.py`
 
 **Imported Libraries:**
-- `pigpio`
-- `time`
-- `json`
-- `os`
-- `sys`
-- `pi0buzzer.driver`
+- `pigpio`, `time`, `json`, `os`, `sys`, `pi0buzzer`
 
----
+**Classes:**
 
-##### **Classes**
-
-##### `RobotSoundPlayer`
+#### `RobotSoundPlayer`
 - **Description:** A class to play sounds corresponding to robot emotions using a buzzer.
 - **Methods:**
-    - `__init__(self)`: Initializes the RobotSoundPlayer.
+    - `__init__(self)`: Initializes the buzzer from the `buzzer.json` config.
     - `play(self, emotion: str)`: Plays the sound for the given emotion.
-        - `emotion` (str): The name of the emotion.
-    - `cleanup(self)`: Cleans up the pigpio resources.
+    - `cleanup(self)`: Cleans up pigpio resources.
 
----
-
-#### **Functions**
-
-##### `main()`
-- **Description:** Main function to run the interactive sound player.
-- **Arguments:** None
-- **Returns:** None
-
-### `pi0ninja_v3/src/pi0ninja_v3/show_faces.py`
+### File: `pi0ninja_v3/src/pi0ninja_v3/web_server.py`
 
 **Imported Libraries:**
-- `sys`
-- `select`
-- `termios`
-- `tty`
-- `inspect`
-- `time`
-- `random`
-- `pi0disp.disp.st7789v`
-- `pi0ninja_v3.facial_expressions`
+- `socket`, `uvicorn`, `json`, `os`, `pigpio`, `inspect`, `time`, `shutil`, `tempfile`, `asyncio`, `pyngrok`, `fastapi`, `pydantic`, `dotenv`, `qrcode`
+
+**Functions:**
+- `lifespan(app: FastAPI)`: Async context manager to handle hardware initialization on startup and cleanup on shutdown.
+- `handle_first_interaction(request: Request)`: Switches the display from the QR code to the idle face on the first user interaction.
+- `execute_robot_actions(request: Request, action_plan: dict)`: Executes the physical actions (face, sound, movement) planned by the AI agent.
+
+**API Endpoints:**
+- `GET /api/agent/status`: Returns the status of the AI agent.
+- `POST /api/agent/set_api_key`: Sets the Gemini API key.
+- `POST /api/agent/chat`: Sends a text message to the AI agent.
+- `POST /api/agent/chat_voice`: Sends a voice message (audio file) to the AI agent.
+- `GET /api/servos/movements`: Returns a list of available servo movements.
+- `POST /api/servos/movements/{movement_name}/execute`: Executes a servo movement.
+- `GET /api/display/expressions`: Returns a list of available facial expressions.
+- `POST /api/display/expressions/{expression_name}`: Displays a facial expression.
+- `GET /api/sound/emotions`: Returns a list of available emotion sounds.
+- `POST /api/sound/emotions/{emotion_name}`: Plays an emotion sound.
+- `GET /api/sensor/distance`: Returns the current distance from the sensor.
+- `WS /ws/distance`: Streams the distance sensor data via WebSocket.
 
 ---
 
-##### **Classes**
+## 3. Library: `piservo0`
 
-##### `NonBlockingKeyboard`
-- **Description:** A class to handle non-blocking keyboard input.
+A library for controlling servo motors with calibration capabilities.
+
+### File: `piservo0/piservo0/core/piservo.py`
+
+**Classes:**
+
+#### `PiServo`
+- **Description:** The most basic class for controlling a single servo motor using `pigpio`.
 - **Methods:**
-    - `__enter__(self)`: Enters a non-blocking keyboard input context.
-    - `__exit__(self, type, value, traceback)`: Exits the non-blocking keyboard input context.
-    - `kbhit(self)`: Checks if a key has been pressed.
-    - `getch(self)`: Gets the pressed character.
+    - `__init__(self, pi, pin, debug=False)`: Initializes the servo on a specific GPIO pin.
+    - `get_pulse(self)`: Returns the current pulse width of the servo.
+    - `move_pulse(self, pulse)`: Moves the servo to a specific pulse width.
+    - `move_min(self)` / `move_max(self)` / `move_center(self)`: Moves the servo to predefined positions.
+    - `off(self)`: Stops sending pulses to the servo.
+
+### File: `piservo0/piservo0/core/calibrable_servo.py`
+
+**Classes:**
+
+#### `CalibrableServo`
+- **Inherits from:** `PiServo`
+- **Description:** Extends `PiServo` with calibration functionality, allowing for the adjustment of min, center, and max pulse widths.
+- **Methods:**
+    - `__init__(self, pi, pin, conf_file, debug=False)`: Initializes the servo and loads calibration from a config file.
+    - `move_angle(self, deg)`: Moves the servo to a specific angle (-90 to 90).
+    - `get_angle(self)`: Returns the current angle of the servo.
+    - `load_conf(self)` / `save_conf(self)`: Loads/saves calibration data.
+
+### File: `piservo0/piservo0/core/multi_servo.py`
+
+**Classes:**
+
+#### `MultiServo`
+- **Description:** A class to control multiple `CalibrableServo` objects simultaneously.
+- **Methods:**
+    - `__init__(self, pi, pins, ...)`: Initializes a group of servos.
+    - `move_all_angles(self, target_angles)`: Moves all servos to their respective target angles instantly.
+    - `move_all_angles_sync(self, target_angles, move_sec, step_n)`: Moves all servos to their target angles synchronously and smoothly over a specified duration.
+
+### File: `piservo0/piservo0/helper/thread_multi_servo.py`
+
+**Classes:**
+
+#### `ThreadMultiServo`
+- **Description:** A thread-safe wrapper around `MultiServo` that executes commands asynchronously in a separate worker thread.
+- **Methods:**
+    - `__init__(self, pi, pins, ...)`: Initializes the `MultiServo` instance and starts the worker thread.
+    - `send_cmd(self, cmd: dict)`: Sends a command dictionary to the worker thread's queue.
+    - `move_all_angles_sync(self, target_angles, ...)`: Sends a command to move all servos synchronously.
+    - `end(self)`: Stops the worker thread and cleans up resources.
 
 ---
 
-#### **Functions**
+## 4. Library: `pi0disp`
 
-##### `get_face_methods(animated_faces_instance)`
-- **Description:** Inspects the `AnimatedFaces` instance and returns a dictionary of face-playing methods.
-- **Arguments:**
-    - `animated_faces_instance`: An instance of the `AnimatedFaces` class.
-- **Returns:** A dictionary of face-playing methods.
+A high-performance display driver for ST7789V-based screens.
 
-##### `draw_idle_frame(faces, is_blinking)`
-- **Description:** Draws a single frame of the idle animation.
-- **Arguments:**
-    - `faces`: An instance of the `AnimatedFaces` class.
-    - `is_blinking` (bool): Whether the eyes should be blinking.
-- **Returns:** None
+### File: `pi0disp/src/pi0disp/disp/st7789v.py`
 
-##### `main()`
-- **Description:** Main function with a non-blocking idle loop and a blocking menu to display facial expressions.
-- **Arguments:** None
-- **Returns:** None
+**Classes:**
 
-### `vl53l0x_pigpio` Library Specifications
+#### `ST7789V`
+- **Description:** An optimized driver for ST7789V-based SPI displays.
+- **Methods:**
+    - `__init__(self, channel, rst_pin, ...)`: Initializes the display hardware.
+    - `set_rotation(self, rotation)`: Sets the display rotation.
+    - `display(self, image: Image.Image)`: Displays a full PIL Image on the screen.
+    - `display_region(self, image, x0, y0, x1, y1)`: Displays a portion of an image within a specified region for partial updates.
+    - `sleep(self)` / `wake(self)`: Puts the display to sleep or wakes it up.
+    - `close(self)`: Cleans up resources.
 
-#### `vl53l0x_pigpio/my_logger.py`
+### File: `pi0disp/src/pi0disp/utils/performance_core.py`
 
-**Imported Libraries:**
-- `logging`
-- `inspect`
+**Classes:**
+- `MemoryPool`: Manages a pool of reusable memory buffers to reduce garbage collection overhead.
+- `RegionOptimizer`: Merges overlapping or nearby rectangular regions to reduce the number of drawing operations.
+- `ColorConverter`: Provides fast color space conversion utilities (e.g., RGB to RGB565) using cached lookup tables.
 
 ---
 
-#### **Functions**
+## 5. Library: `pi0buzzer`
 
-##### `get_logger(name: str, debug: bool = False) -> logging.Logger`
-- **Description:** Configures and returns a logger instance.
-- **Arguments:**
-    - `name` (str): The name for the logger, typically `__name__`.
-    - `debug` (bool): If True, the logger's level is set to DEBUG, otherwise it defaults to INFO.
-- **Returns:** The configured logger instance.
+A simple driver for controlling a buzzer.
+
+### File: `pi0buzzer/src/pi0buzzer/driver.py`
+
+**Classes:**
+
+#### `Buzzer`
+- **Description:** A class to control a passive buzzer.
+- **Methods:**
+    - `__init__(self, pi, pin, ...)`: Initializes the buzzer on a specific GPIO pin.
+    - `play_sound(self, frequency, duration)`: Plays a sound with a given frequency and duration.
+    - `off(self)`: Stops the sound.
+
+#### `MusicBuzzer`
+- **Inherits from:** `Buzzer`
+- **Description:** Extends `Buzzer` with the ability to play pre-defined songs or be controlled via keyboard input.
+- **Methods:**
+    - `play_song(self, song)`: Plays a song defined as a list of notes and durations.
+    - `play_music(self)`: Starts an interactive mode to play music with the computer keyboard.
+
+---
+
+## 6. Library: `vl53l0x_pigpio`
+
+A Python driver for the VL53L0X Time-of-Flight distance sensor.
+
+### File: `vl53l0x_pigpio/src/vl53l0x_pigpio/driver.py`
+
+**Classes:**
+
+#### `VL53L0X`
+- **Description:** A driver for the VL53L0X distance sensor using `pigpio` for I2C communication.
+- **Methods:**
+    - `__init__(self, pi, i2c_bus, ...)`: Initializes the sensor on the specified I2C bus.
+    - `get_range(self)`: Performs a single distance measurement and returns the result in millimeters.
+    - `set_offset(self, offset_mm)`: Sets a calibration offset for the distance measurements.
+    - `calibrate(self, target_distance_mm, num_samples)`: Calculates the required offset based on a known target distance.
+    - `close(self)`: Closes the I2C connection.
