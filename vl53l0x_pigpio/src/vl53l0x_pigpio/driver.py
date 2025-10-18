@@ -441,7 +441,7 @@ class VL53L0X:
         self.perform_single_ref_calibration(CALIBRATION_VALUE_40)
 
         self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_02)
-        self.perform_single_ref_calibration(VALUE_00)
+        # self.perform_single_ref_calibration(VALUE_00)
 
         # キャリブレーション後に以前のシーケンス設定を復元
         self.write_byte(SYSTEM_SEQUENCE_CONFIG, VALUE_E8)
