@@ -9,6 +9,8 @@ This document provides a detailed, code-level specification of the entire NinjaR
 ├── pi0ninja_v3/
 │   └── src/pi0ninja_v3/
 │       ├── __init__.py
+│       ├── config.json
+│       ├── hardware_controllers.py
 │       ├── detect_distance.py
 │       ├── facial_expressions.py
 │       ├── movement_recorder.py
@@ -66,27 +68,21 @@ This document provides a detailed, code-level specification of the entire NinjaR
 
 This is the main application that integrates all other hardware libraries and provides the user-facing web interface and AI agent.
 
-### File: `pi0ninja_v3/src/pi0ninja_v3/detect_distance.py`
+### File: `pi0ninja_v3/src/pi0ninja_v3/hardware_controllers.py`
 
 **Imported Libraries:**
-- `pigpio`, `time`, `sys`, `select`, `termios`, `tty`, `os`, `vl53l0x_pigpio`
+- `json`, `os`, `time`, `pigpio`, `sys`, `select`, `termios`, `tty`, `copy`, `math`, `threading`, `PIL` (Image, ImageDraw, ImageFont), `piservo0`, `pi0disp`, `pi0buzzer`, `vl53l0x_pigpio`
 
 **Classes:**
 
-#### `DistanceDetector`
-- **Description:** A class to detect distance using the VL53L0X sensor.
+#### `ServoController`
+- **Description:** A custom controller to manage multiple servos based on `config.json`.
 - **Methods:**
-    - `__init__(self)`: Initializes the pigpio connection.
-    - `timed_detection(self, count: int, delay: float)`: Performs a specified number of distance measurements with a delay.
-    - `continuous_detection(self)`: Performs continuous distance measurement at 5Hz until 'q' is pressed.
-    - `cleanup(self)`: Stops the pigpio connection.
-
-### File: `pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py`
-
-**Imported Libraries:**
-- `time`, `math`, `threading`, `PIL` (Image, ImageDraw, ImageFont), `pi0disp`
-
-**Classes:**
+    - `__init__(self)`: Initializes servos from the config file.
+    - `move_servos(self, movements, speed='M')`: Executes a set of servo movements with smooth interpolation.
+    - `get_current_angles(self)`: Returns a dictionary of current servo angles.
+    - `center_all_servos(self)`: Moves all servos to their center position.
+    - `cleanup(self)`: Turns off all servos.
 
 #### `AnimatedFaces`
 - **Description:** Generates and displays programmatically drawn, animated facial expressions. This class is thread-safe.
@@ -108,30 +104,36 @@ This is the main application that integrates all other hardware libraries and pr
     - `play_exciting(self, duration_s=3)`: Displays an excited face.
     - `play_confusing(self, duration_s=3)`: Displays a confused face.
 
+#### `RobotSoundPlayer`
+- **Description:** A class to play sounds corresponding to robot emotions using a buzzer.
+- **Methods:**
+    - `__init__(self)`: Initializes the buzzer from the `config.json` config.
+    - `play(self, emotion: str)`: Plays the sound for the given emotion.
+    - `cleanup(self)`: Cleans up pigpio resources.
+
+#### `DistanceDetector`
+- **Description:** A class to detect distance using the VL53L0X sensor.
+- **Methods:**
+    - `__init__(self)`: Initializes the pigpio connection.
+    - `timed_detection(self, count: int, delay: float)`: Performs a specified number of distance measurements with a delay.
+    - `continuous_detection(self)`: Performs continuous distance measurement at 5Hz until 'q' is pressed.
+    - `cleanup(self)`: Stops the pigpio connection.
+
+### File: `pi0ninja_v3/src/pi0ninja_v3/detect_distance.py`
+
+This file is now empty. The `DistanceDetector` class has been moved to `hardware_controllers.py`.
+
+### File: `pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py`
+
+This file is now empty. The `AnimatedFaces` class has been moved to `hardware_controllers.py`.
+
 ### File: `pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py`
 
-**Imported Libraries:**
-- `json`, `os`, `time`, `pigpio`, `sys`, `select`, `termios`, `tty`, `copy`, `piservo0`
+This file now only contains functions for recording, playing back, and editing servo movement sequences. The `ServoController` class has been moved to `hardware_controllers.py`.
 
-**Classes:**
+### File: `pi0ninja_v3/src/pi0ninja_v3/robot_sound.py`
 
-#### `ServoController`
-- **Description:** A custom controller to manage multiple servos based on `servo.json`.
-- **Methods:**
-    - `__init__(self)`: Initializes servos from the config file.
-    - `move_servos(self, movements, speed='M')`: Executes a set of servo movements with smooth interpolation.
-    - `get_current_angles(self)`: Returns a dictionary of current servo angles.
-    - `center_all_servos(self)`: Moves all servos to their center position.
-    - `cleanup(self)`: Turns off all servos.
-
-**Functions:**
-- `load_movements()`: Loads movement sequences from `servo_movement.json`.
-- `save_movements(movements)`: Saves movement sequences to `servo_movement.json`.
-- `parse_movement_command(command_str, definitions)`: Parses a user's command string into a speed and a dictionary of movements.
-- `record_new_movement(controller)`: Handles the UI for recording a new movement sequence.
-- `execute_movement(controller)`: Handles the UI for executing a saved movement.
-- `modify_existing_movement(controller)`: Handles the non-destructive modification of a movement sequence.
-- `clear_movement(controller)`: Handles the UI for deleting a movement sequence.
+This file is now empty. The `RobotSoundPlayer` class has been moved to `hardware_controllers.py`.
 
 ### File: `pi0ninja_v3/src/pi0ninja_v3/ninja_agent.py`
 
@@ -147,20 +149,6 @@ This is the main application that integrates all other hardware libraries and pr
     - `web_search(self, query: str)`: Performs a web search using the `googlesearch` library.
     - `process_command(self, user_input: str)`: Processes a text-based user command and returns an action plan.
     - `process_audio_command(self, audio_file_path: str)`: Processes a voice command from an audio file.
-
-### File: `pi0ninja_v3/src/pi0ninja_v3/robot_sound.py`
-
-**Imported Libraries:**
-- `pigpio`, `time`, `json`, `os`, `sys`, `pi0buzzer`
-
-**Classes:**
-
-#### `RobotSoundPlayer`
-- **Description:** A class to play sounds corresponding to robot emotions using a buzzer.
-- **Methods:**
-    - `__init__(self)`: Initializes the buzzer from the `buzzer.json` config.
-    - `play(self, emotion: str)`: Plays the sound for the given emotion.
-    - `cleanup(self)`: Cleans up pigpio resources.
 
 ### File: `pi0ninja_v3/src/pi0ninja_v3/web_server.py`
 

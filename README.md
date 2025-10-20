@@ -14,6 +14,16 @@ This installs all necessary local packages in editable mode.
 
 ## Development History
 
+### 2025-10-20: Phase 2 - Code Consolidation and Configuration Centralization
+
+- **Change**: Consolidated all hardware controller classes (`ServoController`, `AnimatedFaces`, `RobotSoundPlayer`, `DistanceDetector`) into a single file: `pi0ninja_v3/src/pi0ninja_v3/hardware_controllers.py`.
+- **Change**: Centralized hardware configuration by merging `servo.json` and `buzzer.json` into a single `pi0ninja_v3/config.json` file.
+- **Refactoring**:
+    - Updated all code that referenced the old configuration files to use the new `config.json`.
+    - Refactored `web_server.py` to import the consolidated hardware controllers from `hardware_controllers.py`.
+    - Removed the old `servo.json` and `buzzer.json` files.
+- **Documentation**: Updated `NinjaCodeSpec.md`, `NinjaDevGuide.md`, and `NinjaUserGuide.md` to reflect the new file structure and code organization.
+
 ### 2025-10-18: Documentation Overhaul
 
 - **Change**: A comprehensive review and update of all project documentation was completed.

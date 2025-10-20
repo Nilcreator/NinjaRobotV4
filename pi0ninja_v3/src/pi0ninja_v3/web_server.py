@@ -19,17 +19,15 @@ from dotenv import load_dotenv, set_key
 import qrcode
 
 # Import all hardware controllers and utility functions
-from pi0ninja_v3.movement_recorder import ServoController, load_movements
+from pi0ninja_v3.hardware_controllers import ServoController, AnimatedFaces, RobotSoundPlayer, DistanceDetector
 from pi0disp.disp.st7789v import ST7789V
 from pi0buzzer.driver import Buzzer
-from vl53l0x_pigpio.driver import VL53L0X
-from pi0ninja_v3.facial_expressions import AnimatedFaces
-from pi0ninja_v3.robot_sound import RobotSoundPlayer
+from pi0ninja_v3.movement_recorder import load_movements
 from pi0ninja_v3.ninja_agent import NinjaAgent
 
 # --- Configuration and Setup ---
-NINJA_ROBOT_V3_ROOT = "/home/rogerchang/NinjaRobotV3"
-BUZZER_CONFIG_FILE = os.path.join(NINJA_ROBOT_V3_ROOT, "buzzer.json")
+NINJA_ROBOT_V3_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+CONFIG_FILE = os.path.join(NINJA_ROBOT_V3_ROOT, "pi0ninja_v3", "config.json")
 DOTENV_PATH = os.path.join(NINJA_ROBOT_V3_ROOT, ".env")
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -55,14 +53,15 @@ async def lifespan(app: FastAPI):
     # Initialize controllers
     controllers["servo"] = ServoController()
     controllers["display"] = ST7789V()
-    controllers["distance_sensor"] = VL53L0X(pi)
+    controllers["distance_sensor"] = DistanceDetector()
     controllers["faces"] = AnimatedFaces(controllers["display"])
     try:
-        with open(BUZZER_CONFIG_FILE, 'r') as f:
-            buzzer_pin = json.load(f)['pin']
+        with open(CONFIG_FILE, 'r') as f:
+            config = json.load(f)
+            buzzer_pin = config['buzzer']['pin']
             controllers["buzzer"] = Buzzer(pi, buzzer_pin)
     except (FileNotFoundError, KeyError):
-        print(f"Warning: {BUZZER_CONFIG_FILE} not found or invalid. Buzzer not initialized.")
+        print(f"Warning: {CONFIG_FILE} not found or invalid. Buzzer not initialized.")
         controllers["buzzer"] = None
 
     app.state.controllers = controllers
@@ -140,7 +139,7 @@ async def lifespan(app: FastAPI):
     if controllers.get("buzzer"):
         controllers["buzzer"].off()
     if controllers.get("distance_sensor"):
-        controllers["distance_sensor"].close()
+        controllers["distance_sensor"].cleanup()
     pi.stop()
     ngrok.kill()
 
