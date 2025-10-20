@@ -199,14 +199,13 @@ These commands help you check that each component is working correctly.
     ```
 *   **Why:** This tells the sensor driver (`vl53l0x_pigpio`) to measure the distance to the nearest object and print it in millimeters.
 
-#### **Test 4: The Servos (Muscles)**
+#### **Test 4: The Servos (Muscles) and Calibration**
 
-*   **What to do:** Let's test the left leg servo. Run this command to move it to its center position.
+*   **What to do:** Let's test the left leg servo and enter the calibration tool.
     ```bash
-    uv run piservo0 servo 17 1500
+    uv run piservo0 calib 17
     ```
-    You can try other pulse widths, like `600` (minimum) or `2400` (maximum).
-*   **Why:** This command tells the servo driver (`piservo0`) to move the servo on GPIO pin 17 to a pulse width of 1500 (the center). You can test other servos by changing the pin number (e.g., `27` for the right leg).
+*   **Why:** This command starts the interactive calibration tool for the servo on GPIO pin 17. Calibration is a **critical first step** to ensure your robot's movements are accurate. Servos can vary, and this tool lets you define the exact pulse widths for the center, minimum, and maximum positions. Follow the on-screen instructions to adjust and save the settings. It is highly recommended to do this for all servos.
 
 ### Bringing Your Robot to Life: The Web Interface
 
