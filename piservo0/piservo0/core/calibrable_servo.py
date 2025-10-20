@@ -18,7 +18,7 @@ class CalibrableServo(PiServo):
         pulse_max (int): キャリブレーション後の最大位置のパルス幅。
     """
 
-    DEF_CONF_FILE = "config.json"  # デフォルトの設定ファイル名
+    DEF_CONF_FILE = "servo.json"  # デフォルトの設定ファイル名
 
     ANGLE_MIN = -90.0
     ANGLE_MAX = 90.0

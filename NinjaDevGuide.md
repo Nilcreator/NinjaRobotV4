@@ -9,7 +9,7 @@ This document provides a comprehensive guide for developers working on the Ninja
 The NinjaRobotV3 project is a modular system composed of several Python sub-projects, each responsible for controlling a specific hardware component or providing a specific functionality. The main application, `pi0ninja_v3`, integrates all these components and exposes a unified web interface for controlling the robot.
 
 The sub-projects are:
-- **`pi0ninja_v3`**: The main application that integrates all other components and provides the web interface and AI agent. It now contains a centralized `config.json` for hardware settings and a `hardware_controllers.py` module that consolidates all hardware control logic.
+- **`pi0ninja_v3`**: The main application that integrates all other components and provides the web interface and AI agent.
 - **`piservo0`**: A library for controlling servo motors.
 - **`pi0disp`**: A library for controlling the ST7789V display.
 - **`pi0buzzer`**: A library for controlling the buzzer.
@@ -83,7 +83,7 @@ The project uses `uv` for package management and `pigpio` for hardware control.
 
 ### 3.1. Architecture
 
-The main application is a FastAPI web server that integrates all the hardware controllers and the AI agent. It provides a web interface for controlling the robot and a RESTful API for programmatic access. All hardware control logic is now consolidated in `hardware_controllers.py`.
+The main application is a FastAPI web server that integrates all the hardware controllers and the AI agent. It provides a web interface for controlling the robot and a RESTful API for programmatic access.
 
 ### 3.2. Web Server (`web_server.py`)
 
@@ -107,12 +107,12 @@ The main application is a FastAPI web server that integrates all the hardware co
 - **System Prompt**: The agent's behavior is defined by a system prompt that instructs it on how to respond to user commands and how to use the available tools.
 - **Function Calling**: The agent uses function calling to perform web searches using the `googlesearch-python` library.
 
-### 3.4. Hardware Control (`hardware_controllers.py`)
+### 3.4. Hardware Control
 
-- **`ServoController`**: Manages multiple servos and a set of functions to record, play back, and edit servo movement sequences.
-- **`AnimatedFaces`**: Provides methods to display various animated facial expressions on the ST7789V display.
-- **`RobotSoundPlayer`**: Provides methods to play sounds corresponding to different emotions.
-- **`DistanceDetector`**: Provides methods to get distance readings from the VL53L0X sensor.
+- **Servo Control (`movement_recorder.py`)**: This module provides a `ServoController` class to manage multiple servos and a set of functions to record, play back, and edit servo movement sequences.
+- **Display Control (`facial_expressions.py`)**: The `AnimatedFaces` class provides methods to display various animated facial expressions on the ST7789V display.
+- **Sound Control (`robot_sound.py`)**: The `RobotSoundPlayer` class provides methods to play sounds corresponding to different emotions.
+- **Distance Sensing (`detect_distance.py`)**: The `DistanceDetector` class provides methods to get distance readings from the VL53L0X sensor.
 
 ## 4. Troubleshooting
 

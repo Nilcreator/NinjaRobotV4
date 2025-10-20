@@ -48,7 +48,7 @@ Tiny Robot: Manual mode
     help="step interval sec"
 )
 @click.option(
-    "--conf_file", "-f", type=str, default="./config.json", show_default=True,
+    "--conf_file", "-f", type=str, default="./servo.json", show_default=True,
     help="Config file path"
 )
 @click.option("--debug", "-d", is_flag=True, help="Enable debug mode")

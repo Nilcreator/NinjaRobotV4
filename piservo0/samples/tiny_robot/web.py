@@ -21,7 +21,7 @@ from piservo0 import MultiServo, StrControl, ThreadWorker
 # --- Constants ---
 PINS = [17, 27, 22, 25]
 ANGLE_FACTOR = [-1, -1, 1, 1]
-CONF_FILE = expanduser("~/config.json")
+CONF_FILE = expanduser("~/servo.json")
 
 # Motion Commands
 FORWARD_CMDS = (

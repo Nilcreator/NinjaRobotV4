@@ -48,6 +48,8 @@ The web interface features a chat window where you can interact with the robot's
 - **Purpose**: This library allows you to control the robot's servo motors.
 - **CLI**:
     - `uv run piservo0 --help`: Shows all available commands.
+    - `uv run piservo0 servo <pin> <pulse>`: Moves a single servo to a specific pulse width.
+        - **Example**: `uv run piservo0 servo 17 1500` (moves the servo on pin 17 to the center position).
     - `uv run piservo0 calib <pin>`: Starts the interactive calibration tool for a specific servo.
 - **Python Library Usage**:
     ```python
@@ -173,3 +175,28 @@ This command will:
 -   Move the servo on pin **27** to the **Center** (0 degrees).
 
 After entering a command, you will have the option to confirm the movement, reset to the previous position, or finish the recording.
+
+### 5.2. `show_faces.py`
+
+- **Purpose**: This script allows you to display the robot's facial expressions.
+- **CLI**:
+    - `python -m pi0ninja_v3.show_faces`: Starts an interactive menu to display facial expressions.
+- **Menu Options**:
+    - A list of available expressions will be displayed. Enter the number corresponding to the expression you want to see.
+
+### 5.3. `robot_sound.py`
+
+- **Purpose**: This script allows you to play sounds corresponding to the robot's emotions.
+- **CLI**:
+    - `python -m pi0ninja_v3.robot_sound`: Starts an interactive menu to play sounds.
+- **Menu Options**:
+    - A list of available emotions will be displayed. Enter the number corresponding to the sound you want to hear.
+
+### 5.4. `detect_distance.py`
+
+- **Purpose**: This script allows you to get distance readings from the VL53L0X sensor.
+- **CLI**:
+    - `python -m pi0ninja_v3.detect_distance`: Starts an interactive menu to perform distance measurements.
+- **Menu Options**:
+    - **1. Timed Detection**: Performs a specified number of distance measurements with a delay.
+    - **2. Continuous Detection**: Performs continuous distance measurement at 5Hz until 'q' is pressed.
