@@ -78,8 +78,7 @@ class ServoConfigManager:
         self.__log.debug("Reading from %s", self.conf_file)
         try:
             with open(self.conf_file, "r", encoding="utf-8") as f:
-                config = json.load(f)
-                return config.get('servo', [])
+                return json.load(f)
         except FileNotFoundError:
             self.__log.warning("Config file not found: %s", self.conf_file)
             return []
@@ -97,16 +96,10 @@ class ServoConfigManager:
         """
         self.__log.debug("Writing to %s", self.conf_file)
         try:
-            with open(self.conf_file, "r+", encoding="utf-8") as f:
-                config = json.load(f)
-                config['servo'] = sorted(data, key=lambda d: d["pin"])
-                f.seek(0)
-                json.dump(config, f, indent=2, ensure_ascii=False)
-                f.truncate()
-        except (FileNotFoundError, json.JSONDecodeError):
-            # If the file doesn't exist or is empty/invalid, create a new one
+            # ピン番号でソートしてから書き込むと、ファイルが綺麗になる
+            sorted_data = sorted(data, key=lambda d: d["pin"])
             with open(self.conf_file, "w", encoding="utf-8") as f:
-                json.dump({'servo': sorted(data, key=lambda d: d["pin"])}, f, indent=2, ensure_ascii=False)
+                json.dump(sorted_data, f, indent=2, ensure_ascii=False)
         except IOError as e:
             self.__log.error("Failed to write to %s: %s", self.conf_file, e)
 

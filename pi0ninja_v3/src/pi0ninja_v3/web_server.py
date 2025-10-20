@@ -19,13 +19,17 @@ from dotenv import load_dotenv, set_key
 import qrcode
 
 # Import all hardware controllers and utility functions
-from pi0ninja_v3.hardware_controllers import ServoController, AnimatedFaces, RobotSoundPlayer, DistanceDetector
-from pi0ninja_v3.movement_recorder import load_movements
+from pi0ninja_v3.movement_recorder import ServoController, load_movements
+from pi0disp.disp.st7789v import ST7789V
+from pi0buzzer.driver import Buzzer
+from vl53l0x_pigpio.driver import VL53L0X
+from pi0ninja_v3.facial_expressions import AnimatedFaces
+from pi0ninja_v3.robot_sound import RobotSoundPlayer
 from pi0ninja_v3.ninja_agent import NinjaAgent
 
 # --- Configuration and Setup ---
 NINJA_ROBOT_V3_ROOT = "/home/rogerchang/NinjaRobotV3"
-CONFIG_FILE = os.path.join(NINJA_ROBOT_V3_ROOT, "config.json")
+BUZZER_CONFIG_FILE = os.path.join(NINJA_ROBOT_V3_ROOT, "buzzer.json")
 DOTENV_PATH = os.path.join(NINJA_ROBOT_V3_ROOT, ".env")
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -44,13 +48,22 @@ class AgentChatRequest(BaseModel):
 async def lifespan(app: FastAPI):
     # --- Startup ---
     print("Initializing hardware controllers...")
-    
+    pi = pigpio.pi()
+    if not pi.connected:
+        raise RuntimeError("Could not connect to pigpio daemon.")
+
     # Initialize controllers
     controllers["servo"] = ServoController()
     controllers["display"] = ST7789V()
-    controllers["distance_sensor"] = DistanceDetector()
+    controllers["distance_sensor"] = VL53L0X(pi)
     controllers["faces"] = AnimatedFaces(controllers["display"])
-    controllers["sound"] = RobotSoundPlayer()
+    try:
+        with open(BUZZER_CONFIG_FILE, 'r') as f:
+            buzzer_pin = json.load(f)['pin']
+            controllers["buzzer"] = Buzzer(pi, buzzer_pin)
+    except (FileNotFoundError, KeyError):
+        print(f"Warning: {BUZZER_CONFIG_FILE} not found or invalid. Buzzer not initialized.")
+        controllers["buzzer"] = None
 
     app.state.controllers = controllers
     app.state.ninja_agent = None
@@ -124,10 +137,11 @@ async def lifespan(app: FastAPI):
         controllers["servo"].cleanup()
     if controllers.get("display"):
         controllers["display"].close()
-    if controllers.get("sound"):
-        controllers["sound"].cleanup()
+    if controllers.get("buzzer"):
+        controllers["buzzer"].off()
     if controllers.get("distance_sensor"):
-        controllers["distance_sensor"].cleanup()
+        controllers["distance_sensor"].close()
+    pi.stop()
     ngrok.kill()
 
 # --- Helper Functions ---
@@ -162,9 +176,20 @@ async def execute_robot_actions(request: Request, action_plan: dict):
             action_tasks.append(asyncio.create_task(play_face_and_return_to_idle()))
 
     if sound:
-        sound_controller = app_controllers.get("sound")
-        if sound_controller:
-            action_tasks.append(asyncio.to_thread(sound_controller.play, sound))
+        buzzer = app_controllers.get("buzzer")
+        if buzzer:
+            melody = RobotSoundPlayer.SOUNDS.get(sound)
+            if melody:
+                def play_sound_thread():
+                    for note_name, duration in melody:
+                        if note_name == 'pause':
+                            time.sleep(duration)
+                        else:
+                            frequency = RobotSoundPlayer.NOTES.get(note_name)
+                            if frequency:
+                                buzzer.play_sound(frequency, duration)
+                                time.sleep(0.01)  # Brief pause
+                action_tasks.append(asyncio.to_thread(play_sound_thread))
 
     if movement:
         servo_controller = app_controllers.get("servo")
@@ -265,16 +290,25 @@ def show_facial_expression(expression_name: str, request: Request):
     return {"status": f"Expression '{expression_name}' displayed"}
 
 @api_router.get("/sound/emotions")
-def get_emotion_sounds(request: Request):
-    sound_controller = request.app.state.controllers.get("sound")
-    return {"emotions": sorted(list(sound_controller.SOUNDS.keys()))}
+def get_emotion_sounds():
+    return {"emotions": sorted(list(RobotSoundPlayer.SOUNDS.keys()))}
 
 @api_router.post("/sound/emotions/{emotion_name}")
 def play_emotion_sound(emotion_name: str, request: Request):
-    sound_controller = request.app.state.controllers.get("sound")
-    if not sound_controller:
-        raise HTTPException(status_code=500, detail="Sound controller not initialized")
-    sound_controller.play(emotion_name)
+    buzzer = request.app.state.controllers.get("buzzer")
+    if not buzzer:
+        raise HTTPException(status_code=500, detail="Buzzer not initialized")
+    melody = RobotSoundPlayer.SOUNDS.get(emotion_name)
+    if not melody:
+        raise HTTPException(status_code=404, detail="Sound not found")
+    for note, duration in melody:
+        if note == 'pause':
+            time.sleep(duration)
+        else:
+            frequency = RobotSoundPlayer.NOTES.get(note)
+            if frequency:
+                buzzer.play_sound(frequency, duration)
+                time.sleep(0.01)
     return {"status": f"Sound for '{emotion_name}' played"}
 
 @api_router.get("/sensor/distance")

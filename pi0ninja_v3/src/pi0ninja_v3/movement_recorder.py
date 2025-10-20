@@ -11,10 +11,104 @@ from piservo0.core.calibrable_servo import CalibrableServo
 
 # Define file paths based on the script's location
 NINJA_ROBOT_V3_ROOT = "/home/rogerchang/NinjaRobotV3"
-CONFIG_FILE = os.path.join(NINJA_ROBOT_V3_ROOT, "config.json")
+SERVO_CONFIG_FILE = os.path.join(NINJA_ROBOT_V3_ROOT, "servo.json")
 MOVEMENTS_FILE = os.path.join(NINJA_ROBOT_V3_ROOT, "servo_movement.json")
 
+class ServoController:
+    """A custom controller to manage multiple servos based on servo.json."""
+    def __init__(self):
+        self.pi = pigpio.pi()
+        if not self.pi.connected:
+            raise IOError("Failed to connect to pigpiod.")
+        
+        self.servos = {}
+        self.servo_definitions = {}
+        self._initialize_servos()
 
+    def _initialize_servos(self):
+        """Loads servo definitions, initializes CalibrableServo objects, and centers them."""
+        try:
+            with open(SERVO_CONFIG_FILE, 'r') as f:
+                servo_configs = json.load(f)
+            
+            print("Initializing and centering servos...")
+            for config in servo_configs:
+                pin = config['pin']
+                servo = CalibrableServo(
+                    self.pi,
+                    pin,
+                    conf_file=SERVO_CONFIG_FILE
+                )
+                self.servos[pin] = servo
+                self.servo_definitions[pin] = config
+                
+                # Set initial position to center to activate the servo
+                servo.move_center()
+                print(f"Initialized and centered servo on pin {pin}")
+            
+            # Give servos time to reach the center position
+            time.sleep(0.5)
+            print("All servos centered.")
+
+        except FileNotFoundError:
+            raise RuntimeError(f"Error: {SERVO_CONFIG_FILE} not found.")
+        except Exception as e:
+            raise RuntimeError(f"Error initializing servos: {e}")
+
+    def get_servo_definitions(self):
+        """Returns the raw servo definitions from the JSON file."""
+        return self.servo_definitions
+
+    def move_servos(self, movements, speed='M'):
+        """
+        Executes a set of servo movements with smooth interpolation.
+        The duration of the movement is determined by the 'speed' parameter.
+        """
+        duration_map = {'S': 1.0, 'M': 0.5, 'F': 0.2}
+        duration = duration_map.get(speed, 0.5)
+
+        # Get current and target angles for interpolation
+        pins_to_move = [int(p) for p in movements.keys()]
+        current_angles = {p: self.servos[p].get_angle() for p in pins_to_move if p in self.servos}
+        target_angles = {int(p): a for p, a in movements.items()}
+
+        steps = int(duration / 0.02)  # 50 FPS update rate
+        if steps <= 0:
+            steps = 1
+
+        for i in range(1, steps + 1):
+            ratio = i / steps
+            for pin in pins_to_move:
+                if pin in self.servos:
+                    start_angle = current_angles.get(pin, 0)
+                    end_angle = target_angles.get(pin, 0)
+                    
+                    new_angle = start_angle + (end_angle - start_angle) * ratio
+                    self.servos[pin].move_angle(new_angle)
+            time.sleep(0.02)
+
+        # Ensure final position is set accurately
+        for pin in pins_to_move:
+            if pin in self.servos:
+                self.servos[pin].move_angle(target_angles.get(pin, 0))
+
+    def get_current_angles(self):
+        """Returns a dictionary of {pin: current_angle}."""
+        return {pin: servo.get_angle() for pin, servo in self.servos.items()}
+
+    def center_all_servos(self):
+        """Moves all servos to their center position."""
+        print("Centering all servos...")
+        for servo in self.servos.values():
+            servo.move_center()
+        time.sleep(0.5)
+
+    def cleanup(self):
+        """Turns off all servos and disconnects from pigpio."""
+        print("Cleaning up resources.")
+        for servo in self.servos.values():
+            servo.off()
+        self.pi.stop()
 
 def load_movements():
     """Loads movement sequences from the JSON file."""
@@ -48,7 +142,7 @@ def parse_movement_command(command_str, definitions):
             pin_str, angle_char = part.split(':')
             pin = int(pin_str)
             if pin not in definitions:
-                raise ValueError(f"Servo pin {pin} is not defined in {CONFIG_FILE}")
+                raise ValueError(f"Servo pin {pin} is not defined in {SERVO_CONFIG_FILE}")
 
             angle = 0
             if angle_char.upper() == 'X':

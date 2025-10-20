@@ -13,22 +13,33 @@ from pi0ninja_v3.facial_expressions import AnimatedFaces
 from pi0ninja_v3.robot_sound import RobotSoundPlayer
 
 # --- Configuration File Paths ---
-CONFIG_FILE = 'config.json'
+SERVO_CONFIG_FILE = 'servo.json'
+BUZZER_CONFIG_FILE = 'buzzer.json'
 
-def load_config():
-    """Loads servo and buzzer pins from the JSON file."""
-    print(f"Loading configuration from {CONFIG_FILE}...")
+def load_pins_from_config():
+    """Loads servo and buzzer pins from their respective JSON files."""
+    print(f"Loading servo configuration from {SERVO_CONFIG_FILE}...")
     try:
-        with open(CONFIG_FILE, 'r') as f:
-            config = json.load(f)
-        servo_pins = [servo['pin'] for servo in config['servo']]
+        with open(SERVO_CONFIG_FILE, 'r') as f:
+            servo_configs = json.load(f)
+        # The config is a list of dicts, extract the 'pin' from each dict
+        servo_pins = [config['pin'] for config in servo_configs]
         print(f"Found servo pins: {servo_pins}")
-        buzzer_pin = config['buzzer']['pin']
-        print(f"Found buzzer pin: {buzzer_pin}")
-        return servo_pins, buzzer_pin
     except (FileNotFoundError, KeyError) as e:
-        print(f"Error reading config: {e}. Aborting.")
+        print(f"Error reading servo config: {e}. Aborting.")
         return None, None
+
+    print(f"Loading buzzer configuration from {BUZZER_CONFIG_FILE}...")
+    try:
+        with open(BUZZER_CONFIG_FILE, 'r') as f:
+            buzzer_config = json.load(f)
+        buzzer_pin = buzzer_config['pin']
+        print(f"Found buzzer pin: {buzzer_pin}")
+    except (FileNotFoundError, KeyError) as e:
+        print(f"Error reading buzzer config: {e}. Aborting.")
+        return None, None
+
+    return servo_pins, buzzer_pin
 
 def main():
     """
@@ -37,7 +48,7 @@ def main():
     print("Initializing NinjaRobotV3...")
 
     # --- Load Configuration ---
-    servo_pins, buzzer_pin = load_config()
+    servo_pins, buzzer_pin = load_pins_from_config()
     if not servo_pins or not buzzer_pin:
         return
 
@@ -58,10 +69,10 @@ def main():
         lcd = ST7789V()
 
         print("Initializing servos...")
-        servos = MultiServo(pi, servo_pins, conf_file=CONFIG_FILE, first_move=False)
+        servos = MultiServo(pi, servo_pins, conf_file=SERVO_CONFIG_FILE, first_move=False)
 
         print("Initializing buzzer...")
-        buzzer = Buzzer(pi, buzzer_pin, config_file=CONFIG_FILE)
+        buzzer = Buzzer(pi, buzzer_pin, config_file=BUZZER_CONFIG_FILE)
 
         print("Initializing sound player...")
         sound_player = RobotSoundPlayer()
