@@ -1,18 +1,386 @@
-# NinjaRobot Development Log
+# NinjaRobotV3
+
+This document provides a comprehensive overview of the NinjaRobotV3 project, including installation instructions, user and developer guides, and a detailed code specification.
+
+## 1. Introduction
+
+Welcome to the world of robotics! The NinjaRobotV3 is a small, friendly robot that you can build yourself. It's powered by a tiny computer called a Raspberry Pi. This project is designed to be a fun and engaging way to learn the basics of how hardware (like motors and sensors) and software (the code) work together.
+
+**What can the NinjaRobot do?**
+- **Move:** It walks and moves its arms using eight different motors.
+- **See:** It has a laser "eye" to measure how far away things are.
+- **Show Emotions:** It has a screen for a face that can display different expressions.
+- **Make Sounds:** A small buzzer lets it beep and play simple tunes.
+- **Think:** It has an advanced AI "brain" (powered by Google's Gemini) that lets you control it using text or voice commands in a web browser.
+
+By building this robot, you will get a hands-on introduction to electronics, programming, and artificial intelligence, even if you've never written a line of code before!
+
+## 2. Hardware Requirements
+
+Here is a list of the parts you'll need to build your robot. Each component has a special job.
+
+| Component | Quantity | What it does |
+| :--- | :--- | :--- |
+| Raspberry Pi Zero 2W | 1 | The robot's "brain"—a small computer that runs all the software. |
+| Ninja Robot customized expansion HAT & Power Management HAT | 1 set | Special circuit boards that make it easy to connect all the parts to the Pi. |
+| SG90 180° servo | 4 | The robot's "muscles" for its legs, allowing it to stand and move. |
+| DSpower M005 nano servo | 4 | Smaller "muscles" for the robot's arms. |
+| VL53L0X laser distance sensor | 1 | The robot's "eyes"—it uses a laser to see how far away objects are. |
+| 2.4-inch SPI TFT Display Module | 1 | The robot's "face," which can show expressions and information. |
+| Buzzer | 1 | The robot's "voice," allowing it to make sounds and beeps. |
+
+### Hardware Connections
+
+The Ninja Robot HAT makes it easy to connect everything. Here’s a reference for how the parts are wired. You shouldn't need to change this, but it's helpful for understanding how it works.
+
+#### **Servos (Motors)**
+
+| Body Part | Connected to GPIO Pin |
+| :--- | :--- |
+| Left Leg | 17 |
+| Right Leg | 27 |
+| Left Foot | 22 |
+| Right Foot | 5 |
+| Left Shoulder | 25 |
+| Right Shoulder | 23 |
+| Left Arm | 21 |
+| Right Arm | 24 |
+
+#### **2.4 inch SPI Display (Face)**
+
+| Pin | Ninja HAT Pin Label |
+| :--- | :--- |
+| GND | GND |
+| VCC | 3V3 |
+| SCL| SCLK |
+| SDA | MOSI |
+| RST | 19 |
+| DC | 18 |
+| CS | CE0 |
+| BL | 20 |
+
+#### **2.0 inch SPI Display (Face)**
+| Pin | Ninja HAT Pin Label |
+| :--- | :--- |
+| VCC | 3V3 |
+| GND | GND |
+| DIN| MOSI |
+| CLK | SCLK |
+| CS | CE0 |
+| DC | 18 |
+| RST | 19 |
+| BL | 20 |
+
+#### **Buzzer (Voice)**
+
+| Buzzer Pin | Connected to GPIO Pin |
+| :--- | :--- |
+| Signal | 26 |
+
+#### **VL53L0X Sensor (Eyes)**
+
+This sensor uses a connection called I2C, which has standard pins.
+
+| Pin | Ninja HAT Pin Label |
+| :--- | :--- |
+| SDA | SDA (I2C) |
+| SCL | SCL (I2C) |
+| VCC | 3V (I2C) |
+| GND | GND (I2C) |
+
+## 3. Software Installation Guide
+
+Now let's get the software—the instructions that tell the robot what to do—set up on your Raspberry Pi.
+
+#### **Step 1: Install Raspberry Pi OS**
+
+*   **What to do:** Use the official Raspberry Pi Imager to install the "Raspberry Pi OS (Legacy, 64-bit)" on your microSD card.
+*   **Why:** The operating system is the foundation for all other software. We use the 64-bit Legacy version for the best compatibility with the robot's drivers.
+*   **How:** Follow the official guide here: [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/)
+
+#### **Step 2: Update Your System**
+
+*   **What to do:** Open a terminal on your Raspberry Pi and run this command:
+    ```bash
+    sudo apt update && sudo apt upgrade -y
+    ```
+*   **Why:** This command downloads the latest security updates and software improvements for your Pi's operating system, keeping it healthy and secure.
+
+#### **Step 3: Enable Hardware Interfaces (I2C and SPI)**
+
+*   **What to do:** Run the configuration tool with this command:
+    ```bash
+    sudo raspi-config
+    ```
+    In the menu, go to `3 Interface Options` and enable `I3 I2C` and `I4 SPI`.
+*   **Why:** The robot's "eyes" (distance sensor) and "face" (display) use special communication methods called I2C and SPI. This step turns them on so the Pi can talk to them.
+
+#### **Step 4: Install Essential Tools**
+
+*   **What to do:** Install `git` and `pigpio` with this command:
+    ```bash
+    sudo apt install git pigpio -y
+    ```
+*   **Why:**
+    *   `git` is a tool used to download code from the internet, which we'll use to get the NinjaRobot software.
+    *   `pigpio` is a library that is very good at controlling the robot's motors and buzzer with precise timing.
+
+#### **Step 5: Start the `pigpio` Service**
+
+*   **What to do:** Run these two commands, one after the other:
+    ```bash
+    sudo systemctl start pigpiod
+    sudo systemctl enable pigpiod
+    ```
+*   **Why:** This starts the `pigpio` service and sets it to launch automatically every time you turn on your Pi. This is necessary for the motors and buzzer to work.
+
+#### **Step 6: Install `uv` (Python Package Manager)**
+
+*   **What to do:** Run this command to install `uv`, a modern tool for managing Python software.
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+    After it finishes, close and reopen your terminal.
+*   **Why:** The robot's software is written in Python. `uv` is a fast and easy way to install the specific Python libraries the robot needs to function.
+
+#### **Step 7: Download the NinjaRobotV3 Project**
+
+*   **What to do:** Use `git` to download the robot's source code from GitHub.
+    ```bash
+    git clone https://github.com/Nilcreator/NinjaRobotV3.git
+    ```
+    This will create a new folder called `NinjaRobotV3`. Now, move into that folder:
+    ```bash
+    cd NinjaRobotV3
+    ```
+*   **Why:** This command copies all the robot's code, guides, and files from its online home onto your Raspberry Pi.
+
+#### **Step 8: Install the Robot's Python Libraries**
+
+*   **What to do:** This is the final software installation step. Make sure you are in the `NinjaRobotV3` directory and run this command:
+    ```bash
+    uv pip install -e ./pi0ninja_v3 -e ./piservo0 -e ./pi0disp -e ./vl53l0x_pigpio -e ./pi0buzzer
+    ```
+*   **Why:** This command uses `uv` to install all the different software drivers for the robot's parts (servos, display, etc.). The `-e` makes them "editable," which means you can easily modify the code later if you want to experiment.
+
+## 4. User Guide: Testing and Controlling Your Robot
+
+Your robot is built and the software is installed! Let's run some simple tests and then bring your robot to life.
+
+### Testing Individual Parts
+
+These commands help you check that each component is working correctly.
+
+#### **Test 1: The Buzzer (Voice)**
+
+*   **What to do:** Run this command to test the buzzer. It should play a short "Hello World" sound.
+    ```bash
+    uv run pi0buzzer init 26
+    ```
+*   **Why:** This command tells the buzzer driver (`pi0buzzer`) to initialize on GPIO pin 26 and make a sound.
+
+#### **Test 2: The Display (Face)**
+
+*   **What to do:** Run this command to start a test animation on the display. You should see a ball bouncing around the screen. Press `Ctrl+C` to stop.
+    ```bash
+    uv run pi0disp ball_anime
+    ```
+*   **Why:** This runs the display driver's (`pi0disp`) built-in test, confirming that the screen is connected and working correctly.
+
+#### **Test 3: The Distance Sensor (Eyes)**
+
+*   **What to do:** Run this command to take 5 distance readings.
+    ```bash
+    uv run vl53l0x_pigpio get --count 5
+    ```
+*   **Why:** This tells the sensor driver (`vl53l0x_pigpio`) to measure the distance to the nearest object and print it in millimeters.
+
+#### **Test 4: The Servos (Muscles)**
+
+*   **What to do:** Let's test the left leg servo. Run this command to move it to its center position.
+    ```bash
+    uv run piservo0 servo 17 1500
+    ```
+    You can try other pulse widths, like `600` (minimum) or `2400` (maximum).
+*   **Why:** This command tells the servo driver (`piservo0`) to move the servo on GPIO pin 17 to a pulse width of 1500 (the center). You can test other servos by changing the pin number (e.g., `27` for the right leg).
+
+### Bringing Your Robot to Life: The Web Interface
+
+This is the most exciting part! You will now start the main web server that lets you control your robot from a browser and chat with its AI brain.
+
+#### **Step 1: Get Your Gemini API Key**
+
+*   **What to do:**
+    1.  Go to Google AI Studio: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+    2.  Click "**Create API key**" and copy the long string of letters and numbers. This is your key.
+*   **Why:** The Gemini API Key is like a secret password that allows your robot to connect to Google's powerful AI model.
+
+#### **Step 2: Set Up a Public URL for Remote Access (One-Time Setup)**
+
+*   **What to do:** To use the voice chat from any device or control your robot from outside your home network, you need a secure, public URL. This feature uses a tool called `ngrok`. You only need to set this up once.
+    1.  Go to the ngrok dashboard and sign up for a free account: [https://dashboard.ngrok.com/signup](https://dashboard.ngrok.com/signup)
+    2.  On your dashboard, find your **Authtoken**.
+    3.  In your Raspberry Pi terminal, inside the `NinjaRobotV3` folder, run this command, replacing `<YOUR_AUTHTOKEN>` with the token you copied:
+        ```bash
+        ./ngrok config add-authtoken <YOUR_AUTHTOKEN>
+        ```
+*   **Why:** This command securely links the `ngrok` tool on your Pi to your account. This allows the web server to create a secure `https://` address, which is required by modern browsers to use the microphone for voice commands.
+
+#### **Step 3: Start the Web Server**
+
+*   **What to do:** In the terminal, from the `NinjaRobotV3` directory, run this command:
+    ```bash
+    uv run web-server
+    ```
+*   **Why:** This command starts the main application. It initializes all the robot's hardware, creates the public `ngrok` URL, and starts the web interface.
+
+#### **Step 4: Connect and Chat!**
+
+*   **What to do:** When the server starts, it will print several URLs and display a QR code on its screen.
+    1.  **For easy access on a mobile device**, simply scan the QR code on the robot's LCD screen with your phone's camera.
+    2.  Alternatively, to use voice chat from a computer, you **must** use the secure public URL. Look for the line in the terminal that says `Secure Public URL (HTTPS): https://<random-string>.ngrok-free.app` and open that URL in a browser.
+    3.  The first time you open the page, a popup will ask for your Gemini API Key. Paste the key you got in Step 1.
+    4.  The interface will load. You can now talk to your robot!
+
+*   **How to Interact:**
+    *   **Text Chat:** Type a command like "say hello" or "raise your left arm" into the chat box and press Enter.
+    *   **Voice Chat:** Click the microphone icon (🎤). It will turn red while recording. Speak your command, and it will stop automatically when you pause. Your command will be sent to the robot.
+
+**Congratulations!** Your NinjaRobot is now fully built and ready for action. Have fun exploring the world of robotics!
+
+## 5. Development Guide
+
+This section provides a comprehensive guide for developers working on the NinjaRobotV3 project. It covers the project's architecture, the development environment setup, and a detailed description of each library and existing robot function.
+
+### 5.1. Project Architecture
+
+The NinjaRobotV3 project is a modular system composed of several Python sub-projects, each responsible for controlling a specific hardware component or providing a specific functionality. The main application, `pi0ninja_v3`, integrates all these components and exposes a unified web interface for controlling the robot.
+
+The sub-projects are:
+- **`pi0ninja_v3`**: The main application that integrates all other components and provides the web interface and AI agent.
+- **`piservo0`**: A library for controlling servo motors.
+- **`pi0disp`**: A library for controlling the ST7789V display.
+- **`pi0buzzer`**: A library for controlling the buzzer.
+- **`vl53l0x_pigpio`**: A library for the VL53L0X distance sensor.
+
+### 5.2. Development Environment Setup
+
+The project uses `uv` for package management and `pigpio` for hardware control.
+
+1.  **Install `pigpio`**:
+    ```bash
+    sudo apt update
+    sudo apt install pigpio -y
+    sudo systemctl start pigpiod
+    sudo systemctl enable pigpiod
+    ```
+
+2.  **Install `uv`**:
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+    After installation, restart your terminal.
+
+3.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/Nilcreator/NinjaRobotV3.git
+    cd NinjaRobotV3
+    ```
+
+4.  **Install dependencies**:
+    ```bash
+    uv pip install -e ./pi0ninja_v3 -e ./piservo0 -e ./pi0disp -e ./vl53l0x_pigpio -e ./pi0buzzer
+    ```
+
+### 5.3. Core Libraries
+
+#### 5.3.1. `piservo0`
+
+- **Purpose**: A library for controlling servo motors.
+- **Key Classes**:
+    - `PiServo`: A basic class for controlling a single servo motor.
+    - `CalibrableServo`: Extends `PiServo` with calibration functionality.
+    - `MultiServo`: A class to control multiple servos.
+    - `ThreadMultiServo`: A class to control multiple servos asynchronously using threads.
+- **CLI**: `uv run piservo0 --help`
+
+#### 5.3.2. `pi0disp`
+
+- **Purpose**: A library for controlling the ST7789V display.
+- **Key Classes**:
+    - `ST7789V`: The main driver for the ST7789V display.
+    - `Sprite`: A base class for creating animated objects.
+- **CLI**: `uv run pi0disp --help`
+
+#### 5.3.3. `pi0buzzer`
+
+- **Purpose**: A library for controlling the buzzer.
+- **Key Classes**:
+    - `Buzzer`: A class to control a buzzer.
+    - `MusicBuzzer`: Inherits from `Buzzer` and adds music-playing capabilities.
+- **CLI**: `uv run pi0buzzer --help`
+
+#### 5.3.4. `vl53l0x_pigpio`
+
+- **Purpose**: A library for the VL53L0X distance sensor.
+- **Key Classes**:
+    - `VL53L0X`: The main driver for the VL53L0X sensor.
+- **CLI**: `uv run vl53l0x_pigpio --help`
+
+### 5.4. Main Application (`pi0ninja_v3`)
+
+#### 5.4.1. Architecture
+
+The main application is a FastAPI web server that integrates all the hardware controllers and the AI agent. It provides a web interface for controlling the robot and a RESTful API for programmatic access.
+
+#### 5.4.2. Web Server (`web_server.py`)
+
+- **API Endpoints**:
+    - `GET /api/agent/status`: Returns the status of the AI agent.
+    - `POST /api/agent/set_api_key`: Sets the Gemini API key.
+    - `POST /api/agent/chat`: Sends a text message to the AI agent.
+    - `POST /api/agent/chat_voice`: Sends a voice message to the AI agent.
+    - `GET /api/servos/movements`: Returns a list of available servo movements.
+    - `POST /api/servos/movements/{movement_name}/execute`: Executes a servo movement.
+    - `GET /api/display/expressions`: Returns a list of available facial expressions.
+    - `POST /api/display/expressions/{expression_name}`: Displays a facial expression.
+    - `GET /api/sound/emotions`: Returns a list of available emotion sounds.
+    - `POST /api/sound/emotions/{emotion_name}`: Plays an emotion sound.
+    - `GET /api/sensor/distance`: Returns the current distance from the sensor.
+- **WebSocket Endpoints**:
+    - `WS /ws/distance`: Streams the distance sensor data.
+
+#### 5.4.3. AI Agent (`ninja_agent.py`)
+
+- **System Prompt**: The agent's behavior is defined by a system prompt that instructs it on how to respond to user commands and how to use the available tools.
+- **Function Calling**: The agent uses function calling to perform web searches using the `googlesearch-python` library.
+
+#### 5.4.4. Hardware Control
+
+- **Servo Control (`hardware_controllers.py`)**: This module provides a `ServoController` class to manage multiple servos.
+- **Display Control (`hardware_controllers.py`)**: The `AnimatedFaces` class provides methods to display various animated facial expressions on the ST7789V display.
+- **Sound Control (`hardware_controllers.py`)**: The `RobotSoundPlayer` class provides methods to play sounds corresponding to different emotions.
+- **Distance Sensing (`hardware_controllers.py`)**: The `DistanceDetector` class provides methods to get distance readings from the VL53L0X sensor.
+
+## 6. Troubleshooting
+
+- **`python-multipart` Dependency Error**: If the web server fails to start with a `RuntimeError` indicating that `python-multipart` is not installed, it means a required dependency for handling form data (like voice uploads) is missing. This can be resolved by running `uv pip install python-multipart`.
+- **Gemini API File Upload Failures**: If an uploaded file's state becomes `FAILED`, it's likely because the API could not determine the file's type. This can be resolved by explicitly providing the `mime_type` when calling `genai.upload_file()`. For example, for the audio recorded by the web UI, use `mime_type="audio/webm"`.
+- **Gemini API File State Errors**: When uploading a file (e.g., for voice commands), the API may return a `400 Bad Request` with the error "File is not in an ACTIVE state." This is a timing issue. It occurs if you attempt to use the file in a `generate_content` call before the API has finished processing it. The solution is to poll the file's status after uploading. Use `genai.get_file()` in a loop with a delay (`time.sleep`) until `file.state.name` is `ACTIVE` before proceeding.
+- **API Function Call Errors**: When sending a function response back to the Gemini model (e.g., after a web search), `ImportError` or `AttributeError` related to the `Part` class may occur. This is often due to version differences in the `google-generativeai` library. The most robust solution is to avoid importing `Part` directly and instead construct the response using a plain dictionary, which is less sensitive to library updates.
+- **JSON Parsing Errors**: The AI model may occasionally return responses that are not perfectly valid JSON (e.g., using single quotes), causing parsing errors. The current solution is to use a strict system prompt that explicitly instructs the model to return valid, double-quoted JSON.
+
+## 7. Development Log
 
 This file tracks the development progress of the NinjaRobot project.
 
-## Environment Setup
+### 2025-10-20: Phase 2 Refactoring
 
-To ensure all robot components and drivers are correctly installed and accessible, run the following command from the root directory (`NinjaRobotV3/`):
-
-```bash
-uv pip install -e ./pi0ninja_v3 -e ./piservo0 -e ./pi0disp -e ./vl53l0x_pigpio -e ./pi0buzzer
-```
-
-This installs all necessary local packages in editable mode.
-
-## Development History
+- **Change**: Consolidated hardware configuration and control logic.
+- **Details**:
+    - Merged `servo.json` and `buzzer.json` into a single `config.json`.
+    - Created a new `hardware_controllers.py` module to house the `ServoController`, `AnimatedFaces`, `RobotSoundPlayer`, and `DistanceDetector` classes.
+    - Updated all relevant files to use the new centralized configuration and hardware controller modules.
 
 ### 2025-10-18: Documentation Overhaul
 

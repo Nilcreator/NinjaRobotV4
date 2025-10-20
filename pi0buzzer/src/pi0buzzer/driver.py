@@ -7,7 +7,7 @@ import termios
 import select
 
 class Buzzer:
-    def __init__(self, pi, pin, config_file='buzzer.json'):
+    def __init__(self, pi, pin, config_file='config.json'):
         self.pi = pi
         self.pin = pin
         self.config_file = config_file
@@ -16,9 +16,11 @@ class Buzzer:
         # self.play_hello() # remove auto play hello
 
     def save_config(self):
-        config = {'pin': self.pin}
-        with open(self.config_file, 'w') as f:
-            json.dump(config, f)
+        with open(self.config_file, 'r+') as f:
+            config = json.load(f)
+            config['buzzer'] = {'pin': self.pin}
+            f.seek(0)
+            json.dump(config, f, indent=2)
 
     def play_hello(self):
         # A simple melody
@@ -48,7 +50,7 @@ class Buzzer:
         self.pi.set_PWM_dutycycle(self.pin, 0)  # Stop PWM
 
 class MusicBuzzer(Buzzer):
-    def __init__(self, pi, pin, config_file='buzzer.json'):
+    def __init__(self, pi, pin, config_file='config.json'):
         super().__init__(pi, pin, config_file)
 
         # User-provided frequencies for 3 octaves

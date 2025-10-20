@@ -5,6 +5,8 @@ import json
 import time
 from .driver import Buzzer, MusicBuzzer
 
+CONFIG_FILE = 'config.json'
+
 @click.group()
 def cli():
     pass
@@ -18,16 +20,19 @@ def init(pin):
         raise click.ClickException("Could not connect to pigpio daemon. Is it running?")
     
     # Save the pin to config file
-    with open('buzzer.json', 'w') as f:
-        json.dump({'pin': pin}, f)
+    with open(CONFIG_FILE, 'r+') as f:
+        config = json.load(f)
+        config['buzzer'] = {'pin': pin}
+        f.seek(0)
+        json.dump(config, f, indent=2)
 
     buzzer = Buzzer(pi, pin)
     buzzer.off()
     pi.stop()
-    click.echo(f"Buzzer initialized on GPIO {pin} and config saved to buzzer.json")
+    click.echo(f"Buzzer initialized on GPIO {pin} and config saved to {CONFIG_FILE}")
 
 @cli.command()
-@click.option('--pin', type=int, default=None, help='GPIO pin for the buzzer. Reads from buzzer.json if not provided.')
+@click.option('--pin', type=int, default=None, help='GPIO pin for the buzzer. Reads from config.json if not provided.')
 @click.argument('frequency', type=float, default=440.0)
 @click.argument('duration', type=float, default=0.5)
 def beep(pin, frequency, duration):
@@ -38,10 +43,10 @@ def beep(pin, frequency, duration):
 
     if pin is None:
         try:
-            with open('buzzer.json', 'r') as f:
+            with open(CONFIG_FILE, 'r') as f:
                 config = json.load(f)
-                pin = config['pin']
-        except FileNotFoundError:
+                pin = config['buzzer']['pin']
+        except (FileNotFoundError, KeyError):
             raise click.ClickException("Buzzer not initialized. Please run 'pi0buzzer init <pin>' first or specify a pin with --pin.")
 
     buzzer = Buzzer(pi, pin)
@@ -62,10 +67,10 @@ def playmusic(pin):
 
     if pin is None:
         try:
-            with open('buzzer.json', 'r') as f:
+            with open(CONFIG_FILE, 'r') as f:
                 config = json.load(f)
-                pin = config['pin']
-        except FileNotFoundError:
+                pin = config['buzzer']['pin']
+        except (FileNotFoundError, KeyError):
             raise click.ClickException("Buzzer not initialized. Please run 'pi0buzzer init <pin>' first or specify a pin with --pin.")
 
     music_buzzer = MusicBuzzer(pi, pin)
