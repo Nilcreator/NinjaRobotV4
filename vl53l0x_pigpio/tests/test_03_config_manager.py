@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open
 from pathlib import Path
-import json
 
 from vl53l0x_pigpio.config_manager import (
     get_default_config_filepath, load_config, save_config
@@ -15,7 +14,7 @@ class TestConfigManager(unittest.TestCase):
         expected_path = Path("/home/testuser/vl53l0x.json")
         
         # Mock mkdir to prevent actual directory creation
-        with patch('pathlib.Path.mkdir') as mock_mkdir:
+        with patch('pathlib.Path.mkdir'):
             result_path = get_default_config_filepath()
             self.assertEqual(result_path, expected_path)
             # Ensure mkdir was called for the parent directory if it doesn't exist

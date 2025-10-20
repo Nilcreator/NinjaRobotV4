@@ -2,7 +2,9 @@
 # MultiServoのサンプル
 #
 import time
+
 import pigpio
+
 from piservo0 import MultiServo
 
 PINS = [17, 27, 22]             # 3つのサーボを使う

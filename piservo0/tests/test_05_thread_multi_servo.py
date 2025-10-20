@@ -4,8 +4,10 @@
 tests/test_05_thread_multi_servo.py
 (修正版)
 """
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from piservo0.helper.thread_multi_servo import ThreadMultiServo
 
 PINS = [17, 18]
@@ -15,7 +17,8 @@ CONF_FILE = "test_thread_servo.json"
 @pytest.fixture
 def mock_multi_servo_class():
     """MultiServoクラスのモックを返すフィクスチャ"""
-    with patch("piservo0.helper.thread_multi_servo.MultiServo", autospec=True) as mock_ms:
+    with patch("piservo0.helper.thread_multi_servo.MultiServo",
+               autospec=True) as mock_ms:
         #返されるインスタンスのモックを設定
         instance = mock_ms.return_value
         instance.pins = PINS
@@ -26,11 +29,13 @@ def mock_multi_servo_class():
 @pytest.fixture
 def mock_thread_worker_class():
     """ThreadWorkerクラスのモックを返すフィクスチャ"""
-    with patch("piservo0.helper.thread_multi_servo.ThreadWorker", autospec=True) as mock_tw:
+    with patch("piservo0.helper.thread_multi_servo.ThreadWorker",
+               autospec=True) as mock_tw:
         yield mock_tw
 
 @pytest.fixture
-def thread_multi_servo(mocker_pigpio, mock_multi_servo_class, mock_thread_worker_class):
+def thread_multi_servo(mocker_pigpio, mock_multi_servo_class,
+                       mock_thread_worker_class):
     """
     ThreadMultiServoのテスト用インスタンスと、
     それが内包するインスタンスモックを返すフィクスチャ
@@ -55,7 +60,7 @@ class TestThreadMultiServo:
     def test_init(self, mocker_pigpio, mock_multi_servo_class, mock_thread_worker_class):
         """初期化のテスト"""
         pi = mocker_pigpio()
-        tms = ThreadMultiServo(pi, PINS, first_move=True, conf_file=CONF_FILE, debug=True)
+        ThreadMultiServo(pi, PINS, first_move=True, conf_file=CONF_FILE, debug=True)
 
         # MultiServoが正しい引数で初期化されたか
         mock_multi_servo_class.assert_called_once_with(

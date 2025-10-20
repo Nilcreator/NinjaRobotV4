@@ -2,7 +2,9 @@
 # PiServoのサンプル
 #
 import time
+
 import pigpio
+
 from piservo0 import PiServo
 
 PIN = 17                          # 使用するGPIOピン番号

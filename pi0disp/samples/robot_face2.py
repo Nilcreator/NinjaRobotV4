@@ -8,10 +8,9 @@ Spriteクラスを使用してロボットの顔アニメーションを実装�
 import time
 import sys
 from pathlib import Path
-from typing import Tuple, List
-import math
+from typing import List
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 # Add project root to the Python path
 sys.path.append(str(Path(__file__).parent.parent))

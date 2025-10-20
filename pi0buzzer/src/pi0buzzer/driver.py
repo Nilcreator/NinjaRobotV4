@@ -1,7 +1,6 @@
 import pigpio
 import time
 import json
-import os
 import sys
 import tty
 import termios

@@ -3,10 +3,9 @@
 """
 tests/test_01_piservo.py
 """
-from unittest.mock import MagicMock
 import pytest
-from piservo0.core.piservo import PiServo
 
+from piservo0.core.piservo import PiServo
 
 PIN = 17
 
@@ -67,7 +66,8 @@ class TestPiServo:
 
         # Assert
         pi_servo.pi.get_servo_pulsewidth.assert_called_with(PIN)
-        pi_servo.pi.set_servo_pulsewidth.assert_called_with(PIN, current_pulse + pulse_diff)
+        pi_servo.pi.set_servo_pulsewidth.assert_called_with(
+            PIN, current_pulse + pulse_diff)
 
     def test_move_pulse_relative_off(self, pi_servo):
         """move_pulse_relativeのテスト（現在OFFの場合）"""

@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import Mock, patch
 from pathlib import Path
 from vl53l0x_pigpio.driver import VL53L0X
-from vl53l0x_pigpio.config_manager import load_config
 
 class TestVL53L0XOffset(unittest.TestCase):
 

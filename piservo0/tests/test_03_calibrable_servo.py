@@ -4,8 +4,10 @@
 tests/test_03_calibrable_servo.py
 (リファクタリング修正版)
 """
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
+
 from piservo0.core.calibrable_servo import CalibrableServo
 from piservo0.core.piservo import PiServo
 
@@ -142,7 +144,8 @@ class TestCalibrableServoRefactored:
         (100, "self.PULSE_MAX"),
         (-100, "self.PULSE_MIN"),
     ])
-    def test_movement_move_angle_calibrated(self, servo, angle_in, expected_pulse_calc):
+    def test_movement_move_angle_calibrated(self, servo, angle_in,
+                                            expected_pulse_calc):
         """キャリブレーション値を考慮したmove_angleのテスト"""
         self._setup_servo_calibration(servo)
         expected_pulse = eval(expected_pulse_calc)
@@ -158,7 +161,8 @@ class TestCalibrableServoRefactored:
         """move_center/min/maxがキャリブレーション値を使うかのテスト"""
         self._setup_servo_calibration(servo)
         servo.move_center()
-        servo.pi.set_servo_pulsewidth.assert_called_with(PIN, self.PULSE_CENTER)
+        servo.pi.set_servo_pulsewidth.assert_called_with(
+            PIN, self.PULSE_CENTER)
         servo.move_min()
         servo.pi.set_servo_pulsewidth.assert_called_with(PIN, self.PULSE_MIN)
         servo.move_max()

@@ -10,7 +10,7 @@ from typing import Tuple, Optional
 from abc import ABC, abstractmethod
 from PIL import ImageDraw
 
-from pi0disp.utils.utils import merge_bboxes, expand_bbox
+from pi0disp.utils.utils import merge_bboxes
 
 
 class Sprite(ABC):

@@ -11,7 +11,6 @@ from pi0buzzer.driver import Buzzer
 from vl53l0x_pigpio import VL53L0X
 from pi0ninja_v3.facial_expressions import AnimatedFaces
 from pi0ninja_v3.robot_sound import RobotSoundPlayer
-from pathlib import Path
 
 # --- Configuration File Paths ---
 SERVO_CONFIG_FILE = 'servo.json'
@@ -131,6 +130,9 @@ def main():
 
         # 4. Measure and display distance
         print("Measuring distance...")
+        image = Image.new("RGB", (lcd.width, lcd.height))
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default()
         distance = tof.get_range()
         
         draw.rectangle((0, 200, lcd.width, lcd.height), fill="navy")

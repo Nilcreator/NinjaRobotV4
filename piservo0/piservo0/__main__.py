@@ -38,7 +38,8 @@ pyservo0 command
 """
 )
 @click.option("--debug", "-d", is_flag=True, help="debug flag")
-@click.version_option(__version__, "--version", "-v", "-V", message='%(version)s')
+@click.version_option(__version__, "--version", "-v", "-V",
+                    message='%(version)s')
 @click.help_option("--help", "-h")
 @click.pass_context
 def cli(ctx, debug):
@@ -54,18 +55,9 @@ def cli(ctx, debug):
         print(f"{ctx.get_help()}")
 
 
-@cli.command(
-    help="""
-servo command"""
-)
-@click.argument("pin", type=int, nargs=1)
-@click.argument("pulse", type=str, nargs=1)
-@click.option(
-    "--sec", "-t", "-s", type=float, default=1.0, show_default=True,
-    help="sec"
-)
 @click.option("--debug", "-d", is_flag=True, default=False, help="debug flag")
-@click.version_option(__version__, "--version", "-v", "-V", message='%(version)s')
+@click.version_option(__version__, "--version", "-v", "-V",
+                    message='%(version)s')
 @click.help_option("--help", "-h")
 @click.pass_context
 def servo(ctx, pin, pulse, sec, debug):
@@ -111,7 +103,8 @@ calibration tool
     help="Config file"
 )
 @click.option("--debug", "-d", is_flag=True, default=False, help="debug flag")
-@click.version_option(__version__, "--version", "-v", "-V", message='%(version)s')
+@click.version_option(__version__, "--version", "-v", "-V",
+                    message='%(version)s')
 @click.help_option("--help", "-h")
 @click.pass_context
 def calib(ctx, pin, conf_file, debug):
@@ -168,7 +161,8 @@ JSON API Server
     help="port number"
 )
 @click.option("--debug", "-d", is_flag=True, default=False, help="debug flag")
-@click.version_option(__version__, "--version", "-v", "-V", message='%(version)s')
+@click.version_option(__version__, "--version", "-v", "-V",
+                    message='%(version)s')
 @click.help_option("--help", "-h")
 @click.pass_context
 def api_server(ctx, pins, server_host, port, debug):
@@ -217,7 +211,8 @@ API Client (JSON)
     help="History file"
 )
 @click.option("--debug", "-d", is_flag=True, default=False, help="debug flag")
-@click.version_option(__version__, "--version", "-v", "-V", message='%(version)s')
+@click.version_option(__version__, "--version", "-v", "-V",
+                    message='%(version)s')
 @click.help_option("--help", "-h")
 @click.pass_context
 def api_client(ctx, cmdline, url, history_file, debug):
@@ -265,7 +260,8 @@ String Command API Client
     help="Angle Factor"
 )
 @click.option("--debug", "-d", is_flag=True, default=False, help="debug flag")
-@click.version_option(__version__, "--version", "-v", "-V", message='%(version)s')
+@click.version_option(__version__, "--version", "-v", "-V",
+                    message='%(version)s')
 @click.help_option("--help", "-h")
 @click.pass_context
 def str_client(ctx, cmdline, url, history_file, angle_factor, debug):

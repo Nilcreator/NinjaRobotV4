@@ -3,10 +3,12 @@
 """
 tests/test_04_multi_servo.py
 """
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, call
-from piservo0.core.multi_servo import MultiServo
+
 from piservo0.core.calibrable_servo import CalibrableServo
+from piservo0.core.multi_servo import MultiServo
 
 PINS = [17, 18]
 CONF_FILE = "test_multi_servo_conf.json"
@@ -15,7 +17,8 @@ CONF_FILE = "test_multi_servo_conf.json"
 @pytest.fixture
 def mock_calibrable_servo():
     """CalibrableServoのモックを返すフィクスチャ"""
-    with patch("piservo0.core.multi_servo.CalibrableServo", autospec=True) as mock_cs:
+    with patch("piservo0.core.multi_servo.CalibrableServo",
+               autospec=True) as mock_cs:
         # autospec=Trueで、CalibrableServoのインターフェースを持つモックを作成
         # 各インスタンスが異なる振る舞いをするように、side_effectで個別のモックを返す
         servos = [MagicMock(spec=CalibrableServo) for _ in PINS]
@@ -40,7 +43,8 @@ def multi_servo(mocker_pigpio, mock_calibrable_servo):
     pi = mocker_pigpio()
     mock_class, mock_instances = mock_calibrable_servo
     # first_move=Falseにして、初期化時のmove_angle呼び出しをテストから分離
-    ms = MultiServo(pi, PINS, first_move=False, conf_file=CONF_FILE, debug=True)
+    ms = MultiServo(pi, PINS, first_move=False, conf_file=CONF_FILE,
+                    debug=True)
     return ms, mock_instances
 
 
@@ -53,7 +57,7 @@ class TestMultiServo:
         mock_class, mock_instances = mock_calibrable_servo
         
         # first_move=Trueでテスト
-        ms = MultiServo(pi, PINS, first_move=True, conf_file=CONF_FILE, debug=True)
+        MultiServo(pi, PINS, first_move=True, conf_file=CONF_FILE, debug=True)
 
         assert mock_class.call_count == len(PINS)
         for pin in PINS:
@@ -120,7 +124,8 @@ class TestMultiServo:
         for i, servo_mock in enumerate(mock_instances):
             servo_mock.get_angle.return_value = start_angles[i]
 
-        ms.move_all_angles_sync(target_angles, move_sec=move_sec, step_n=steps)
+        ms.move_all_angles_sync(target_angles, move_sec=move_sec,
+                                step_n=steps)
 
         # move_all_anglesが内部で呼ぶmove_angleがsteps回呼ばれる
         assert mock_instances[0].move_angle.call_count == steps
