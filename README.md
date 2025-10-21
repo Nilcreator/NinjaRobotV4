@@ -14,6 +14,12 @@ This installs all necessary local packages in editable mode.
 
 ## Development History
 
+### 2025-10-21: Fixed Facial Expression Timing in Web Server
+
+- **Problem**: When interacting with the robot via the web interface, facial expression animations were cut short, returning to the idle face almost immediately.
+- **Root Cause**: A concurrency issue in the web server's API endpoints (`/api/agent/chat` and `/api/agent/chat_voice`). The code was using `asyncio.create_task()` to start the robot's physical actions, which correctly ran them in the background. However, it did not `await` the task's completion, causing the main function to send its HTTP response and finish before the animation's 3-second duration had passed.
+- **Solution**: Modified the `web_server.py` endpoints to `await` the `execute_robot_actions` function. This change ensures that the server waits for the animation to complete before finishing the request, guaranteeing that expressions are displayed for their full duration.
+
 ### 2025-10-21: Fixed Display Corruption in Face Animation Script
 
 - **Problem**: When running the `show_faces.py` script, the LCD would display corrupted data ("noise") and animations would not play correctly.

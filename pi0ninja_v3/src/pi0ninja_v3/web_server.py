@@ -227,7 +227,7 @@ async def agent_chat(payload: AgentChatRequest, request: Request):
         raise HTTPException(status_code=400, detail="Agent not active.")
     result = await agent.process_command(payload.message)
     if "action_plan" in result and result["action_plan"]:
-        asyncio.create_task(execute_robot_actions(request, result["action_plan"]))
+        await execute_robot_actions(request, result["action_plan"])
     return {"response": result.get("response"), "log": result.get("log")}
 
 @api_router.post("/agent/chat_voice")
@@ -245,7 +245,7 @@ async def agent_chat_voice(request: Request, audio_file: UploadFile = File(...))
         result = await agent.process_audio_command(tmp_path)
         
         if "action_plan" in result and result["action_plan"]:
-            asyncio.create_task(execute_robot_actions(request, result["action_plan"]))
+            await execute_robot_actions(request, result["action_plan"])
             
         return {"response": result.get("response"), "log": result.get("log")}
 
