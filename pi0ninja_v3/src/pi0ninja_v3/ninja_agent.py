@@ -1,8 +1,7 @@
 import os
 import json
-import time
 import google.generativeai as genai
-from google.generativeai.types import GenerationConfig, Tool
+from google.generativeai.types import GenerationConfig, Tool, Part
 from pi0ninja_v3.facial_expressions import AnimatedFaces
 from pi0ninja_v3.robot_sound import RobotSoundPlayer
 from googlesearch import search
@@ -121,32 +120,20 @@ Keep your spoken responses short and friendly. Always respond in the same langua
             return {"action_plan": {}, "response": "I'm sorry, something went wrong.", "log": error_message}
 
     async def process_audio_command(self, audio_file_path: str) -> dict:
-        """Processes a voice command from an audio file."""
+        """Processes a voice command from an audio file by sending the data directly."""
         log_messages = [f"Processing audio file: {audio_file_path}"]
-        audio_file = None
         try:
-            # Upload the audio file to the Gemini API
-            log_messages.append("Uploading audio file...")
-            audio_file = genai.upload_file(path=audio_file_path, mime_type="audio/webm")
-            log_messages.append(f"Audio file uploaded: {audio_file.name}. Waiting for it to become active...")
+            # Read the audio file into bytes
+            with open(audio_file_path, "rb") as f:
+                audio_bytes = f.read()
+            
+            # Create a Part object directly from the audio data
+            audio_part = Part.from_data(audio_bytes, mime_type="audio/webm")
+            log_messages.append("Audio data read directly. Sending to model as inline content.")
 
-            # Wait for the file to be processed
-            timeout_seconds = 60
-            start_time = time.time()
-            while audio_file.state.name == "PROCESSING":
-                if time.time() - start_time > timeout_seconds:
-                    raise TimeoutError("File processing timed out.")
-                time.sleep(2)
-                audio_file = genai.get_file(name=audio_file.name)
-
-            if audio_file.state.name != "ACTIVE":
-                raise ValueError(f"Uploaded file is not active. Current state: {audio_file.state.name}")
-
-            log_messages.append("Audio file is active. Sending to model.")
-
-            # Send the audio file and a prompt to the model as a single list of parts
+            # Send the audio part and a prompt to the model in a single request
             prompt = "Transcribe this audio. Based on the transcription, decide whether to perform a physical action or a web search, and then respond."
-            response = await self.model.generate_content_async([prompt, audio_file])
+            response = await self.model.generate_content_async([prompt, audio_part])
 
             # The response will contain the transcribed text, which the model
             # should have processed as a command.
@@ -177,12 +164,3 @@ Keep your spoken responses short and friendly. Always respond in the same langua
             error_message = f"Error processing audio command: {e}"
             print(error_message)
             return {"action_plan": {}, "response": "I'm sorry, I had trouble understanding the audio.", "log": error_message}
-        finally:
-            # It's good practice to clean up the uploaded file
-            if audio_file and hasattr(audio_file, 'name'):
-                try:
-                    genai.delete_file(audio_file.name)
-                    log_messages.append(f"Cleaned up uploaded file: {audio_file.name}")
-                    print(f"Cleaned up uploaded file: {audio_file.name}")
-                except Exception as delete_e:
-                    print(f"Error deleting uploaded file: {delete_e}")
