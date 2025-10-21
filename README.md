@@ -14,6 +14,12 @@ This installs all necessary local packages in editable mode.
 
 ## Development History
 
+### 2025-10-21: Fixed Voice Input API Error
+
+- **Problem**: The voice input feature was failing with the error `Missing required parameter "ragStoreName"`.
+- **Root Cause**: The method used to send audio data to the Gemini API was outdated. The code was passing the prompt and the audio file as separate arguments, but a recent API update requires multimodal inputs (like text and audio) to be sent as a single, unified list of content parts.
+- **Solution**: The `process_audio_command` method in `ninja_agent.py` was refactored. The call to the Gemini model now correctly formats the request by passing the text prompt and the uploaded audio file object together in a single list (`[prompt, audio_file]`). This aligns the code with the modern API requirements, resolves the error, and restores the voice command functionality.
+
 ### 2025-10-21: Corrected Facial Expression Timing Logic in Web Server
 
 - **Problem**: Facial expression animations, when triggered by the web UI, would only appear for a fraction of a second before being replaced by the idle face.

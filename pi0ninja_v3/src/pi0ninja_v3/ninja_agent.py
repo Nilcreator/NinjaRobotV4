@@ -144,7 +144,7 @@ Keep your spoken responses short and friendly. Always respond in the same langua
 
             log_messages.append("Audio file is active. Sending to model.")
 
-            # Send the audio file and a prompt to the model
+            # Send the audio file and a prompt to the model as a single list of parts
             prompt = "Transcribe this audio. Based on the transcription, decide whether to perform a physical action or a web search, and then respond."
             response = await self.model.generate_content_async([prompt, audio_file])
 
