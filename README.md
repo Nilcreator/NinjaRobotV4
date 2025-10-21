@@ -14,11 +14,11 @@ This installs all necessary local packages in editable mode.
 
 ## Development History
 
-### 2025-10-21: Fixed Facial Expression Timing in Web Server
+### 2025-10-21: Corrected Facial Expression Timing Logic in Web Server
 
-- **Problem**: When interacting with the robot via the web interface, facial expression animations were cut short, returning to the idle face almost immediately.
-- **Root Cause**: A concurrency issue in the web server's API endpoints (`/api/agent/chat` and `/api/agent/chat_voice`). The code was using `asyncio.create_task()` to start the robot's physical actions, which correctly ran them in the background. However, it did not `await` the task's completion, causing the main function to send its HTTP response and finish before the animation's 3-second duration had passed.
-- **Solution**: Modified the `web_server.py` endpoints to `await` the `execute_robot_actions` function. This change ensures that the server waits for the animation to complete before finishing the request, guaranteeing that expressions are displayed for their full duration.
+- **Problem**: Facial expression animations, when triggered by the web UI, would only appear for a fraction of a second before being replaced by the idle face.
+- **Root Cause**: A logical error in the `web_server.py` action handler. The `AnimatedFaces` class methods are non-blocking (they start an animation in a background thread and return immediately). The server code was calling the desired animation and then, without waiting, immediately calling the `play_idle` animation. This caused the idle animation to interrupt and stop the main animation just after it had started.
+- **Solution**: The action handler in `web_server.py` was refactored. It now correctly handles the non-blocking calls by starting the desired animation, then explicitly pausing its own execution for the animation's duration using `asyncio.sleep()`. Only after the sleep period is over does it call `play_idle()`, ensuring the animations are always displayed completely.
 
 ### 2025-10-21: Fixed Display Corruption in Face Animation Script
 

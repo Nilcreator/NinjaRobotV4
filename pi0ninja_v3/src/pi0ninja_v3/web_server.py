@@ -169,9 +169,11 @@ async def execute_robot_actions(request: Request, action_plan: dict):
         method_to_call = getattr(faces_controller, f"play_{face}", None)
         if method_to_call:
             async def play_face_and_return_to_idle():
-                # This is a blocking call, so it runs in a thread
+                # The play_* methods are non-blocking and start a background thread.
                 await asyncio.to_thread(method_to_call, duration_s=3)
-                # Once done, return to idle. Also a blocking call.
+                # We must wait here for the animation to run its course.
+                await asyncio.sleep(3)
+                # Now, explicitly return to idle.
                 await asyncio.to_thread(faces_controller.play_idle)
             action_tasks.append(asyncio.create_task(play_face_and_return_to_idle()))
 
