@@ -14,6 +14,12 @@ This installs all necessary local packages in editable mode.
 
 ## Development History
 
+### 2025-10-21: Fixed Display Corruption in Face Animation Script
+
+- **Problem**: When running the `show_faces.py` script, the LCD would display corrupted data ("noise") and animations would not play correctly.
+- **Root Cause**: A race condition was identified. The script's main function contained its own animation loop that attempted to draw an "idle" face, while simultaneously, the `AnimatedFaces` class would start a separate background thread to draw a selected animation. These two threads conflicted, trying to write to the SPI display at the same time.
+- **Solution**: The `show_faces.py` script was completely refactored. The manual animation loop was removed. The script now correctly utilizes the thread-safe `AnimatedFaces` class by simply calling the desired `play_*` methods and allowing the class to manage its own rendering thread. This eliminates the race condition and ensures smooth, predictable animations.
+
 ### 2025-10-18: Documentation Overhaul
 
 - **Change**: A comprehensive review and update of all project documentation was completed.
