@@ -1,7 +1,7 @@
 import os
 import json
 import google.generativeai as genai
-from google.generativeai.types import GenerationConfig, Tool, Part
+from google.generativeai.types import GenerationConfig, Tool
 from pi0ninja_v3.facial_expressions import AnimatedFaces
 from pi0ninja_v3.robot_sound import RobotSoundPlayer
 from googlesearch import search
@@ -127,8 +127,11 @@ Keep your spoken responses short and friendly. Always respond in the same langua
             with open(audio_file_path, "rb") as f:
                 audio_bytes = f.read()
             
-            # Create a Part object directly from the audio data
-            audio_part = Part.from_data(audio_bytes, mime_type="audio/webm")
+            # Create a dictionary representing the audio part directly
+            audio_part = {
+                "mime_type": "audio/webm",
+                "data": audio_bytes
+            }
             log_messages.append("Audio data read directly. Sending to model as inline content.")
 
             # Send the audio part and a prompt to the model in a single request
