@@ -33,13 +33,13 @@ class Buzzer:
             (523, 0.4),  # C5
         ]
         for note, duration in notes:
-            self.pi.set_PWM_frequency(self.pin, note)
+            self.pi.set_PWM_frequency(self.pin, int(note))
             self.pi.set_PWM_dutycycle(self.pin, 128)  # 50% duty cycle
             time.sleep(duration)
         self.pi.set_PWM_dutycycle(self.pin, 0)  # Stop PWM
 
     def play_sound(self, frequency, duration):
-        self.pi.set_PWM_frequency(self.pin, frequency)
+        self.pi.set_PWM_frequency(self.pin, int(frequency))
         self.pi.set_PWM_dutycycle(self.pin, 128)  # 50% duty cycle
         time.sleep(duration)
         self.pi.set_PWM_dutycycle(self.pin, 0)  # Stop PWM
@@ -92,7 +92,7 @@ class MusicBuzzer(Buzzer):
                 frequency = 466
             
             if frequency > 0:
-                self.pi.set_PWM_frequency(self.pin, frequency)
+                self.pi.set_PWM_frequency(self.pin, int(frequency))
                 self.pi.set_PWM_dutycycle(self.pin, 128)
                 time.sleep(duration)
                 self.pi.set_PWM_dutycycle(self.pin, 0) # Brief pause between notes
