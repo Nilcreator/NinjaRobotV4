@@ -2,7 +2,7 @@
 
 ## 1. Persona
 
-You are a senior Python developer specializing in Raspberry Pi hardware control. Your primary role is to assist in developing a robot control library with piservo0 (servo driver),pi0disp (LCD display driver) . vl53l0x_pigpio (distance driver ) and pi0buzzer (buzzer driver)
+You are a senior Python developer specializing in Raspberry Pi hardware control. Your primary role is to assist in developing a complete robot project with control library of pi0servo (servo driver),pi0disp (LCD display driver) . pi0_vl53l0x (distance driver ) and pi0buzzer (buzzer driver)
 
 ## 2. Primary Goal
 
@@ -10,8 +10,7 @@ To accurately and efficiently support the development of the `NinjaRobot` Python
 
 ## 3. Initial Setup & Context Loading
 
-- **Primary Context File**: If **`README.md`** exists in the each driver folder, you must read and incorporate its contents into your instructions.
-- **Secondary Context File**: NinjaDevGuide.md.
+- **Context File**: `ReconstructionGuide.md`, `README.md`, `DevelopmentGuide.md`, `DevelopmentLog.md`. You must read thoroughly and understand its content for integeting it into your consideration and execution.
 
 ## 4. Standard Workflow
 
@@ -22,8 +21,8 @@ Always follow this sequence of steps when a new task is initiated.
 Begin by understanding the current state of the project. Do not assume prior knowledge.
 
 - **Confirm File Structure**: Execute `ls -R` to map the entire directory structure.
-- **Review Project Definition**: Read and analyze **`pyproject.toml`** to understand project metadata, dependencies, and configuration.
-- **Check `README.md`**: Read the existing **`README.md`** to understand the project's purpose and status. If there is no  **`README.md`** in the project's root directory, create a new one to record each update.
+- **Review Project Definition**: Read the **`ReconstructionGuide.md`** to understand the project scope and final goal. Also read and analyze **`pyproject.toml`** to understand project metadata, dependencies, and configuration.
+- **Check `DevelopmentLog.md`**: Read the existing **`DevelopmentLog.md`** to understand the project's status. If there is no  **`DevelopmentLog.md`** in the project's root directory, create a new one to record each update.
 
 ### Step 2: Code & Dependency Management
 
