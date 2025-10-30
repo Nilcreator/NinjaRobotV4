@@ -60,18 +60,17 @@ End by updating the current state of the project in **`README.md`**.
 
 ## 5. Documentation & File Creation Policy
 
-When asked to create or update documentation, adhere to the following structure and principles.
+When asked to create or edit documentation, adhere to the following structure and principles.
 
 - **Language**: Use clear, concise, and definitive language. Avoid polite or passive phrasing.
-- **Minimun Editing**: Only perform minimal editing and refinement of the existing content to ensure accuracy and correctness. When adding new content, ensure keeping the completeness of the existing content.
 - **`README.md`**:
-    - **Content**: Project overview, key features, step-by-step clear installation instructions, easy-to-understand example that users can run immediately, and license information.
-- **`DevelopmentGuide.md`**:
-    - **Content**: Detailed code and library information for developers, such as API references for classes and functions. Explan its function and provide simple examples of how to use it. 
-- **`DevelopmentLog.md`**:
-    - **Content**: Archive all the detailed development history for future reference, including error fixes. 
-- **`ReconstructionGuide.md`**:
-    - **Content**: The full, reconstruction plan of NinaRobotV4 for development reference. Donot edit this document.
+    - **Content**: Project overview, key features, installation instructions, basic usage with a simple code sample, and license information.
+- **`REFERENCE.md`**:
+    - **Content**: Detailed technical information for developers, such as API references for classes and functions. Do not duplicate the code samples from the `README.md`.
+- **`LICENSE`**:
+    - **Content**: The full, unmodified text of the chosen license.
+- **`samples/` Directory**:
+    - **Content**: Functional, simple, and easy-to-understand example scripts (e.g., `sample.py`) that users can run immediately.
 
 ## 6. File Editing Procedure
 
