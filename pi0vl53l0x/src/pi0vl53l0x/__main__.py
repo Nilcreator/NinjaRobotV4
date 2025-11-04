@@ -18,6 +18,7 @@ from .config_manager import get_default_config_filepath, save_config
 VL53L0X driver CLI
 """
 )
+@click.pass_context
 @click.option(
     "--config-file", "-C", type=str,
     default=str(get_default_config_filepath()), show_default=True,
@@ -44,6 +45,7 @@ def cli(ctx: click.Context, debug: bool, config_file: str) -> None:
     help="""
 get distance"""
 )
+@click.pass_context
 @click.option(
     "--count", "-c", type=int, default=10, show_default=True, help="count"
 )
@@ -79,6 +81,7 @@ def get(
 
 
 @cli.command()
+@click.pass_context
 @click.option(
     "--count", "-c", type=int, default=100, show_default=True, help="count"
 )
@@ -116,6 +119,7 @@ def performance(ctx: click.Context, count: int, debug: bool) -> None:
 
 
 @cli.command(help="""calibrate offset and save""" )
+@click.pass_context
 @click.option(
     "--distance", "-D", type=int, default=100, show_default=True,
     help="distance to target [mm]"
