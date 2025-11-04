@@ -136,7 +136,13 @@ This test verifies the distance sensor functionality.
     ```
     *Expected Output:* A list of distances in millimeters.
 
-3.  **Calibrate Sensor:** Calculate and save the sensor's offset for better accuracy.
+3.  **Measure Performance:** Check the maximum speed of the sensor. This runs 100 readings as fast as possible.
+    ```bash
+    uv run pi0vl53l0x performance --count 100
+    ```
+    *Expected Output:* A report showing total time, average time per reading, and the number of readings per second.
+
+4.  **Calibrate Sensor:** Calculate and save the sensor's offset for better accuracy.
     *   Place a flat object at a known distance (e.g., exactly **100mm**) from the sensor.
     *   Run the command:
         ```bash
@@ -144,7 +150,7 @@ This test verifies the distance sensor functionality.
         ```
     *   Follow the prompt and press Enter when ready. The calculated offset will be saved automatically for future use.
 
-4.  Return to the root directory:
+5.  Return to the root directory:
     ```bash
     cd ..
     ```
