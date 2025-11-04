@@ -35,7 +35,7 @@ def cli(ctx: click.Context, debug: bool, config_file: str) -> None:
     __log.debug("cmd_name=%a, subcmd_name=%a", cmd_name, subcmd_name)
     
     # Pass config_file to the context object for subcommands
-    ctx.obj = {"config_file": Path(config_file)}
+    ctx.obj = {"config_file": Path(config_file), "debug": debug}
 
     if subcmd_name is None:
         print(f"{ctx.get_help()}")
@@ -54,9 +54,10 @@ get distance"""
     help="interval seconds"
 )
 def get(
-    ctx: click.Context, count: int, interval: float, debug: bool
+    ctx: click.Context, count: int, interval: float
 ) -> None:
     """基本的な例を実行します。"""
+    debug = ctx.obj["debug"]
     __log = get_logger(__name__, debug)
     __log.debug("count=%s, interval=%s", count, interval)
 
@@ -85,8 +86,9 @@ def get(
 @click.option(
     "--count", "-c", type=int, default=100, show_default=True, help="count"
 )
-def performance(ctx: click.Context, count: int, debug: bool) -> None:
+def performance(ctx: click.Context, count: int) -> None:
     """VL53L0Xセンサーの測定パフォーマンスを評価します。"""
+    debug = ctx.obj["debug"]
     __log = get_logger(__name__, debug)
     __log.debug("count=%s", count)
 
@@ -133,8 +135,9 @@ def performance(ctx: click.Context, count: int, debug: bool) -> None:
     default=str(get_default_config_filepath()), show_default=True,
     help="Path to save the calculated offset"
 )
-def calibrate(ctx: click.Context, distance: int, count: int, output_file: str, debug: bool) -> None:
+def calibrate(ctx: click.Context, distance: int, count: int, output_file: str) -> None:
     """オフセットをキャリブレーションします。"""
+    debug = ctx.obj["debug"]
     __log = get_logger(__name__, debug)
     __log.debug("distance=%s, count=%s, output_file=%s", distance, count, output_file)
 
