@@ -416,14 +416,28 @@ def _main_loop_optimized(lcd: ST7789V, background: Image.Image, balls: List[Ball
             time.sleep(sleep_duration)
 
 def draw_text(draw, text, font, x, y, width, height, color):
-    """Draw text with positioning."""
-    text_width, text_height = draw.textsize(text, font)
+    """Draw text with positioning using textbbox for compatibility."""
+    if not text or not hasattr(draw, 'textbbox'):
+        return (0, 0, 0, 0)
+
+    # Get bounding box
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Calculate position
     if x == 'center':
-        x = (width - text_width) // 2
+        x_pos = (width - text_width) // 2
+    else:
+        x_pos = x
+
     if y == 'bottom':
-        y = height - text_height
-    draw.text((x, y), text, font=font, fill=color)
-    return (x, y, x + text_width, y + text_height)
+        y_pos = height - text_height
+    else:
+        y_pos = y
+
+    draw.text((x_pos, y_pos), text, font=font, fill=color)
+    return (x_pos, y_pos, x_pos + text_width, y_pos + text_height)
 
 # --- CLIコマンド ---
 @click.command("ball_anime")
