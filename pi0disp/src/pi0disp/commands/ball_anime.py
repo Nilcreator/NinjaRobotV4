@@ -14,6 +14,8 @@ import click
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+import importlib.resources
+
 from ..disp.st7789v import ST7789V
 from ..utils.performance_core import RegionOptimizer
 
@@ -22,7 +24,6 @@ from ..utils.performance_core import RegionOptimizer
 SPI_SPEED_HZ = 16000000
 TARGET_FPS = 30.0
 BALL_RADIUS = 20
-FONT_PATH = "Firge-Regular.ttf"
 TEXT_COLOR = (255, 255, 255)
 FPS_UPDATE_INTERVAL = 0.2
 
@@ -436,14 +437,15 @@ def ball_anime(spi_mhz: float, fps: float, num_balls: int, ball_speed: float):
 
     try:
         with ST7789V(speed_hz=int(spi_mhz * 1_000_000)) as lcd:
-            # フォントをロード（元の設定維持）
+            # Load the bundled font
             font_large: ImageFont.FreeTypeFont | ImageFont.ImageFont
             font_small: ImageFont.FreeTypeFont | ImageFont.ImageFont
             try:
-                font_large = ImageFont.truetype(FONT_PATH, 40)
-                font_small = ImageFont.truetype(FONT_PATH, 24)
-            except IOError as _e:
-                print(f"Could not load font: {_e}")
+                with importlib.resources.path('pi0disp.fonts', 'NotoSans-Regular.ttf') as font_path:
+                    font_large = ImageFont.truetype(str(font_path), 40)
+                    font_small = ImageFont.truetype(str(font_path), 24)
+            except (IOError, FileNotFoundError) as e:
+                print(f"Could not load bundled font: {e}")
                 font_large = ImageFont.load_default()
                 font_small = ImageFont.load_default()
 

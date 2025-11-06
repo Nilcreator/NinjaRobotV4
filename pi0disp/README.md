@@ -46,15 +46,6 @@ uv pip install -e ./pi0disp
 
 The test scripts require a font file and a sample image.
 
-1.  **Download Fonts:**
-    The test scripts require fonts for displaying text. Create a `fonts` directory and download a set for English, Japanese, and Traditional Chinese.
-    ```bash
-    mkdir -p pi0disp/fonts
-    wget -O pi0disp/fonts/NotoSans-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans-Regular.ttf
-    wget -O pi0disp/fonts/NotoSansJP-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf
-    wget -O pi0disp/fonts/NotoSansTC-Regular.otf https://github.com/google/fonts/raw/main/ofl/notosanstc/NotoSansTC-Regular.otf
-    ```
-
 2.  **Prepare a Sample Image:**
     Find any JPEG image you wish to display (e.g., a photo from your phone). For this guide, let's assume you have an image named `my_photo.jpg` located in your home directory (`/home/pi/my_photo.jpg`).
 

@@ -174,13 +174,6 @@ This test verifies the distance sensor functionality.
 This test verifies the display functionality.
 
 1.  **Asset Preparation:**
-    *   **Download Fonts:** The test scripts require fonts. Create a `fonts` directory and download a set for English, Japanese, and Traditional Chinese.
-        ```bash
-        mkdir -p pi0disp/fonts
-        wget -O pi0disp/fonts/NotoSans-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans-Regular.ttf
-        wget -O pi0disp/fonts/NotoSansJP-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf
-        wget -O pi0disp/fonts/NotoSansTC-Regular.otf https://github.com/google/fonts/raw/main/ofl/notosanstc/NotoSansTC-Regular.otf
-        ```
     *   **Prepare Image:** You will need a sample JPEG image. For this example, we'll assume it's at `/home/pi/my_photo.jpg`.
 
 2.  **Run Image Test:**
