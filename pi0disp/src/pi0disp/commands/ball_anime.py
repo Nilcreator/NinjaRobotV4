@@ -415,29 +415,68 @@ def _main_loop_optimized(lcd: ST7789V, background: Image.Image, balls: List[Ball
         if 0 < sleep_duration <= target_duration:
             time.sleep(sleep_duration)
 
-def draw_text(draw, text, font, x, y, width, height, color):
-    """Draw text with positioning using textbbox for compatibility."""
-    if not text or not hasattr(draw, 'textbbox'):
+def draw_text(
+        draw: ImageDraw.ImageDraw,
+        text: str, font: ImageFont.FreeTypeFont | ImageFont.ImageFont, 
+        x, y, 
+        width: int,
+        height: int,
+        color,
+        padding: int = 5
+):
+    """
+    Draws text on a PIL ImageDraw object with flexible positioning.
+    It pre-renders the text to accurately determine its bounding box.
+    """
+    # Get the actual bounding box of the text using ImageDraw.textbbox
+    try:
+        actual_bbox = draw.textbbox((0, 0), text, font=font)
+    except (TypeError, ValueError):
+        # Handle cases where textbbox might not be available or fails
         return (0, 0, 0, 0)
 
-    # Get bounding box
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
+    if actual_bbox is None:
+        return (0, 0, 0, 0)
 
-    # Calculate position
-    if x == 'center':
-        x_pos = (width - text_width) // 2
+    text_width = actual_bbox[2] - actual_bbox[0]
+    text_height = actual_bbox[3] - actual_bbox[1]
+
+    # Calculate X coordinate
+    if isinstance(x, str):
+        if x == 'left':
+            final_x = padding - actual_bbox[0]
+        elif x == 'center':
+            final_x = (width - text_width) // 2 - actual_bbox[0]
+        elif x == 'right':
+            final_x = width - text_width - padding - actual_bbox[0]
+        else:
+            final_x = padding - actual_bbox[0]
     else:
-        x_pos = x
+        final_x = x - actual_bbox[0]
 
-    if y == 'bottom':
-        y_pos = height - text_height
+    # Calculate Y coordinate
+    if isinstance(y, str):
+        if y == 'top':
+            final_y = padding - actual_bbox[1]
+        elif y == 'center':
+            final_y = (height - text_height) // 2 - actual_bbox[1]
+        elif y == 'bottom':
+            final_y = height - text_height - padding - actual_bbox[1]
+        else:
+            final_y = padding - actual_bbox[1]
     else:
-        y_pos = y
-
-    draw.text((x_pos, y_pos), text, font=font, fill=color)
-    return (x_pos, y_pos, x_pos + text_width, y_pos + text_height)
+        final_y = y - actual_bbox[1]
+        
+    final_pos = (final_x, final_y)
+    
+    draw.text(final_pos, text, font=font, fill=color)
+    
+    return (
+        int(final_pos[0] + actual_bbox[0]),
+        int(final_pos[1] + actual_bbox[1]),
+        int(final_pos[0] + actual_bbox[2] + 1),
+        int(final_pos[1] + actual_bbox[3] + 1)
+    )
 
 # --- CLIコマンド ---
 @click.command("ball_anime")
