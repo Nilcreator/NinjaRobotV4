@@ -23,6 +23,10 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 
 ```
 /
+├── assets/
+│   ├── images/
+│   ├── sounds/
+│   └── videos/
 ├── ninja_core/
 │   └── src/ninja_core/
 │       ├── __init__.py
@@ -54,6 +58,7 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 │       │   └── off.py
 │       ├── disp/
 │       │   └── st7789v.py
+│       ├── fonts/
 │       └── utils/
 │           ├── image_processor.py
 │           ├── performance_core.py
