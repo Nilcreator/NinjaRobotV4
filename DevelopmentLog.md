@@ -1,3 +1,20 @@
+### 2025-11-06 - pi0disp Library and Asset Management
+
+- **`pi0disp` Library Created**:
+    - Created the full directory structure for the `pi0disp` library, including `pyproject.toml`, `__init__.py` files, and subdirectories for `disp`, `utils`, `commands`, and `fonts`.
+    - Implemented the core driver `disp/st7789v.py` and utility modules `utils/performance_core.py` and `utils/image_processor.py` by adapting them from the V3 archive.
+    - Created the CLI commands `commands/ball_anime.py` and `commands/image.py`.
+
+- **Asset Management Refactored**:
+    - Created a global `assets` directory at the project root with `images`, `sounds`, and `videos` subdirectories for centralized resource management.
+    - Bundled Noto fonts for English, Japanese, and Traditional Chinese directly into the `pi0disp/src/pi0disp/fonts/` directory to make the library self-contained.
+    - Updated `commands/ball_anime.py` to use `importlib.resources` for robustly loading the bundled fonts.
+
+- **Bug Fixes & Documentation**:
+    - **Fixed Pillow V10 Compatibility**: Replaced the deprecated `draw.textsize()` method with `draw.textbbox()` in `ball_anime.py` to resolve an `AttributeError`.
+    - **Resolved Font Download Issues**: Corrected multiple `404 Not Found` errors by using reliable CDN URLs for font downloads before deciding to bundle them instead.
+    - **Updated Documentation**: Updated `InstallationGuide.md`, `pi0disp/README.md`, and `ReconstructionGuide.md` to reflect the new bundled assets and simplified testing procedures.
+
 ### 2025-11-05 - pi0vl53l0x Library Created
 
 - Created the `pi0vl53l0x` library for the VL53L0X distance sensor.
