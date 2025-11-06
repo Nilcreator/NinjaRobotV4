@@ -174,12 +174,12 @@ This test verifies the distance sensor functionality.
 This test verifies the display functionality.
 
 1.  **Asset Preparation:**
-    *   **Prepare Image:** You will need a sample JPEG image. For this example, we'll assume it's at `/home/pi/my_photo.jpg`.
+    *   **Prepare Image:** A sample image is included in the project at `assets/images/sample_face.jpg`.
 
 2.  **Run Image Test:**
     *   This command displays your image and cycles through gamma corrections.
         ```bash
-        uv run pi0disp image /home/pi/my_photo.jpg
+        uv run pi0disp image assets/images/sample_face.jpg
         ```
     *   **Expected Output:** Your image appears on the display and the brightness/contrast changes every 3 seconds.
 

@@ -47,7 +47,7 @@ uv pip install -e ./pi0disp
 The test scripts require a font file and a sample image.
 
 2.  **Prepare a Sample Image:**
-    Find any JPEG image you wish to display (e.g., a photo from your phone). For this guide, let's assume you have an image named `my_photo.jpg` located in your home directory (`/home/pi/my_photo.jpg`).
+    A sample image is already included in the project at `assets/images/sample_face.jpg`.
 
 ### Phase 4: Running the Tests
 
@@ -58,7 +58,7 @@ Now, run the command-line tools to test the display functions.
 
     *   **Command:** (Replace the path with the actual path to your image)
         ```bash
-        uv run pi0disp image /home/pi/my_photo.jpg
+        uv run pi0disp image assets/images/sample_face.jpg
         ```
     *   **Expected Output:** You should see your image appear on the display. Every 3 seconds, the brightness/contrast will change as different gamma values are applied, before the script finishes.
 
