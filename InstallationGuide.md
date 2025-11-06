@@ -174,9 +174,9 @@ This test verifies the distance sensor functionality.
 This test verifies the display functionality.
 
 1.  **Asset Preparation:**
-    *   **Download Font:** The `ball_anime` demo requires a font file.
+    *   **Download Font:** The `ball_anime` demo requires the "Noto Sans JP" font.
         ```bash
-        wget -O pi0disp/Firge-Regular.ttf https://github.com/yuru7/Firge/raw/master/dist/Firge-Regular.ttf
+        wget -O pi0disp/NotoSansJP-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf
         ```
     *   **Prepare Image:** You will need a sample JPEG image. For this example, we'll assume it's at `/home/pi/my_photo.jpg`.
 
