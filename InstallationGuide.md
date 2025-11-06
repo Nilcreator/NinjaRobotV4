@@ -9,13 +9,13 @@ This guide provides step-by-step instructions for setting up the necessary hardw
 - Raspberry Pi Zero 2W (or other compatible model)
 - Passive Buzzer
 - VL53L0X Time-of-Flight distance sensor
+- ST7789V LCD Display
 - Jumper wires
 - An SD card with Raspberry Pi OS installed
 
 ### 1.2 Software Requirements
 
 Before you begin, ensure the following software is installed on your Raspberry Pi:
-
 - **Git:**
   ```bash
   sudo apt-get update && sudo apt-get install -y git
@@ -41,6 +41,15 @@ Before you begin, ensure the following software is installed on your Raspberry P
     *   Connect the **SCL** pin to the Pi's **SCL** pin (GPIO 3).
     *   Connect the **SDA** pin to the Pi's **SDA** pin (GPIO 2).
 
+3.  **ST7789V Display Connection (SPI):**
+    *   **VCC** -> 3.3V
+    *   **GND** -> Ground (GND)
+    *   **SCL** (or **CLK**) -> SPI0 SCLK (GPIO 11)
+    *   **SDA** (or **MOSI**) -> SPI0 MOSI (GPIO 10)
+    *   **RST** -> GPIO 19
+    *   **DC** -> GPIO 18
+    *   **BLK** (Backlight) -> GPIO 20
+
 ### 1.4 System Configuration
 
 1.  **Enable I2C Interface:**
@@ -48,7 +57,12 @@ Before you begin, ensure the following software is installed on your Raspberry P
     *   Navigate to `3 Interface Options` -> `I5 I2C`.
     *   Select `<Yes>` to enable the interface and reboot if prompted.
 
-2.  **Start the pigpio Daemon:**
+2.  **Enable SPI Interface:**
+    *   Run `sudo raspi-config` in the terminal.
+    *   Navigate to `3 Interface Options` -> `I4 SPI`.
+    *   Select `<Yes>` to enable the interface and reboot if prompted.
+
+3.  **Start the pigpio Daemon:**
     This background service is required for the buzzer and sensor libraries to work. Run it once after each boot.
     ```bash
     sudo pigpiod
@@ -65,12 +79,12 @@ cd NinjaRobotV4
 
 ## Phase 2: Library Installation
 
-Now, install the three core libraries (`ninja_utils`, `pi0buzzer`, and `pi0vl53l0x`) in editable mode. This method links the installation to your source code, so any changes you make are immediately reflected.
+Now, install all the core libraries (`ninja_utils`, `pi0buzzer`, `pi0vl53l0x`, and `pi0disp`) in editable mode. This method links the installation to your source code, so any changes you make are immediately reflected.
 
 From the `NinjaRobotV4` root directory, run:
 
 ```bash
-uv pip install -e ./ninja_utils -e ./pi0buzzer -e ./pi0vl53l0x
+uv pip install -e ./ninja_utils -e ./pi0buzzer -e ./pi0vl53l0x -e ./pi0disp
 ```
 
 ## Phase 3: Component Testing
@@ -151,6 +165,36 @@ This test verifies the distance sensor functionality.
     *   Follow the prompt and press Enter when ready. The calculated offset will be saved automatically for future use.
 
 5.  Return to the root directory:
+    ```bash
+    cd ..
+    ```
+
+### 3.4 Testing `pi0disp` (Display Control)
+
+This test verifies the display functionality.
+
+1.  **Asset Preparation:**
+    *   **Download Font:** The `ball_anime` demo requires a font file.
+        ```bash
+        wget -O pi0disp/Firge-Regular.ttf https://github.com/yuru7/Firge/raw/master/dist/Firge-Regular.ttf
+        ```
+    *   **Prepare Image:** You will need a sample JPEG image. For this example, we'll assume it's at `/home/pi/my_photo.jpg`.
+
+2.  **Run Image Test:**
+    *   This command displays your image and cycles through gamma corrections.
+        ```bash
+        uv run pi0disp image /home/pi/my_photo.jpg
+        ```
+    *   **Expected Output:** Your image appears on the display and the brightness/contrast changes every 3 seconds.
+
+3.  **Run Animation Test:**
+    *   This command runs a physics-based ball animation.
+        ```bash
+        uv run pi0disp ball_anime --num-balls 5
+        ```
+    *   **Expected Output:** Five colored balls bounce around the screen with an FPS counter in the corner. Press **Ctrl+C** to exit.
+
+4.  Return to the root directory:
     ```bash
     cd ..
     ```
