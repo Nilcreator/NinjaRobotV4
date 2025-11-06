@@ -55,6 +55,7 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 │       ├── disp/
 │       │   └── st7789v.py
 │       └── utils/
+│           ├── image_processor.py
 │           ├── performance_core.py
 │           └── sprite.py
 ├── pi0buzzer/
@@ -164,7 +165,7 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
             *   `__init__`: Initializes the display.
             *   `display`: Displays a full PIL Image.
             *   `display_region`: Displays a portion of an image for partial updates.
-    4.  **`utils.py`:**
+    4.  **`utils/image_processor.py`:**
         *   **`ImageProcessor` class:**
             *   **Description:** A utility class for image processing tasks.
             *   **Reference:** `V3Archive/pi0disp/src/pi0disp/utils/utils.py` -> `ImageProcessor` class
