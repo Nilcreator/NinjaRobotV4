@@ -46,10 +46,13 @@ uv pip install -e ./pi0disp
 
 The test scripts require a font file and a sample image.
 
-1.  **Download the Font:**
-    The `ball_anime` demo uses the "Noto Sans JP" font. Download it into the `pi0disp` directory.
+1.  **Download Fonts:**
+    The test scripts require fonts for displaying text. Create a `fonts` directory and download a set for English, Japanese, and Traditional Chinese.
     ```bash
-    wget -O pi0disp/NotoSansJP-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf
+    mkdir -p pi0disp/fonts
+    wget -O pi0disp/fonts/NotoSans-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans-Regular.ttf
+    wget -O pi0disp/fonts/NotoSansJP-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP-Regular.ttf
+    wget -O pi0disp/fonts/NotoSansTC-Regular.otf https://github.com/google/fonts/raw/main/ofl/notosanstc/NotoSansTC-Regular.otf
     ```
 
 2.  **Prepare a Sample Image:**
