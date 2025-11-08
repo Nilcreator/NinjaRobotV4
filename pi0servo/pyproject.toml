@@ -9,7 +9,7 @@ dependencies = [
     "pigpio",
     "click",
     "blessed",
-    "ninja_utils @ file://localhost/${PWD}/ninja_utils",
+    "ninja_utils @ file:../ninja_utils",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
