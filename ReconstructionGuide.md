@@ -220,6 +220,13 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
     1.  **`config.py`:**
         *   **Description:** A module to manage the entire robot's configuration.
         *   Implement a `Config` class that loads and saves configuration from a single `config.json` file. This file will contain settings for all hardware components (servo pins, calibration data, etc.).
+        *   **First Run Logic:** If `config.json` does not exist, the module will create it with default values.
+    2.  **`__main__.py` (CLI):**
+        *   **Description:** A command-line interface for managing the `ninja_core` application.
+        *   **`config` command group:**
+            *   **`--import-servo` option:**
+                *   **Action:** Explicitly imports calibration data from `pi0servo/servo.json` and merges it into the main `ninja_core/config.json`.
+                *   **Purpose:** Provides a safe, user-controlled way to update the central configuration after running the standalone servo calibration, preventing accidental overwrites and maintaining a single source of truth for the running application.
 
 **2.2. Hardware Abstraction Layer (HAL)**
 *   **Dependencies:** `pi0servo`, `pi0disp`, `pi0buzzer`, `pi0vl53l0x`
