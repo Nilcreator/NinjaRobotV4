@@ -31,17 +31,23 @@ Before you begin, ensure the following software is installed on your Raspberry P
 
 ### 1.3 Hardware Connections
 
-1.  **Buzzer Connection:**
+1.  **Servo Motor Connections:**
+    *   Connect the **signal wire** (usually orange or yellow) of your servo(s) to the desired GPIO pins (e.g., GPIO 17, 27, 22, 23).
+    *   Connect the **power wire** (usually red) to a **5V** source.
+    *   Connect the **ground wire** (usually brown or black) to a **Ground (GND)** pin.
+    *   **Important:** Powering multiple servos directly from the Raspberry Pi's 5V pin is not recommended as it can cause instability. Use an external 5V power supply for the servos.
+
+2.  **Buzzer Connection:**
     *   Connect the **positive (longer) leg** of the buzzer to **GPIO 26**.
     *   Connect the **negative (shorter) leg** to a **Ground (GND)** pin.
 
-2.  **VL53L0X Sensor Connection (I2C):**
+3.  **VL53L0X Sensor Connection (I2C):**
     *   Connect the **VCC** pin on the sensor to a **3.3V** pin.
     *   Connect the **GND** pin on the sensor to a **Ground (GND)** pin.
     *   Connect the **SCL** pin to the Pi's **SCL** pin (GPIO 3).
     *   Connect the **SDA** pin to the Pi's **SDA** pin (GPIO 2).
 
-3.  **ST7789V Display Connection (SPI):**
+4.  **ST7789V Display Connection (SPI):**
     *   **VCC** -> 3.3V
     *   **GND** -> Ground (GND)
     *   **SCL** (or **CLK**) -> SPI0 SCLK (GPIO 11)
@@ -79,12 +85,12 @@ cd NinjaRobotV4
 
 ## Phase 2: Library Installation
 
-Now, install all the core libraries (`ninja_utils`, `pi0buzzer`, `pi0vl53l0x`, and `pi0disp`) in editable mode. This method links the installation to your source code, so any changes you make are immediately reflected.
+Now, install all the core libraries (`ninja_utils`, `pi0buzzer`, `pi0vl53l0x`, `pi0disp`, and `pi0servo`) in editable mode. This method links the installation to your source code, so any changes you make are immediately reflected.
 
 From the `NinjaRobotV4` root directory, run:
 
 ```bash
-uv pip install -e ./ninja_utils -e ./pi0buzzer -e ./pi0vl53l0x -e ./pi0disp
+uv pip install -e ./ninja_utils -e ./pi0buzzer -e ./pi0vl53l0x -e ./pi0disp -e ./pi0servo
 ```
 
 ## Phase 3: Component Testing
@@ -191,6 +197,29 @@ This test verifies the display functionality.
     *   **Expected Output:** Five colored balls bounce around the screen with an FPS counter in the corner. Press **Ctrl+C** to exit.
 
 4.  Return to the root directory:
+    ```bash
+    cd ..
+    ```
+
+### 3.5 Testing `pi0servo` (Servo Control)
+
+This test verifies the servo motor control and calibration.
+
+1.  **Move a Servo:**
+    *   This command moves the servo connected to GPIO 17 to its center position.
+        ```bash
+        uv run pi0servo servo 17 center
+        ```
+    *   **Expected Output:** The servo moves to its 0-degree position.
+
+2.  **Calibrate a Servo:**
+    *   This command starts the interactive calibration tool for the servo on GPIO 17.
+        ```bash
+        uv run pi0servo calib 17
+        ```
+    *   **Expected Output:** An interactive prompt appears. Follow the on-screen instructions ('h' for help) to adjust and save the minimum, center, and maximum positions for your servo. This creates a `servo.json` file with the calibration data.
+
+3.  Return to the root directory:
     ```bash
     cd ..
     ```

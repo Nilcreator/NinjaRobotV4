@@ -1,3 +1,13 @@
+### 2025-11-09 - pi0servo Library Created
+
+- **`pi0servo` Library Created**:
+    - Created the full directory structure for the `pi0servo` library, including `pyproject.toml`, `LICENSE`, `README.md`, and subdirectories for `core`, `helper`, `utils`, and `command`.
+    - Implemented the core servo classes (`PiServo`, `CalibrableServo`, `MultiServo`) by adapting them from the V3 archive.
+    - Implemented the asynchronous control classes (`ThreadWorker`, `ThreadMultiServo`) and the `ServoConfigManager` utility.
+    - Created the CLI commands `cmd_calib.py` and `cmd_servo.py` and wired them into a main `__main__.py` entry point.
+    - All new modules have been linted and passed checks.
+    - Updated `ReconstructionGuide.md` with a refined plan for `ninja_core` configuration management.
+
 ### 2025-11-06 - pi0disp Library and Asset Management
 
 - **`pi0disp` Library Created**:
