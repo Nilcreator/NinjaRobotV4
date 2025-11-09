@@ -210,14 +210,21 @@ This test verifies the servo motor control and calibration.
         ```bash
         uv run pi0servo servo 17 center
         ```
-    *   **Expected Output:** The servo moves to its 0-degree position.
+    *   **Expected Output:** The servo moves to its 0-degree position. You can also use `min`, `max`, or a number like `30` or `-45`.
 
 2.  **Calibrate a Servo:**
     *   This command starts the interactive calibration tool for the servo on GPIO 17.
         ```bash
         uv run pi0servo calib 17
         ```
-    *   **Expected Output:** An interactive prompt appears. Follow the on-screen instructions ('h' for help) to adjust and save the minimum, center, and maximum positions for your servo. This creates a `servo.json` file with the calibration data.
+    *   **Expected Output:** An interactive prompt appears. Follow the on-screen instructions ('h' for help).
+    *   **Basic Steps:**
+        1.  Use `v`, `c`, `x` or `Tab` to select the **Min**, **Center**, or **Max** target.
+        2.  Use the **Up/Down arrows** for large adjustments and **w/s** for fine-tuning.
+        3.  Press **Enter** or **Space** to save the position for the current target.
+        4.  Repeat for all three targets.
+        5.  Press `q` to quit.
+    *   This process creates a `servo.json` file in the `pi0servo` directory with the calibration data.
 
 3.  Return to the root directory:
     ```bash

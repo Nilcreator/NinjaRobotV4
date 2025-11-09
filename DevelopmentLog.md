@@ -1,3 +1,10 @@
+### 2025-11-09 - pi0servo Library Refinements
+
+- **Safety and UX Refinements for `pi0servo`**:
+    - **Implemented Safe Defaults**: The `CalibrableServo` class now initializes with safe default values, setting Min, Center, and Max pulses to 1500 if no configuration exists. This prevents the servo from moving to an extreme position on its first run.
+    - **Upgraded Direct Movement**: The `pi0servo servo` command was refactored to use `CalibrableServo`, ensuring it respects the calibrated limits from `servo.json`. It now accepts angles and keywords (min, center, max) instead of raw pulse values.
+    - **Overhauled Calibration UI**: The `pi0servo calib` tool was enhanced with new keybindings. Users can now use `v`, `c`, `x` for direct target selection, in addition to `Tab` cycling. The adjustment keys were swapped so that `Up`/`Down` arrows perform large steps and `w`/`s` perform fine-tuning. The help text was updated to reflect these changes.
+
 ### 2025-11-09 - pi0servo Library Created
 
 - **`pi0servo` Library Created**:

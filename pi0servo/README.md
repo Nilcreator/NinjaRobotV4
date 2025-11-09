@@ -135,33 +135,29 @@ This test walks you through using the interactive tool to fine-tune the servo's 
     ```
 
 2.  **Understand the Interface:**
-    You will see an interactive prompt. The tool starts by targeting the **center (0 deg)** position. Press **`h`** for a full list of commands.
+    You will see an interactive prompt. The tool starts by targeting the **Center** position. Press **`h`** for a full list of commands.
 
     ```
     Calibration Tool: 'h' for help, 'q' for quit
     ...
-    GPIO17: 0 deg: pulse=1500>
+    GPIO17 | Target: Center | pulse=1500>
     ```
 
-3.  **Calibrate the Center Position:**
-    *   Use the **`w`** (up) and **`s`** (down) keys to move the servo in large steps.
-    *   Use **`W`** (Shift + w) and **`S`** (Shift + s) for fine-tuning.
-    *   Adjust the servo until it is perfectly at its physical center.
-    *   Press **`Enter`** or **`Space`** to save the center pulse value.
+3.  **Select a Target:**
+    *   Use **`v`**, **`c`**, and **`x`** to directly select the **Min**, **Center**, or **Max** calibration targets.
+    *   Alternatively, use **`Tab`** and **`Shift+Tab`** to cycle through the targets.
 
-4.  **Calibrate the Minimum Position (-90 deg):**
-    *   Press **`Shift + Tab`** to switch the target to **-90 deg**.
-    *   The servo will move to its current minimum setting.
-    *   Use the adjustment keys (`w`/`s`/`W`/`S`) to move the servo to its true physical minimum without straining the motor.
-    *   Press **`Enter`** or **`Space`** to save the new minimum pulse value.
+4.  **Adjust the Position:**
+    *   Use the **Up and Down arrow keys** for large-step adjustments.
+    *   Use the **`w`** and **`s`** keys for fine-tuning the position.
 
-5.  **Calibrate the Maximum Position (+90 deg):**
-    *   Press **`Tab`** twice to switch the target to **90 deg**.
-    *   The servo will move to its current maximum setting.
-    *   Use the adjustment keys to move the servo to its true physical maximum.
-    *   Press **`Enter`** or **`Space`** to save the new maximum pulse value.
+5.  **Save the Value:**
+    *   Once the servo is in the perfect position for the selected target (Min, Center, or Max), press **`Enter`** or **`Space`** to save the value.
 
-6.  **Exit the Tool:**
+6.  **Repeat for All Targets:**
+    *   Repeat steps 3-5 for all three targets (Min, Center, and Max) to complete the calibration.
+
+7.  **Exit the Tool:**
     *   Press **`q`** to quit the calibration tool.
 
 A `servo.json` file containing your calibration data will be created in the current directory. This file will be used by the `ninja_core` application in the next phase.
