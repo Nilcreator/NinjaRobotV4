@@ -6,20 +6,20 @@ import time
 import click
 import pigpio
 
-from ..core.piservo import PiServo
+from ..core.calibrable_servo import CalibrableServo
 from ninja_utils.my_logger import get_logger
 
 
 class CmdServo:
     """servo command"""
 
-    def __init__(self, pi, pin, pulse, sec=1.0, debug=False):
+    def __init__(self, pi, pin, angle, sec=1.0, debug=False):
         self._debug = debug
         self.__log = get_logger(__class__.__name__, self._debug)
-        self.__log.debug('pin=%s, pulse="%s", sec=%s', pin, pulse, sec)
+        self.__log.debug('pin=%s, angle="%s", sec=%s', pin, angle, sec)
 
         self.pin = pin
-        self.pulse_str = pulse
+        self.angle_str = angle
         self.sec = sec
 
         self.pi = pi
@@ -27,35 +27,28 @@ class CmdServo:
             self.__log.error("pigpio daemon not connected.")
             raise ConnectionError("pigpio daemon not connected.")
 
-        self.servo = PiServo(self.pi, self.pin, debug=self._debug)
+        self.servo = CalibrableServo(self.pi, self.pin, debug=self._debug)
 
     def main(self):
         """main"""
         try:
-            pulse_int = int(self.pulse_str)
+            # Try to convert to float first
+            angle_float = float(self.angle_str)
+            self.servo.move_angle(angle_float)
+            print(f"pin={self.pin}, angle={angle_float} deg")
+
         except ValueError:
-            if self.pulse_str == "min":
-                pulse_int = PiServo.MIN
-            elif self.pulse_str == "max":
-                pulse_int = PiServo.MAX
-            elif self.pulse_str == "center":
-                pulse_int = PiServo.CENTER
+            # If it fails, treat as a string keyword
+            if self.angle_str in [self.servo.POS_MIN, self.servo.POS_CENTER, self.servo.POS_MAX]:
+                self.servo.move_angle(self.angle_str)
+                print(f"pin={self.pin}, position='{self.angle_str}'")
             else:
-                self.__log.warning(
-                    '"%s": invalid pulse string', self.pulse_str
+                self.__log.error(
+                    '"%s": invalid angle or keyword', self.angle_str
                 )
-                pulse_int = -1
+                return
 
-            self.__log.debug("pulse_int=%s", pulse_int)
-
-        if PiServo.MIN <= pulse_int <= PiServo.MAX:
-            self.servo.move_pulse(pulse_int)
-            print(f"pin={self.pin}, pulse={pulse_int}")
-            time.sleep(self.sec)
-        else:
-            self.__log.error(
-                "pulse_int=%s: invalid value. do nothing", pulse_int
-            )
+        time.sleep(self.sec)
 
     def end(self):
         """end"""
@@ -66,26 +59,28 @@ class CmdServo:
 
 @click.command()
 @click.argument("pin", type=int)
-@click.argument("pulse", type=str)
+@click.argument("angle", type=str)
 @click.option("--sec", "-s", "sec", type=float, default=1.0, help="sleep time")
 @click.option("--debug", "-d", "debug", is_flag=True, help="debug flag")
-def main(pin, pulse, sec, debug):
+def main(pin, angle, sec, debug):
     """
-    Move servo to <PULSE>
-    
-    PULSE: min | center | max | <pulse_width>
+    Move servo to a specified ANGLE or position.
+
+    ANGLE: min | center | max | <angle_in_degrees>
     """
     log = get_logger(__name__, debug)
 
     pi = pigpio.pi()
 
+    app = None
     try:
-        app = CmdServo(pi, pin, pulse, sec, debug=debug)
+        app = CmdServo(pi, pin, angle, sec, debug=debug)
         app.main()
     except Exception as e:
         log.error(e)
     finally:
-        app.end()
+        if app:
+            app.end()
         log.debug("finally")
 
 
