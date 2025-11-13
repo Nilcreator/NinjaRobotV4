@@ -30,6 +30,7 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 ├── ninja_core/
 │   └── src/ninja_core/
 │       ├── __init__.py
+│       ├── __main__.py
 │       ├── config.py
 │       ├── facial_expressions.py
 │       ├── hal.py
@@ -214,64 +215,93 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 
 ### Phase 2: Main Application (`ninja_core`)
 
-**2.1. Configuration Management**
-*   **Objective:** Create a centralized configuration management system.
+**2.1. Project Setup & Dependencies**
+*   **Objective:** Create the `ninja_core` project structure and define all necessary dependencies.
+*   **Execution Plan:**
+    1.  Create the `ninja_core` directory with a `src/ninja_core` subdirectory.
+    2.  Create a `pyproject.toml` file inside `ninja_core`.
+    3.  Add the following dependencies identified from the V3 project:
+        *   `fastapi`: For the web server.
+        *   `uvicorn[standard]`: For running the web server.
+        *   `jinja2`: For HTML templating.
+        *   `google-generativeai`: For the Gemini AI agent.
+        *   `python-dotenv`: For managing the API key.
+        *   `websockets`: For real-time communication.
+        *   `googlesearch-python`: For the agent's web search tool.
+        *   `pyngrok`: For creating a public URL.
+        *   `python-multipart`: For handling file uploads (voice commands).
+        *   `qrcode[pil]`: For generating and displaying the QR code.
+        *   `Pillow`: For image manipulation (facial expressions, QR code).
+        *   `click`: For the CLI.
+        *   Local path dependencies on `pi0servo`, `pi0disp`, `pi0buzzer`, `pi0vl53l0x`, and `ninja_utils`.
+
+**2.2. Centralized Configuration (`config.py`)**
+*   **Objective:** Manage all robot settings from a single, unified configuration file.
 *   **Execution Plan:**
     1.  **`config.py`:**
-        *   **Description:** A module to manage the entire robot's configuration.
-        *   Implement a `Config` class that loads and saves configuration from a single `config.json` file. This file will contain settings for all hardware components (servo pins, calibration data, etc.).
-        *   **First Run Logic:** If `config.json` does not exist, the module will create it with default values.
+        *   Implement a `NinjaConfig` class to load, manage, and save settings from a `config.json` file in the `ninja_core` root.
+        *   The class should handle the creation of a default `config.json` on first run.
+        *   It will store hardware pinouts, servo calibration data, and API keys.
     2.  **`__main__.py` (CLI):**
-        *   **Description:** A command-line interface for managing the `ninja_core` application.
-        *   **`config` command group:**
-            *   **`--import-servo` option:**
-                *   **Action:** Explicitly imports calibration data from `pi0servo/servo.json` and merges it into the main `ninja_core/config.json`.
-                *   **Purpose:** Provides a safe, user-controlled way to update the central configuration after running the standalone servo calibration, preventing accidental overwrites and maintaining a single source of truth for the running application.
+        *   Create a `config` command group.
+        *   Implement a `config import-all` command that automatically finds and merges `servo.json` from `pi0servo` and `buzzer.json` from `pi0buzzer` into the main `config.json`. This provides a clear, one-step process for updating the central configuration after hardware calibration.
 
-**2.2. Hardware Abstraction Layer (HAL)**
-*   **Dependencies:** `pi0servo`, `pi0disp`, `pi0buzzer`, `pi0vl53l0x`
+**2.3. Hardware Abstraction Layer (`hal.py`)**
+*   **Objective:** Create a single, consistent interface for all hardware components.
 *   **Execution Plan:**
     1.  **`hal.py`:**
-        *   **Description:** A module that provides a unified interface for all hardware components.
-        *   Implement wrapper classes that take the `Config` object and initialize the underlying drivers.
+        *   Implement a `HardwareAbstractionLayer` class.
+        *   The `__init__` method will take the `NinjaConfig` object.
+        *   It will initialize all hardware driver classes (`pi0servo.MultiServo`, `pi0disp.ST7789V`, `pi0buzzer.MusicBuzzer`, `pi0vl53l0x.VL53L0X`) using the settings from the config object.
+        *   Expose all hardware instances (e.g., `self.servos`, `self.display`) as properties of the HAL.
 
-**2.3. Core Application Logic**
-*   **Dependencies:** `Pillow`, `ninja_utils`
+**2.4. Core Application Logic**
+*   **Objective:** Re-implement the robot's primary behaviors (faces, sounds, movements).
 *   **Execution Plan:**
     1.  **`facial_expressions.py`:**
-        *   **`AnimatedFaces` class:**
-            *   **Description:** Generates and displays animated facial expressions.
-            *   **Reference:** `V3Archive/pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py` -> `AnimatedFaces` class
-            *   `play(expression)`: Plays the specified facial expression. Refactor to remove code duplication from the original `play_*` methods.
+        *   **`AnimatedFaces` class:** Port from V3 (`V3Archive/pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py`). Refactor the multiple `play_*` methods into a single `play(expression_name)` method to reduce code duplication. It will take the `display` driver from the HAL as an argument.
     2.  **`robot_sound.py`:**
-        *   **`RobotSoundPlayer` class:**
-            *   **Description:** Plays sounds corresponding to robot emotions.
-            *   **Reference:** `V3Archive/pi0ninja_v3/src/pi0ninja_v3/robot_sound.py` -> `RobotSoundPlayer` class
-            *   `play(emotion)`: Plays the sound for the given emotion using the `pi0buzzer.MusicBuzzer` from the HAL.
+        *   **`RobotSoundPlayer` class:** Port from V3 (`V3Archive/pi0ninja_v3/src/pi0ninja_v3/robot_sound.py`). It will take the `buzzer` driver from the HAL as an argument.
     3.  **`movement_recorder.py`:**
-        *   **`MovementRecorder` class:**
-            *   **Description:** Records, plays back, and edits servo movement sequences.
-            *   **Reference:** `V3Archive/pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py`
-            *   `record_new_movement`: Records a new movement sequence.
-            *   `execute_movement`: Plays back a saved movement sequence.
+        *   **`MovementController` class:** Port the `ServoController` from V3 (`V3Archive/pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py`) and rename it. It will take the `servos` driver from the HAL as an argument.
 
-**2.4. AI Agent and Web Server**
-*   **Dependencies:** `fastapi`, `uvicorn`, `jinja2`, `google-generativeai`, `python-dotenv`, `websockets`, `googlesearch-python`, `pyngrok`, `python-multipart`, `qrcode`
+**2.5. AI Agent (`ninja_agent.py`)**
+*   **Objective:** Implement the AI agent with both text and voice chat capabilities.
 *   **Execution Plan:**
-    1.  **`pyproject.toml`:** Define project metadata and all dependencies.
-    2.  **`ninja_agent.py`:**
-        *   **`NinjaAgent` class:**
-            *   **Description:** The AI agent for the NinjaRobot.
-            *   **Reference:** `V3Archive/pi0ninja_v3/src/pi0ninja_v3/ninja_agent.py` -> `NinjaAgent` class
-            *   `process_command`: Processes a text-based user command.
-            *   `process_audio_command`: Processes a voice command.
-    3.  **`web_server.py`:**
-        *   **FastAPI application:**
-            *   **Description:** The main web server for the NinjaRobot.
-            *   **Reference:** `V3Archive/pi0ninja_v3/src/pi0ninja_v3/web_server.py`
-            *   `lifespan`: Manages the application's startup and shutdown events.
-            *   API endpoints: Provide an interface for controlling the robot.
-            *   Refactor the business logic out of the endpoints and into the core application logic modules.
+    1.  **`ninja_agent.py`:**
+        *   **`NinjaAgent` class:** Port from V3 (`V3Archive/pi0ninja_v3/src/pi0ninja_v3/ninja_agent.py`).
+        *   **`__init__`:** Modify to accept the `NinjaConfig` object to get the API key.
+        *   **`_load_robot_capabilities`:** Update to load available movements, faces, and sounds from the `config.json` file instead of separate files.
+        *   **`process_command` (Text):** Keep the existing logic for processing text commands.
+        *   **`process_audio_command` (Voice):** Port the existing logic. It will receive a path to a temporary audio file (e.g., `.webm`), read the bytes, and send them to the Gemini API for transcription and processing.
+
+**2.6. Web Server & Remote Access (`web_server.py`)**
+*   **Objective:** Create the FastAPI web server, including remote access via ngrok and a QR code display.
+*   **Execution Plan:**
+    1.  **`web_server.py`:**
+        *   **`lifespan` Manager (Startup Logic):**
+            1.  Initialize the `NinjaConfig`, `HardwareAbstractionLayer`, and `NinjaAgent`.
+            2.  Start `ngrok` to create a public URL. Retry a few times if it fails.
+            3.  If `ngrok` succeeds, generate a QR code from the public URL.
+            4.  Use the `pi0disp` driver (via the HAL) to display the QR code on the ST7789V screen.
+            5.  If `ngrok` fails, display an error message on the screen.
+        *   **`lifespan` Manager (Shutdown Logic):**
+            1.  Gracefully shut down all hardware via the HAL.
+            2.  Kill the `ngrok` process.
+        *   **API Endpoints:**
+            *   `/api/agent/chat` (POST): For text-based commands.
+            *   `/api/agent/chat_voice` (POST): For voice commands (as file uploads). This endpoint will save the uploaded audio to a temporary file and pass the path to the `NinjaAgent`.
+            *   `/` (GET): Serve the main HTML, CSS, and JavaScript for the web interface.
+            *   `/ws/distance` (WebSocket): Stream distance sensor data to the client.
+        *   **First Interaction Handling:** Implement the logic from V3 where the initial QR code is cleared from the display and replaced with the idle face upon the first user request to the server.
+        *   **Reference:** The overall structure and logic should be based on `V3Archive/pi0ninja_v3/src/pi0ninja_v3/web_server.py`.
+
+**2.7. Main Entry Point (`__main__.py`)**
+*   **Objective:** Provide a simple way to start the application.
+*   **Execution Plan:**
+    1.  **`__main__.py`:**
+        *   Create a main function that initializes and runs the `uvicorn` server for the FastAPI application defined in `web_server.py`.
+        *   This will be the primary entry point, callable via `uv run ninja_core`.
 
 **A Note on Testing:**
 
