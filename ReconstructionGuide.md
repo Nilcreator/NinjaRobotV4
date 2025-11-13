@@ -31,12 +31,16 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 │   └── src/ninja_core/
 │       ├── __init__.py
 │       ├── __main__.py
+│       ├── agents/
+│       │   ├── __init__.py
+│       │   ├── display_agent.py
+│       │   ├── movement_agent.py
+│       │   ├── perception_agent.py
+│       │   └── sound_agent.py
 │       ├── config.py
-│       ├── facial_expressions.py
 │       ├── hal.py
-│       ├── movement_recorder.py
 │       ├── ninja_agent.py
-│       ├── robot_sound.py
+│       ├── tools.py
 │       └── web_server.py
 ├── pi0servo/
 │   └── src/pi0servo/
@@ -306,3 +310,96 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 **A Note on Testing:**
 
 While this plan does not have a dedicated testing phase, it is highly recommended to write and run unit tests for each library and module as it is being developed. This will help to ensure the quality and correctness of the code.
+
+### Phase 3: Advanced Multi-Agent Architecture
+
+**Objective:** To refactor `ninja_core` into a multi-agent system where a central Orchestration Agent delegates tasks to specialized, function-specific agents, enabling more complex and coordinated robot behaviors.
+
+**3.1. New `ninja_core` File Structure**
+
+First, we will introduce a new `agents` directory and a `tools.py` file to better organize the code.
+
+```
+ninja_core/
+└── src/ninja_core/
+    ├── __init__.py
+    ├── __main__.py
+    ├── agents/
+    │   ├── __init__.py
+    │   ├── display_agent.py
+    │   ├── movement_agent.py
+    │   ├── perception_agent.py
+    │   └── sound_agent.py
+    ├── config.py
+    ├── hal.py
+    ├── ninja_agent.py  # This becomes the Orchestrator
+    ├── tools.py        # Defines functions for the Orchestrator
+    └── web_server.py
+```
+
+**3.2. Implementation Plan**
+
+**Step 1: Implement the Specialized Agents**
+
+These agents are simple Python classes that manage a specific hardware capability. They are initialized with a hardware controller from the Hardware Abstraction Layer (HAL).
+
+*   **`agents/movement_agent.py`**
+    *   **`MovementAgent` class:**
+        *   `__init__(self, servo_controller)`: Takes the servo controller from the HAL.
+        *   `execute_movement(self, movement_name: str)`: Executes a pre-defined movement sequence (e.g., "wave", "nod").
+        *   `move_servo(self, servo_id: int, angle: int)`: Moves a single servo to a specific angle.
+
+*   **`agents/display_agent.py`**
+    *   **`DisplayAgent` class:**
+        *   `__init__(self, display_controller)`: Takes the facial expression controller from the HAL.
+        *   `show_face(self, expression: str)`: Displays a facial expression (e.g., "happy", "thinking").
+
+*   **`agents/sound_agent.py`**
+    *   **`SoundAgent` class:**
+        *   `__init__(self, sound_controller)`: Takes the sound controller from the HAL.
+        *   `play_sound(self, sound_name: str)`: Plays a sound (e.g., "greeting", "error").
+
+*   **`agents/perception_agent.py`**
+    *   **`PerceptionAgent` class:**
+        *   `__init__(self, distance_sensor)`: Takes the distance sensor from the HAL.
+        *   `get_distance(self) -> int`: Returns the current distance in millimeters.
+
+**Step 2: Define the Orchestrator's Tools (`tools.py`)**
+
+This file defines the exact functions the Gemini model can call. It acts as a bridge between the Orchestrator and the specialized agents. This is crucial for security and modularity.
+
+*   **`tools.py`:**
+    *   This file will contain a list of all functions available to the `NinjaAgent`.
+    *   Each function will be clearly defined with type hints, which will be used to generate the schema for the Gemini API.
+    *   **Example:**
+        ```python
+        # In tools.py
+        from . import agents # Assume agents are initialized globally or passed in
+
+        def execute_robot_movement(movement_name: str) -> str:
+            """Executes a pre-defined robot movement sequence."""
+            agents.movement_agent.execute_movement(movement_name)
+            return f"Movement '{movement_name}' executed successfully."
+
+        def show_robot_face(expression: str) -> str:
+            """Displays a facial expression on the robot's screen."""
+            agents.display_agent.show_face(expression)
+            return f"Face '{expression}' is now displayed."
+
+        # ... other tool functions ...
+        ```
+
+**Step 3: Upgrade the `NinjaAgent` to an Orchestrator**
+
+The existing `NinjaAgent` will be promoted to the role of Orchestrator.
+
+*   **`ninja_agent.py`:**
+    *   **`__init__`:** Modify to accept the `Tool` schema generated from the functions in `tools.py`.
+    *   **System Prompt:** The prompt will be updated to instruct the agent to act as an orchestrator.
+        > "You are Ninja, a robot. To fulfill user requests, you must use the available tools. You can call multiple tools in parallel to perform complex actions, like moving and showing a facial expression at the same time. Plan your steps and then call the necessary functions."
+    *   **`process_command` Method:** This method will be rewritten to handle the full tool-calling workflow:
+        1.  Send the user's prompt to the Gemini model.
+        2.  Check if the model's response includes a `function_call`.
+        3.  If it does, look up the corresponding function in `tools.py` and execute it with the arguments provided by the model.
+        4.  Send the result of the function execution back to the model.
+        5.  Receive the final, natural-language response from the model to be relayed to the user.
