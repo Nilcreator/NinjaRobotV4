@@ -1,3 +1,11 @@
+### 2025-11-16 - HAL Integration and Debugging
+
+- **Completed HAL Integration Testing**: Successfully tested the Hardware Abstraction Layer, verifying that `ninja_core` can control hardware based on the master `config.json`. This involved a series of iterative fixes:
+    - **Fixed `ImportError`**: Corrected the import statements in `hal.py` to import `MultiServo` and `CalibrableServo` directly from their source modules (e.g., `pi0servo.core.multi_servo`). This was done to accommodate the original, unmodified `pi0servo` library structure.
+    - **Fixed `AttributeError` in `config import-all`**: Corrected the logic in the `import-all` command to handle the list-based format of `servo.json`, resolving a crash when importing servo configurations.
+    - **Fixed `TypeError` on HAL Initialization**: Refactored the servo initialization logic in `hal.py`. The HAL now passes a list of pin numbers to the `MultiServo` constructor, which is the method expected by the original `pi0servo` library, resolving the `TypeError`.
+    - **Fixed `AttributeError` on Shutdown**: Corrected the shutdown call in `hal.py` from `self.servos.off_all()` to the correct `self.servos.off()`, allowing the test script to complete without error.
+
 ### 2025-11-15 - Phase 2: Hardware Abstraction Layer
 
 - **`HardwareAbstractionLayer` Created**:
