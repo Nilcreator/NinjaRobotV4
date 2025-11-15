@@ -57,33 +57,26 @@ class HardwareAbstractionLayer:
             raise
 
         # --- Initialize Servos ---
-        if self.config.servos and self.config.servos.pins:
+        if self.config.servos and self.config.servos.calibration:
             servo_list = []
-            for name, pin in self.config.servos.pins.items():
-                pin_str = str(pin)
-                calibration_data = self.config.servos.calibration.get(pin_str)
-
-                if calibration_data:
-                    servo = CalibrableServo(
-                        pi=self.pi,
-                        pin=pin,
-                        min_pulse=calibration_data.min_pulse,
-                        max_pulse=calibration_data.max_pulse,
-                        center_pulse=calibration_data.center_pulse,
-                        angle_range=calibration_data.angle_range,
-                    )
-                    log.info(f"Initialized servo '{name}' on pin {pin} with calibration.")
-                    servo_list.append(servo)
-                else:
-                    log.warning(f"No calibration data for servo '{name}' on pin {pin}. Using defaults.")
-                    servo = CalibrableServo(pi=self.pi, pin=pin)
-                    servo_list.append(servo)
+            for pin_str, calibration_data in self.config.servos.calibration.items():
+                pin = int(pin_str)
+                servo = CalibrableServo(
+                    pi=self.pi,
+                    pin=pin,
+                    min_pulse=calibration_data.min_pulse,
+                    max_pulse=calibration_data.max_pulse,
+                    center_pulse=calibration_data.center_pulse,
+                    angle_range=calibration_data.angle_range,
+                )
+                log.info(f"Initialized servo on pin {pin} with imported calibration.")
+                servo_list.append(servo)
 
             if servo_list:
                 self.servos = MultiServo(self.pi, servo_list)
                 log.info("MultiServo controller initialized.")
         else:
-            log.info("No servo pins configured. Skipping servo initialization.")
+            log.info("No servo calibration data found. Skipping servo initialization.")
 
         # --- Initialize Buzzer ---
         if self.config.buzzer and self.config.buzzer.pin:

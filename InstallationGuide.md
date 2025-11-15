@@ -90,7 +90,7 @@ Now, install all the core libraries (`ninja_utils`, `pi0buzzer`, `pi0vl53l0x`, `
 From the `NinjaRobotV4` root directory, run:
 
 ```bash
-uv pip install -e ./ninja_utils -e ./pi0buzzer -e ./pi0vl53l0x -e ./pi0disp -e ./pi0servo
+uv pip install -e ./ninja_utils -e ./pi0buzzer -e ./pi0vl53l0x -e ./pi0disp -e ./pi0servo -e ./ninja_core
 ```
 
 ## Phase 3: Component Testing
