@@ -26,8 +26,8 @@ def import_all():
     This command assumes it is run from the project's root directory.
     """
     # These paths are relative to the project root directory
-    servo_config_path = Path("pi0servo/servo.json")
-    buzzer_config_path = Path("pi0buzzer/buzzer.json")
+    servo_config_path = Path("servo.json")
+    buzzer_config_path = Path("buzzer.json")
 
     # load_config() will create a default config.json in the current directory
     # if it doesn't exist.
