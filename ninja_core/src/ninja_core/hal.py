@@ -104,7 +104,7 @@ class HardwareAbstractionLayer:
         log.info("Shutting down hardware components...")
 
         if self.servos:
-            self.servos.off_all()
+            self.servos.off()
             log.info("All servos turned off.")
 
         if self.buzzer:
