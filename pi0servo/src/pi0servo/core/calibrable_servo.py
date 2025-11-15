@@ -28,7 +28,7 @@ class CalibrableServo(PiServo):
     POS_MIN = "min"
     POS_MAX = "max"
 
-    def __init__(self, pi, pin, conf_file=DEF_CONF_FILE, debug=False):
+    def __init__(self, pi, pin, conf_file=DEF_CONF_FILE, config_data=None, debug=False):
         """CalibrableServoオブジェクトを初期化する。
 
         親クラスを初期化した後、ServoConfigManagerを使って設定を読み込む。
@@ -45,7 +45,7 @@ class CalibrableServo(PiServo):
         self.__log.debug("self.conf_file=%s", self.conf_file)
 
         # 設定を読み込んで適用
-        self.load_conf()
+        self.load_conf(config_data=config_data)
 
     def _normalize_pulse(self, pulse):
         """パルス幅を正規化する。(プライベートメソッド)"""
@@ -189,13 +189,16 @@ class CalibrableServo(PiServo):
         self.__log.debug("cur_angle=%s", _cur_angle)
         self.move_angle(_cur_angle + deg_diff)
 
-    def load_conf(self):
+    def load_conf(self, config_data=None):
         """設定ファイルからこのサーボのキャリブレーション値を読み込む。"""
-        config = self._config_manager.get_config(self.pin)
+        config = config_data
+        if config is None:
+            config = self._config_manager.get_config(self.pin)
+
         if config:
-            self._pulse_min = config.get("min", super().MIN)
-            self._pulse_center = config.get("center", super().CENTER)
-            self._pulse_max = config.get("max", super().MAX)
+            self._pulse_min = config.get("min_pulse", super().MIN)
+            self._pulse_center = config.get("center_pulse", super().CENTER)
+            self._pulse_max = config.get("max_pulse", super().MAX)
             self.__log.debug("Loaded config for pin %s", self.pin)
         else:
             # Safe defaults for a new servo

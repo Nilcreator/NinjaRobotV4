@@ -24,7 +24,11 @@ class ServoConfigManager:
         self.__log = get_logger(self.__class__.__name__, self._debug)
 
         # V4では、設定ファイルは常にカレントディレクトリに作成・検索する
-        self.conf_file = str(Path.cwd() / conf_file)
+        path = Path(conf_file)
+        if path.is_absolute():
+            self.conf_file = str(path)
+        else:
+            self.conf_file = str(Path.cwd() / conf_file)
         self.__log.debug("conf_file: %s", self.conf_file)
 
     def read_all_configs(self):
