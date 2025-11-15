@@ -40,13 +40,19 @@ def import_all():
         with open(servo_config_path, "r") as f:
             servo_data = json.load(f)
 
-        for pin, calib_data in servo_data.items():
-            pin_str = str(pin)
-            # Create a model for comparison to see if data is different
-            new_calib = ServoCalibration.model_validate(calib_data)
-            if main_config.servos.calibration.get(pin_str) != new_calib:
-                main_config.servos.calibration[pin_str] = new_calib
-                made_changes = True
+        # The servo.json is a list of servo objects, not a dictionary.
+        if isinstance(servo_data, list):
+            for servo_entry in servo_data:
+                pin = servo_entry.get("pin")
+                if pin is None:
+                    continue  # Skip entries without a pin
+
+                pin_str = str(pin)
+                # The entire entry is the calibration data
+                new_calib = ServoCalibration.model_validate(servo_entry)
+                if main_config.servos.calibration.get(pin_str) != new_calib:
+                    main_config.servos.calibration[pin_str] = new_calib
+                    made_changes = True
         click.echo("...servo import complete.")
     else:
         click.echo(
