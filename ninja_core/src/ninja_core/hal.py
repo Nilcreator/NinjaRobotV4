@@ -64,7 +64,10 @@ class HardwareAbstractionLayer:
                 servo = CalibrableServo(
                     pi=self.pi,
                     pin=pin,
-                    config_data=calibration_data.model_dump()  # Pass config directly
+                    min_pulse=calibration_data.min_pulse,
+                    max_pulse=calibration_data.max_pulse,
+                    center_pulse=calibration_data.center_pulse,
+                    angle_range=calibration_data.angle_range,
                 )
                 log.info(f"Initialized servo on pin {pin} with imported calibration.")
                 servo_list.append(servo)
