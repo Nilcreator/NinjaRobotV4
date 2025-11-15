@@ -11,7 +11,7 @@ import logging
 from .config import NinjaConfig
 
 # Import driver classes from our hardware libraries
-from pi0servo.core import MultiServo, CalibrableServo
+from pi0servo.core.multi_servo import MultiServo
 from pi0buzzer.driver import MusicBuzzer
 # from pi0disp.disp.st7789v import ST7789V  # Placeholder: Add when disp is ready
 # from pi0vl53l0x.driver import VL53L0X      # Placeholder: Add when sensor is ready
@@ -57,24 +57,25 @@ class HardwareAbstractionLayer:
             raise
 
         # --- Initialize Servos ---
+        # This logic is designed to be compatible with the original pi0servo library.
+        # It derives the pins to use from the master config, but tells the MultiServo
+        # class to use the original 'servo.json' for its calibration data.
         if self.config.servos and self.config.servos.calibration:
-            servo_list = []
-            for pin_str, calibration_data in self.config.servos.calibration.items():
-                pin = int(pin_str)
-                servo = CalibrableServo(
-                    pi=self.pi,
-                    pin=pin,
-                    min_pulse=calibration_data.min_pulse,
-                    max_pulse=calibration_data.max_pulse,
-                    center_pulse=calibration_data.center_pulse,
-                    angle_range=calibration_data.angle_range,
-                )
-                log.info(f"Initialized servo on pin {pin} with imported calibration.")
-                servo_list.append(servo)
+            # Get a list of integer pins from the calibration data keys
+            pin_list = [int(pin_str) for pin_str in self.config.servos.calibration.keys()]
 
-            if servo_list:
-                self.servos = MultiServo(self.pi, servo_list)
-                log.info("MultiServo controller initialized.")
+            if pin_list:
+                log.info(f"Found pins {pin_list} in config. Initializing MultiServo.")
+                # Instantiate MultiServo the way it expects: with a list of pins
+                # and a path to its own config file.
+                self.servos = MultiServo(
+                    pi=self.pi,
+                    pins=pin_list,
+                    conf_file="servo.json"  # Instruct it to use the original file
+                )
+                log.info("MultiServo controller initialized using 'servo.json'.")
+            else:
+                log.info("No servo calibration data found. Skipping servo initialization.")
         else:
             log.info("No servo calibration data found. Skipping servo initialization.")
 
