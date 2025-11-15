@@ -1,0 +1,24 @@
+Metadata-Version: 2.4
+Name: ninja_core
+Version: 0.1.0
+Summary: Core application logic for the NinjaRobotV4.
+Author-email: Nil Creator <nilcreator@gmail.com>
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: jinja2
+Requires-Dist: google-generativeai
+Requires-Dist: python-dotenv
+Requires-Dist: websockets
+Requires-Dist: googlesearch-python
+Requires-Dist: pyngrok
+Requires-Dist: python-multipart
+Requires-Dist: qrcode[pil]
+Requires-Dist: Pillow
+Requires-Dist: click
+Requires-Dist: pydantic
+Provides-Extra: dev
+Requires-Dist: ruff; extra == "dev"
+Dynamic: license-file
