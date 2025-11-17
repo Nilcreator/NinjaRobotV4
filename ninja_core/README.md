@@ -74,3 +74,28 @@ You should see the following on your Raspberry Pi:
 3.  The display will cycle through all the facial expressions (`happy`, `sad`, `angry`, etc.), showing each one for about 3 seconds.
 4.  After the cycle is complete, the `idle` face (blinking eyes) will be displayed indefinitely.
 5.  You can press **Ctrl+C** at any time to stop the test and safely shut down the hardware.
+
+### Testing `robot_sound.py`
+
+This test will cycle through all available sounds and play them on the robot's buzzer.
+
+#### **1. Prerequisites**
+
+*   **Hardware:** Ensure your passive buzzer is connected to the Raspberry Pi according to the pinout in `InstallationGuide.md` (default is GPIO 26).
+*   **Configuration:** Your `config.json` file must have the correct pin configuration for the buzzer in the `buzzer` section. If you haven't configured it, run `uv run pi0buzzer init 26` and then re-import the settings with `uv run ninja_core config import-all`.
+
+#### **2. Run the Test Script**
+
+Execute the following command from the `NinjaRobotV4` root directory:
+
+```bash
+uv run python test_robot_sound.py
+```
+
+#### **3. Expected Outcome**
+
+You should see and hear the following:
+
+1.  The terminal will print status messages as it initializes the hardware.
+2.  You will hear a sequence of short melodies and sounds, with the terminal printing the name of each sound (`happy`, `sad`, `angry`, etc.) before it plays.
+3.  The script will exit cleanly after playing all sounds.
