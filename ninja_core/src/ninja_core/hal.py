@@ -101,7 +101,6 @@ class HardwareAbstractionLayer:
                 rst_pin=self.config.display.rst,
                 backlight_pin=self.config.display.blk,
             )
-            self.display.begin()
             log.info("Display initialized.")
         else:
             log.info("No display pins configured. Skipping display initialization.")
@@ -128,8 +127,8 @@ class HardwareAbstractionLayer:
             log.info("Buzzer turned off.")
 
         if self.display:
-            self.display.off()
-            log.info("Display turned off.")
+            self.display.close()
+            log.info("Display closed.")
 
         if self.pi and self.pi.connected:
             self.pi.stop()
