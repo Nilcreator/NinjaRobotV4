@@ -92,16 +92,15 @@ class HardwareAbstractionLayer:
             log.info("No buzzer pin configured. Skipping buzzer initialization.")
 
         # --- Initialize Display ---
-        if self.config.display and self.config.display.pins:
+        if self.config.display and self.config.display.dc is not None:
             log.info("Initializing display...")
-            pins = self.config.display.pins
             self.display = ST7789V(
                 pi=self.pi,
                 spi_port=0,  # Assuming SPI port 0
                 spi_cs=0,  # Assuming CS 0
-                dc_pin=pins.dc,
-                rst_pin=pins.rst,
-                backlight_pin=pins.blk,
+                dc_pin=self.config.display.dc,
+                rst_pin=self.config.display.rst,
+                backlight_pin=self.config.display.blk,
             )
             self.display.begin()
             log.info("Display initialized.")
