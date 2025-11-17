@@ -6,6 +6,7 @@ abstracting away the details of pin numbers and driver initialization. It is
 responsible for initializing all hardware from a central configuration object
 and providing a clean way to access and shut down the hardware.
 """
+
 import pigpio
 import logging
 from .config import NinjaConfig
@@ -13,7 +14,7 @@ from .config import NinjaConfig
 # Import driver classes from our hardware libraries
 from pi0servo.core.multi_servo import MultiServo
 from pi0buzzer.driver import MusicBuzzer
-# from pi0disp.disp.st7789v import ST7789V  # Placeholder: Add when disp is ready
+from pi0disp.disp.st7789v import ST7789V
 # from pi0vl53l0x.driver import VL53L0X      # Placeholder: Add when sensor is ready
 
 log = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class HardwareAbstractionLayer:
         self.pi: pigpio.pi | None = None
         self.servos: MultiServo | None = None
         self.buzzer: MusicBuzzer | None = None
-        # self.display: ST7789V | None = None
+        self.display: ST7789V | None = None
         # self.distance_sensor: VL53L0X | None = None
         log.info("Hardware Abstraction Layer created.")
 
@@ -62,7 +63,9 @@ class HardwareAbstractionLayer:
         # class to use the original 'servo.json' for its calibration data.
         if self.config.servos and self.config.servos.calibration:
             # Get a list of integer pins from the calibration data keys
-            pin_list = [int(pin_str) for pin_str in self.config.servos.calibration.keys()]
+            pin_list = [
+                int(pin_str) for pin_str in self.config.servos.calibration.keys()
+            ]
 
             if pin_list:
                 log.info(f"Found pins {pin_list} in config. Initializing MultiServo.")
@@ -71,11 +74,13 @@ class HardwareAbstractionLayer:
                 self.servos = MultiServo(
                     pi=self.pi,
                     pins=pin_list,
-                    conf_file="servo.json"  # Instruct it to use the original file
+                    conf_file="servo.json",  # Instruct it to use the original file
                 )
                 log.info("MultiServo controller initialized using 'servo.json'.")
             else:
-                log.info("No servo calibration data found. Skipping servo initialization.")
+                log.info(
+                    "No servo calibration data found. Skipping servo initialization."
+                )
         else:
             log.info("No servo calibration data found. Skipping servo initialization.")
 
@@ -86,9 +91,22 @@ class HardwareAbstractionLayer:
         else:
             log.info("No buzzer pin configured. Skipping buzzer initialization.")
 
-        # --- Initialize Display (Placeholder) ---
-        # if self.config.display:
-        #     log.info("Initializing display...")
+        # --- Initialize Display ---
+        if self.config.display and self.config.display.pins:
+            log.info("Initializing display...")
+            pins = self.config.display.pins
+            self.display = ST7789V(
+                pi=self.pi,
+                spi_port=0,  # Assuming SPI port 0
+                spi_cs=0,  # Assuming CS 0
+                dc_pin=pins.dc,
+                rst_pin=pins.rst,
+                backlight_pin=pins.blk,
+            )
+            self.display.begin()
+            log.info("Display initialized.")
+        else:
+            log.info("No display pins configured. Skipping display initialization.")
 
         # --- Initialize Distance Sensor (Placeholder) ---
         # if self.config.sensors:
@@ -111,9 +129,9 @@ class HardwareAbstractionLayer:
             self.buzzer.off()
             log.info("Buzzer turned off.")
 
-        # if self.display:
-        #     self.display.off()
-        #     log.info("Display turned off.")
+        if self.display:
+            self.display.off()
+            log.info("Display turned off.")
 
         if self.pi and self.pi.connected:
             self.pi.stop()
