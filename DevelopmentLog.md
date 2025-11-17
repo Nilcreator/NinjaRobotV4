@@ -1,97 +1,113 @@
-### 2025-11-16 - HAL Integration and Debugging
+### 2025-11-17 — Facial Expressions Module and HAL Integration
 
-- **Completed HAL Integration Testing**: Successfully tested the Hardware Abstraction Layer, verifying that `ninja_core` can control hardware based on the master `config.json`. This involved a series of iterative fixes:
-    - **Fixed `ImportError`**: Corrected the import statements in `hal.py` to import `MultiServo` and `CalibrableServo` directly from their source modules (e.g., `pi0servo.core.multi_servo`). This was done to accommodate the original, unmodified `pi0servo` library structure.
-    - **Fixed `AttributeError` in `config import-all`**: Corrected the logic in the `import-all` command to handle the list-based format of `servo.json`, resolving a crash when importing servo configurations.
-    - **Fixed `TypeError` on HAL Initialization**: Refactored the servo initialization logic in `hal.py`. The HAL now passes a list of pin numbers to the `MultiServo` constructor, which is the method expected by the original `pi0servo` library, resolving the `TypeError`.
-    - **Fixed `AttributeError` on Shutdown**: Corrected the shutdown call in `hal.py` from `self.servos.off_all()` to the correct `self.servos.off()`, allowing the test script to complete without error.
+- **Completed Sub-Phase 2.4.1**
+    - Ported and refactored `AnimatedFaces` into `ninja_core/src/ninja_core/facial_expressions.py`.
+    - Consolidated the API into a single `play()` method and integrated the module with the HAL.
+    - Module validated by tests.
 
-### 2025-11-15 - Phase 2: Hardware Abstraction Layer
+- **HAL integration and debugging**
+    - Performed extensive debugging to fully integrate hardware drivers with the HAL.
 
-- **`HardwareAbstractionLayer` Created**:
-    - Created the `ninja_core/src/ninja_core/hal.py` module.
-    - Implemented the `HardwareAbstractionLayer` (HAL) class to provide a single, unified interface for all hardware components.
-    - The HAL's `initialize()` method now reads from a `NinjaConfig` object to instantiate and configure the required hardware drivers (`MultiServo`, `MusicBuzzer`).
-    - It manages a single, shared connection to the `pigpio` daemon for efficiency.
-    - The `shutdown()` method ensures all hardware components are safely turned off.
-    - The new module has been linted and passed all checks.
+- **Bug fixes**
+    - Fixed `AttributeError: 'HardwareAbstractionLayer' object has no attribute 'display'` by enabling display driver initialization in `hal.py`.
+    - Fixed `AttributeError: 'DisplayConfig' object has no attribute 'pins'` by adding explicit pin fields (`dc`, `rst`, `blk`) to `DisplayConfig` in `config.py` and updating `hal.py` to access them.
+    - Fixed `TypeError` on driver initialization by standardizing `ST7789V` (display) and `MusicBuzzer` drivers to accept an optional shared `pigpio` connection from the HAL (avoids unexpected kwargs like `pi` and `spi_port`).
+    - Fixed incorrect method calls: removed an unnecessary `.begin()` call and replaced `.off()` with the correct `.close()` on the display driver.
+    - Fixed `OSError: [Errno 9] Bad file descriptor` by resolving a race condition in `test_facial_expressions.py` — the animation thread is now stopped explicitly before HAL shutdown.
+    - Fixed `NinjaConfig.load()` error by updating the test script to call `load_config()` instead of a non-existent class method.
 
-### 2025-11-09 - pi0servo Library Refinements
+### 2025-11-16 — HAL Integration and Debugging
 
-- **Safety and UX Refinements for `pi0servo`**:
-    - **Implemented Safe Defaults**: The `CalibrableServo` class now initializes with safe default values, setting Min, Center, and Max pulses to 1500 if no configuration exists. This prevents the servo from moving to an extreme position on its first run.
-    - **Upgraded Direct Movement**: The `pi0servo servo` command was refactored to use `CalibrableServo`, ensuring it respects the calibrated limits from `servo.json`. It now accepts angles and keywords (min, center, max) instead of raw pulse values.
-    - **Overhauled Calibration UI**: The `pi0servo calib` tool was enhanced with new keybindings. Users can now use `v`, `c`, `x` for direct target selection, in addition to `Tab` cycling. The adjustment keys were swapped so that `Up`/`Down` arrows perform large steps and `w`/`s` perform fine-tuning. The help text was updated to reflect these changes.
+- **Completed HAL integration testing**
+    - Verified `ninja_core` can control hardware using the master `config.json`. Iterative fixes included:
 
-### 2025-11-09 - pi0servo Library Created
+    - Fixed `ImportError` by importing `MultiServo` and `CalibrableServo` directly from their source modules (e.g., `pi0servo.core.multi_servo`) to match the unmodified `pi0servo` library layout.
+    - Fixed `AttributeError` in `config import-all` by handling list-based `servo.json` format during imports.
+    - Fixed `TypeError` on HAL initialization by refactoring servo initialization: HAL now passes a list of pin numbers to `MultiServo`, matching the original `pi0servo` API.
+    - Fixed shutdown `AttributeError` by changing `self.servos.off_all()` to the correct `self.servos.off()` in `hal.py`.
 
-- **`pi0servo` Library Created**:
-    - Created the full directory structure for the `pi0servo` library, including `pyproject.toml`, `LICENSE`, `README.md`, and subdirectories for `core`, `helper`, `utils`, and `command`.
-    - Implemented the core servo classes (`PiServo`, `CalibrableServo`, `MultiServo`) by adapting them from the V3 archive.
-    - Implemented the asynchronous control classes (`ThreadWorker`, `ThreadMultiServo`) and the `ServoConfigManager` utility.
-    - Created the CLI commands `cmd_calib.py` and `cmd_servo.py` and wired them into a main `__main__.py` entry point.
-    - All new modules have been linted and passed checks.
-    - Updated `ReconstructionGuide.md` with a refined plan for `ninja_core` configuration management.
+### 2025-11-15 — Phase 2: Hardware Abstraction Layer
 
-### 2025-11-06 - pi0disp Library and Asset Management
+- **`HardwareAbstractionLayer` created**
+    - Added `ninja_core/src/ninja_core/hal.py` and implemented the `HardwareAbstractionLayer` (HAL) class.
+    - `initialize()` reads from a `NinjaConfig` object to instantiate/configure hardware drivers (`MultiServo`, `MusicBuzzer`) and manages a shared `pigpio` connection.
+    - `shutdown()` ensures all hardware components are safely turned off.
+    - Module linted and passed checks.
 
-- **`pi0disp` Library Created**:
-    - Created the full directory structure for the `pi0disp` library, including `pyproject.toml`, `__init__.py` files, and subdirectories for `disp`, `utils`, `commands`, and `fonts`.
-    - Implemented the core driver `disp/st7789v.py` and utility modules `utils/performance_core.py` and `utils/image_processor.py` by adapting them from the V3 archive.
-    - Created the CLI commands `commands/ball_anime.py` and `commands/image.py`.
+### 2025-11-09 — pi0servo Library Refinements
 
-- **Asset Management Refactored**:
-    - Created a global `assets` directory at the project root with `images`, `sounds`, and `videos` subdirectories for centralized resource management.
-    - Bundled Noto fonts for English, Japanese, and Traditional Chinese directly into the `pi0disp/src/pi0disp/fonts/` directory to make the library self-contained.
-    - Updated `commands/ball_anime.py` to use `importlib.resources` for robustly loading the bundled fonts.
+- **Safety and UX improvements**
+    - `CalibrableServo` now initializes with safe defaults (Min/Center/Max pulses default to 1500 when missing).
+    - `pi0servo servo` command refactored to use `CalibrableServo`, accept angles and keywords (`min`, `center`, `max`), and respect calibrated limits from `servo.json`.
+    - `pi0servo calib` UI improved:
+        - New keybindings: `v`, `c`, `x` for direct target selection; `Tab` still cycles targets.
+        - Movement keys swapped: `Up`/`Down` for large steps, `w`/`s` for fine tuning.
+        - Help text updated.
 
-- **Bug Fixes & Documentation**:
-    - **Fixed Pillow V10 Compatibility**: Replaced the deprecated `draw.textsize()` method with `draw.textbbox()` in `ball_anime.py` to resolve an `AttributeError`.
-    - **Resolved Font Download Issues**: Corrected multiple `404 Not Found` errors by using reliable CDN URLs for font downloads before deciding to bundle them instead.
-    - **Updated Documentation**: Updated `InstallationGuide.md`, `pi0disp/README.md`, and `ReconstructionGuide.md` to reflect the new bundled assets and simplified testing procedures.
+### 2025-11-09 — pi0servo Library Created
 
-### 2025-11-05 - pi0vl53l0x Library Created
+- Created library skeleton (`pyproject.toml`, `LICENSE`, `README.md`) and package structure (`core`, `helper`, `utils`, `command`).
+- Implemented core classes: `PiServo`, `CalibrableServo`, `MultiServo` (adapted from V3 archive).
+- Added async control classes (`ThreadWorker`, `ThreadMultiServo`) and `ServoConfigManager`.
+- Implemented CLI: `cmd_calib.py`, `cmd_servo.py`, and main `__main__.py`.
+- Modules linted and passed checks.
+- Updated `ReconstructionGuide.md` with configuration management plan for `ninja_core`.
 
-- Created the `pi0vl53l0x` library for the VL53L0X distance sensor.
-- Created `pyproject.toml`, `README.md`, and `LICENSE`.
-- Copied `constants.py`, `driver.py`, `config_manager.py`, and `__main__.py` from `V3Archive`.
-- Refactored the code to use the new `pi0vl53l0x` package structure and the centralized `ninja_utils` logger.
-- All modules have been linted and passed checks.
+### 2025-11-06 — pi0disp Library and Asset Management
 
-### 2025-11-05 - pi0buzzer Library Created
+- **`pi0disp` library created**
+    - Added package structure and implemented `disp/st7789v.py`, `utils/performance_core.py`, and `utils/image_processor.py` (adapted from V3).
+    - Added CLI commands `commands/ball_anime.py` and `commands/image.py`.
 
-- Created the `pi0buzzer` library.
-- Copied `driver.py` and `__main__.py` from `V3Archive`.
-- Created `__init__.py`, `pyproject.toml`, `README.md`, and `LICENSE`.
-- All modules have been linted and passed checks.
+- **Asset management**
+    - Created global `assets/` at project root with `images`, `sounds`, and `videos`.
+    - Bundled Noto fonts (EN, JP, TC) into `pi0disp/src/pi0disp/fonts/` for a self-contained library.
+    - Updated `commands/ball_anime.py` to use `importlib.resources` for loading bundled fonts.
 
-### 2025-10-30 - Ninja Utils Library Created
+- **Bug fixes & docs**
+    - Replaced deprecated Pillow `draw.textsize()` with `draw.textbbox()` to fix compatibility with Pillow v10.
+    - Resolved font download `404` issues and switched to bundling fonts.
+    - Updated `InstallationGuide.md`, `pi0disp/README.md`, and `ReconstructionGuide.md`.
 
-- Created the `ninja_utils` library with the following modules:
-    - `pyproject.toml`: Project metadata and dependencies.
-    - `my_logger.py`: Centralized logging utility.
-    - `keyboard.py`: Non-blocking keyboard input utility.
-    - `__init__.py`: Package initializer.
-- All modules have been linted and passed checks.
+### 2025-11-05 — pi0vl53l0x Library Created
 
-### 2025-10-30 - `ninja_utils` Testing and Error Resolution
+- Created `pi0vl53l0x` library (`pyproject.toml`, `README.md`, `LICENSE`).
+- Ported and refactored `constants.py`, `driver.py`, `config_manager.py`, and `__main__.py` from V3Archive.
+- Integrated centralized `ninja_utils` logger.
+- Modules linted and passed checks.
 
-- **Issue 1: `ImportError: cannot import name 'math' from partially initialized module 'ninja_utils'`**
-    - **Cause**: Incorrect installation method (`uv pip install ninja_utils`) led to an unrelated PyPI package being installed instead of the local source.
-    - **Resolution**: Provided clear instructions for uninstalling the incorrect package and installing the local `ninja_utils` in editable mode (`uv pip install -e .`) from within the `ninja_utils` directory.
+### 2025-11-05 — pi0buzzer Library Created
 
-- **Issue 2: `OSError: License file does not exist: LICENSE`**
-    - **Cause**: The `pyproject.toml` specified `license = { file = "LICENSE" }`, but the `LICENSE` file was missing.
-    - **Resolution**: Created a `LICENSE` file with the MIT license text in the `ninja_utils` directory.
+- Created `pi0buzzer` library: `driver.py`, `__main__.py`, `__init__.py`, `pyproject.toml`, `README.md`, `LICENSE`.
+- Modules linted and passed checks.
 
-- **Issue 3: `OSError: Readme file does not exist: README.md`**
-    - **Cause**: The `pyproject.toml` specified `readme = "README.md"`, but the `README.md` file was missing.
-    - **Resolution**: Created a basic `README.md` file in the `ninja_utils` directory.
+### 2025-10-30 — Ninja Utils Library Created
 
-- **Issue 4: `uv` warning about `VIRTUAL_ENV`**
-    - **Cause**: `uv` detected an environment variable `VIRTUAL_ENV` that conflicted with the project's local `.venv`, leading to a warning.
-    - **Resolution**: Clarified that this is a warning, not an error, and provided the `--active` flag for `uv run` to explicitly target the active environment and suppress the warning.
+- Created `ninja_utils` with:
+    - `pyproject.toml`
+    - `my_logger.py` (centralized logging)
+    - `keyboard.py` (non-blocking keyboard input)
+    - `__init__.py`
+- Modules linted and passed checks.
 
-- **Testing Progress**:
-    - Created `ninja_utils/samples/sample.py` to demonstrate `get_logger` and `NonBlockingKeyboard` functionality.
-    - Provided updated, detailed instructions for installing and running the sample script on a different device, emphasizing the correct editable installation method.
+### 2025-10-30 — `ninja_utils` Testing and Error Resolution
+
+- Issue: `ImportError: cannot import name 'math' from partially initialized module 'ninja_utils'`
+    - Cause: Incorrect installation (`uv pip install ninja_utils`) installed unrelated PyPI package instead of local source.
+    - Resolution: Uninstall incorrect package and install local package in editable mode: `uv pip install -e .` from inside `ninja_utils` directory.
+
+- Issue: `OSError: License file does not exist: LICENSE`
+    - Cause: `pyproject.toml` referenced `LICENSE` that was missing.
+    - Resolution: Added `LICENSE` (MIT) to `ninja_utils`.
+
+- Issue: `OSError: Readme file does not exist: README.md`
+    - Cause: `pyproject.toml` referenced `README.md` that was missing.
+    - Resolution: Added `README.md` to `ninja_utils`.
+
+- Issue: `uv` warning about `VIRTUAL_ENV`
+    - Cause: `uv` detected a conflicting `VIRTUAL_ENV`.
+    - Resolution: Clarified it's a warning and documented `--active` flag for `uv run` to target the active environment.
+
+- Testing progress
+    - Added `ninja_utils/samples/sample.py` demonstrating `get_logger` and `NonBlockingKeyboard`.
+    - Provided installation and run instructions emphasizing editable installation.
