@@ -260,14 +260,100 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
         *   Expose all hardware instances (e.g., `self.servos`, `self.display`) as properties of the HAL.
 
 **2.4. Core Application Logic**
-*   **Objective:** Re-implement the robot's primary behaviors (faces, sounds, movements).
-*   **Execution Plan:**
-    1.  **`facial_expressions.py`:**
-        *   **`AnimatedFaces` class:** Port from V3 (`V3Archive/pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py`). Refactor the multiple `play_*` methods into a single `play(expression_name)` method to reduce code duplication. It will take the `display` driver from the HAL as an argument.
-    2.  **`robot_sound.py`:**
-        *   **`RobotSoundPlayer` class:** Port from V3 (`V3Archive/pi0ninja_v3/src/pi0ninja_v3/robot_sound.py`). It will take the `buzzer` driver from the HAL as an argument.
-    3.  **`movement_recorder.py`:**
-        *   **`MovementController` class:** Port the `ServoController` from V3 (`V3Archive/pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py`) and rename it. It will take the `servos` driver from the HAL as an argument.
+
+*   **Objective:** Port the primary behavior classes from the V3 archive into the `ninja_core` application. Each class will be refactored to integrate with the Hardware Abstraction Layer (HAL) and the centralized `NinjaConfig`, removing all direct hardware initialization and file I/O.
+
+#### **Sub-Phase 2.4.1: `facial_expressions.py` - Visual Emotion System**
+
+*   **V3 Analysis:** The `AnimatedFaces` class in `V3Archive/pi0ninja_v3/src/pi0ninja_v3/facial_expressions.py` programmatically draws and animates faces. It uses a separate thread for non-blocking animation and has a distinct `play_*` method for each emotion (e.g., `play_happy`, `play_sad`).
+*   **Optimization:** The multiple `play_*` methods are redundant. We will consolidate them into a single, more flexible `play(expression_name)` method.
+
+**Execution Steps:**
+
+1.  **Create File:**
+    *   **Action:** Create a new file named `facial_expressions.py`.
+    *   **Location:** `ninja_core/src/ninja_core/`
+    *   **Tool:** `write_file`
+
+2.  **Port and Refactor Code:**
+    *   **Action:** Copy the `AnimatedFaces` class from the V3 file into the new file and perform the following refactoring:
+        *   **Dependencies:** Add imports for `ninja_core.hal.HardwareAbstractionLayer` and `PIL`.
+        *   **`__init__` Method:** Modify the constructor to accept the HAL object: `__init__(self, hal: HardwareAbstractionLayer)`. It will get the display driver via `self.lcd = hal.display`. Remove all direct `ST7789V` initialization.
+        *   **Consolidate `play` methods:**
+            *   Create a dictionary mapping expression names (e.g., "happy", "sad") to their corresponding animation logic functions.
+            *   Create a single public method: `play(self, expression: str, duration_s: float)`. This method will look up the animation logic in the dictionary and start it.
+            *   The `stop()` and internal animation loop methods (`_start_animation`, `_animation_loop`) will be kept as they are well-implemented for threading.
+    *   **Tool:** `write_file` or `replace`
+
+3.  **Linting and Formatting:**
+    *   **Action:** Ensure the new file conforms to project coding standards.
+    *   **Commands:**
+        ```bash
+        uv run ruff check ninja_core/src/ninja_core/facial_expressions.py --fix
+        uv run ruff format ninja_core/src/ninja_core/facial_expressions.py
+        ```
+    *   **Tool:** `run_shell_command`
+
+#### **Sub-Phase 2.4.2: `robot_sound.py` - Auditory Feedback System**
+
+*   **V3 Analysis:** The `RobotSoundPlayer` class in `V3Archive/pi0ninja_v3/src/pi0ninja_v3/robot_sound.py` directly initializes `pigpio`, reads a `buzzer.json` file, and instantiates the `Buzzer` driver. It contains a hardcoded dictionary of melodies.
+*   **Optimization:** The class should not perform any direct hardware or file system access. This responsibility will be moved to the HAL and `NinjaConfig`.
+
+**Execution Steps:**
+
+1.  **Create File:**
+    *   **Action:** Create a new file named `robot_sound.py`.
+    *   **Location:** `ninja_core/src/ninja_core/`
+    *   **Tool:** `write_file`
+
+2.  **Port and Refactor Code:**
+    *   **Action:** Copy the `RobotSoundPlayer` class into the new file and refactor as follows:
+        *   **Dependencies:** Add import for `ninja_core.hal.HardwareAbstractionLayer`.
+        *   **`__init__` Method:** Modify the constructor to `__init__(self, hal: HardwareAbstractionLayer)`. It will get the buzzer driver via `self.buzzer = hal.buzzer`. Remove all `pigpio` initialization and the loading of `buzzer.json`.
+        *   **`play` Method:** Keep the existing `play(emotion: str)` logic, as it correctly uses the `self.buzzer` instance. The `SOUNDS` and `NOTES` dictionaries will be retained within the class.
+        *   **`cleanup` Method:** This method is no longer needed and will be removed, as the HAL is responsible for resource cleanup.
+    *   **Tool:** `write_file` or `replace`
+
+3.  **Linting and Formatting:**
+    *   **Action:** Ensure code quality.
+    *   **Commands:**
+        ```bash
+        uv run ruff check ninja_core/src/ninja_core/robot_sound.py --fix
+        uv run ruff format ninja_core/src/ninja_core/robot_sound.py
+        ```
+    *   **Tool:** `run_shell_command`
+
+#### **Sub-Phase 2.4.3: `movement_controller.py` - Motion System**
+
+*   **V3 Analysis:** The `ServoController` class in `V3Archive/pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py` is a complex module that handles servo initialization, movement execution, and an interactive CLI for recording, editing, and deleting movement sequences. It directly reads `servo.json` and `servo_movement.json`.
+*   **Optimization:** We will rename the class to `MovementController` and decouple it from file I/O. The interactive recording CLI is a powerful developer tool and will be preserved but adapted to the new structure. Movement data will be managed by `NinjaConfig`.
+
+**Execution Steps:**
+
+1.  **Create File:**
+    *   **Action:** Create a new file named `movement_controller.py`.
+    *   **Location:** `ninja_core/src/ninja_core/`
+    *   **Tool:** `write_file`
+
+2.  **Port and Refactor Code:**
+    *   **Action:** Copy the `ServoController` class and its helper functions (`load_movements`, `save_movements`, etc.) into the new file. Rename `ServoController` to `MovementController` and refactor:
+        *   **Dependencies:** Add imports for `ninja_core.hal.HardwareAbstractionLayer` and `ninja_core.config.NinjaConfig`.
+        *   **`__init__` Method:** Modify the constructor to `__init__(self, hal: HardwareAbstractionLayer, config: NinjaConfig)`.
+            *   It will get the servo controller via `self.servos = hal.servos`.
+            *   It will get servo definitions and movement sequences from the config object: `self.servo_definitions = config.get('servo_definitions')` and `self.movements = config.get('movements')`.
+            *   Remove all direct `pigpio` initialization and file reading.
+        *   **Movement I/O:** The `load_movements` and `save_movements` functions will be refactored to interact with the `NinjaConfig` object (`config.get('movements')`, `config.set('movements', data)`), not the filesystem.
+        *   **CLI Functions:** The interactive functions (`record_new_movement`, `execute_movement`, etc.) will be preserved but refactored to use the new `MovementController` methods. These will be exposed through the `ninja_core` main CLI at a later stage.
+    *   **Tool:** `write_file` or `replace`
+
+3.  **Linting and Formatting:**
+    *   **Action:** Ensure code quality.
+    *   **Commands:**
+        ```bash
+        uv run ruff check ninja_core/src/ninja_core/movement_controller.py --fix
+        uv run ruff format ninja_core/src/ninja_core/movement_controller.py
+        ```
+    *   **Tool:** `run_shell_command`
 
 **2.5. AI Agent (`ninja_agent.py`)**
 *   **Objective:** Implement the AI agent with both text and voice chat capabilities.
