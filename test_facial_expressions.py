@@ -1,5 +1,6 @@
 import time
-from ninja_core.config import NinjaConfig
+import traceback
+from ninja_core.config import load_config
 from ninja_core.hal import HardwareAbstractionLayer
 from ninja_core.facial_expressions import AnimatedFaces
 
@@ -15,7 +16,7 @@ def main():
     try:
         # 1. Initialize Config and HAL
         print("Initializing configuration...")
-        config = NinjaConfig.load()
+        config = load_config()
 
         print("Initializing Hardware Abstraction Layer...")
         hal = HardwareAbstractionLayer(config)
@@ -49,6 +50,7 @@ def main():
         print("\nKeyboard interrupt detected. Shutting down...")
     except Exception as e:
         print(f"\nAn error occurred: {e}")
+        traceback.print_exc()
     finally:
         if face_controller:
             print("Stopping face animation thread...")
