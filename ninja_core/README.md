@@ -48,3 +48,29 @@ If the test is successful, you will observe the following:
     *   The buzzer will play a short, audible beep.
 
 This confirms that the `ninja_core` library is successfully communicating with and controlling the hardware through the Hardware Abstraction Layer.
+### Testing `facial_expressions.py`
+
+This test will cycle through all available facial expressions on the robot's display.
+
+#### **1. Prerequisites**
+
+*   **Hardware:** Ensure your ST7789V LCD display is connected to the Raspberry Pi according to the pinout in `InstallationGuide.md`.
+*   **Configuration:** Your `config.json` file must have the correct pin configuration for the display in the `display` section. The default values are correct for the standard wiring, but you can verify them.
+
+#### **2. Run the Test Script**
+
+A dedicated test script, `test_facial_expressions.py`, is located in the project's root directory. Execute the following command from the `NinjaRobotV4` root directory:
+
+```bash
+uv run python test_facial_expressions.py
+```
+
+#### **3. Expected Outcome**
+
+You should see the following on your Raspberry Pi:
+
+1.  The terminal will print status messages as it initializes the hardware.
+2.  The LCD display will light up.
+3.  The display will cycle through all the facial expressions (`happy`, `sad`, `angry`, etc.), showing each one for about 3 seconds.
+4.  After the cycle is complete, the `idle` face (blinking eyes) will be displayed indefinitely.
+5.  You can press **Ctrl+C** at any time to stop the test and safely shut down the hardware.
