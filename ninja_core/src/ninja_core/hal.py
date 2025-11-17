@@ -96,8 +96,7 @@ class HardwareAbstractionLayer:
             log.info("Initializing display...")
             self.display = ST7789V(
                 pi=self.pi,
-                spi_port=0,  # Assuming SPI port 0
-                spi_cs=0,  # Assuming CS 0
+                channel=0,  # SPI channel 0
                 dc_pin=self.config.display.dc,
                 rst_pin=self.config.display.rst,
                 backlight_pin=self.config.display.blk,
