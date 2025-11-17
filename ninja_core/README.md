@@ -99,3 +99,29 @@ You should see and hear the following:
 1.  The terminal will print status messages as it initializes the hardware.
 2.  You will hear a sequence of short melodies and sounds, with the terminal printing the name of each sound (`happy`, `sad`, `angry`, etc.) before it plays.
 3.  The script will exit cleanly after playing all sounds.
+
+### Testing `perception.py`
+
+This test will verify both the single-shot and continuous distance measurement modes.
+
+#### **1. Prerequisites**
+
+*   **Hardware:** Ensure your VL53L0X distance sensor is connected to the Raspberry Pi's I2C pins as described in `InstallationGuide.md`.
+*   **Configuration:** The `config.json` file must exist. The default sensor configuration is sufficient for this test. You can ensure the file is present by running `uv run ninja_core config generate` if needed.
+
+#### **2. Run the Test Script**
+
+Execute the following command from the `NinjaRobotV4` root directory:
+
+```bash
+uv run python test_perception.py
+```
+
+#### **3. Expected Outcome**
+
+You should see the following output in your terminal:
+
+1.  Initialization messages for the configuration, HAL, and `DistanceMonitor`.
+2.  A "Single-Shot Measurement" section that prints one distance reading.
+3.  A "Continuous Measurement" section that starts, and then prints a new distance reading every half-second for 5 seconds.
+4.  The script will announce that the test is complete and then shut down cleanly.

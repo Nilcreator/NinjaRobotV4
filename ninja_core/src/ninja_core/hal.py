@@ -15,7 +15,7 @@ from .config import NinjaConfig
 from pi0servo.core.multi_servo import MultiServo
 from pi0buzzer.driver import MusicBuzzer
 from pi0disp.disp.st7789v import ST7789V
-# from pi0vl53l0x.driver import VL53L0X      # Placeholder: Add when sensor is ready
+from pi0vl53l0x.driver import VL53L0X
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class HardwareAbstractionLayer:
         self.servos: MultiServo | None = None
         self.buzzer: MusicBuzzer | None = None
         self.display: ST7789V | None = None
-        # self.distance_sensor: VL53L0X | None = None
+        self.distance_sensor: VL53L0X | None = None
         log.info("Hardware Abstraction Layer created.")
 
     def initialize(self):
@@ -105,9 +105,13 @@ class HardwareAbstractionLayer:
         else:
             log.info("No display pins configured. Skipping display initialization.")
 
-        # --- Initialize Distance Sensor (Placeholder) ---
-        # if self.config.sensors:
-        #     log.info("Initializing distance sensor...")
+        # --- Initialize Distance Sensor ---
+        if self.config.sensors:
+            log.info("Initializing distance sensor...")
+            self.distance_sensor = VL53L0X(pi=self.pi)
+            log.info("Distance sensor initialized.")
+        else:
+            log.info("No sensor config found. Skipping distance sensor.")
 
         log.info("Hardware initialization process complete.")
 
@@ -129,6 +133,10 @@ class HardwareAbstractionLayer:
         if self.display:
             self.display.close()
             log.info("Display closed.")
+
+        if self.distance_sensor:
+            self.distance_sensor.close()
+            log.info("Distance sensor closed.")
 
         if self.pi and self.pi.connected:
             self.pi.stop()

@@ -1,3 +1,11 @@
+### 2025-11-17 - Distance Detection Feature Added
+
+- **Completed New Feature**: Implemented a centralized distance detection feature as requested.
+    - **HAL Integration**: The `VL53L0X` distance sensor driver was fully integrated into the Hardware Abstraction Layer (`hal.py`).
+    - **Created `perception.py`**: Added the new module to `ninja_core/src/ninja_core/` to house perception-related logic.
+    - **Implemented `DistanceMonitor`**: Created the `DistanceMonitor` class, which provides both single-shot (`get_distance`) and continuous, thread-based background monitoring (`start_continuous`, `stop_continuous`).
+    - **Verified Functionality**: Created `test_perception.py` and successfully tested both measurement modes, confirming the feature is robust and working correctly.
+
 ### 2025-11-17 - Robot Sound Module Created
 
 - **Completed Sub-Phase 2.4.2**: Created the core application logic for auditory feedback.

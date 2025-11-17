@@ -323,7 +323,40 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
         ```
     *   **Tool:** `run_shell_command`
 
-#### **Sub-Phase 2.4.3: `movement_controller.py` - Motion System**
+#### **Sub-Phase 2.4.3: `perception.py` - Centralized Distance Detection**
+
+*   **Objective:** Implement a robust distance detection feature within `ninja_core` that provides both single-shot and continuous background measurements, integrating cleanly with the HAL.
+*   **Driver Analysis:** The `pi0vl53l0x` driver already accepts a shared `pigpio` connection and does not require refactoring. The continuous measurement logic will be built in a new `DistanceMonitor` class.
+
+**Execution Steps:**
+
+1.  **Update HAL for Distance Sensor:**
+    *   **Action:** Modify `ninja_core/src/ninja_core/hal.py` to initialize and manage the `VL53L0X` sensor.
+    *   **Details:** Uncomment the `VL53L0X` import, add `self.distance_sensor` to `__init__`, add the instantiation logic to `initialize()`, and add a `self.distance_sensor.close()` call to `shutdown()`.
+    *   **Tool:** `replace`
+
+2.  **Create Perception Module:**
+    *   **Action:** Create a new file to house the distance monitoring logic.
+    *   **File Path:** `ninja_core/src/ninja_core/perception.py`
+    *   **Tool:** `write_file`
+
+3.  **Implement `DistanceMonitor` Class:**
+    *   **Action:** Implement the `DistanceMonitor` class inside `perception.py`.
+    *   **Class Design:**
+        *   `__init__(self, hal: HardwareAbstractionLayer)`: Stores the sensor driver from the HAL and initializes threading components.
+        *   `get_distance() -> int`: For single-shot measurement, calling the driver's `get_range()` method.
+        *   `start_continuous()` / `stop_continuous()`: Methods to start and stop a background thread that continuously polls the sensor.
+        *   `get_continuous_distance() -> int`: A non-blocking method to get the latest distance reading from the background thread.
+    *   **Tool:** `write_file`
+
+4.  **Linting:**
+    *   **Action:** Ensure all modified and new files (`hal.py`, `perception.py`) conform to project standards.
+    *   **Tool:** `run_shell_command`
+
+5.  **Propose Testing Plan:**
+    *   **Action:** After implementation, propose a `test_perception.py` script to verify both single-shot and continuous measurement modes.
+
+#### **Sub-Phase 2.4.4: `movement_controller.py` - Motion System**
 
 *   **V3 Analysis:** The `ServoController` class in `V3Archive/pi0ninja_v3/src/pi0ninja_v3/movement_recorder.py` is a complex module that handles servo initialization, movement execution, and an interactive CLI for recording, editing, and deleting movement sequences. It directly reads `servo.json` and `servo_movement.json`.
 *   **Optimization:** We will rename the class to `MovementController` and decouple it from file I/O. The interactive recording CLI is a powerful developer tool and will be preserved but adapted to the new structure. Movement data will be managed by `NinjaConfig`.
