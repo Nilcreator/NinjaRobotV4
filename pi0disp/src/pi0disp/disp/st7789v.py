@@ -8,6 +8,7 @@ This module provides a high-performance driver for ST7789V-based displays,
 optimized for Raspberry Pi environments. It leverages the `performance_core`
 module to achieve high frame rates with low CPU usage.
 """
+
 import time
 from typing import Optional, Tuple, Union
 
@@ -31,6 +32,7 @@ CMD_RAMWR = 0x2C
 CMD_MADCTL = 0x36
 CMD_COLMOD = 0x3A
 
+
 class ST7789V:
     """
     An optimized driver for ST7789V-based SPI displays.
@@ -39,20 +41,24 @@ class ST7789V:
     providing methods for initialization, configuration, and high-performance
     image rendering using techniques like partial updates and memory pooling.
     """
-    def __init__(self, 
-            channel: int = 0, 
-            rst_pin: int = 19, 
-            dc_pin: int = 18, 
-            backlight_pin: int = 20,
-            speed_hz: int = 32_000_000, 
-            width: int = 240, 
-            height: int = 320, 
-            rotation: int = 90
+
+    def __init__(
+        self,
+        pi: Optional[pigpio.pi] = None,
+        channel: int = 0,
+        rst_pin: int = 19,
+        dc_pin: int = 18,
+        backlight_pin: int = 20,
+        speed_hz: int = 32_000_000,
+        width: int = 240,
+        height: int = 320,
+        rotation: int = 90,
     ):
         """
         Initializes the display driver.
 
         Args:
+            pi: An existing pigpio.pi connection. If None, a new one is created.
             channel: SPI channel (0 or 1).
             rst_pin: GPIO pin for Reset.
             dc_pin: GPIO pin for Data/Command select.
@@ -67,16 +73,15 @@ class ST7789V:
         self.width = width
         self.height = height
         self._rotation = rotation
-        
+
         # Initialize the optimizer pack
         self._optimizers = create_optimizer_pack()
-        
+
         # Initialize pigpio
-        self.pi = pigpio.pi()
+        self._is_external_pi = pi is not None
+        self.pi = pi if self._is_external_pi else pigpio.pi()
         if not self.pi.connected:
-            raise RuntimeError(
-                "Could not connect to pigpio daemon. Is it running?"
-            )
+            raise RuntimeError("Could not connect to pigpio daemon. Is it running?")
 
         self.rst_pin = rst_pin
         self.dc_pin = dc_pin
@@ -89,12 +94,10 @@ class ST7789V:
         # Open SPI handle
         self.spi_handle = self.pi.spi_open(channel, speed_hz, 0)
         if self.spi_handle < 0:
-            raise RuntimeError(
-                f"Failed to open SPI bus: handle={self.spi_handle}"
-            )
+            raise RuntimeError(f"Failed to open SPI bus: handle={self.spi_handle}")
 
         self._last_window: Optional[Tuple[int, int, int, int]] = None
-        
+
         self._init_display()
         self.set_rotation(self._rotation)
 
@@ -160,7 +163,7 @@ class ST7789V:
             self.width, self.height = self._native_height, self._native_width
         else:
             self.width, self.height = self._native_width, self._native_height
-        
+
         self._rotation = rotation
         self._last_window = None  # Invalidate window cache
 
@@ -180,7 +183,7 @@ class ST7789V:
         self._write_command(CMD_RASET)
         self._write_data([y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF])
         self._write_command(CMD_RAMWR)
-        
+
         self._last_window = window
 
     def write_pixels(self, pixel_bytes: bytes):
@@ -188,18 +191,16 @@ class ST7789V:
         Writes a raw buffer of pixel data to the current window.
         Uses adaptive chunking to optimize transfer speed.
         """
-        chunk_size = self._optimizers['adaptive_chunking'].get_chunk_size()
+        chunk_size = self._optimizers["adaptive_chunking"].get_chunk_size()
         data_len = len(pixel_bytes)
-        
-        self.pi.write(self.dc_pin, 1) # Set D/C high for data
-        
+
+        self.pi.write(self.dc_pin, 1)  # Set D/C high for data
+
         if data_len <= chunk_size:
             self.pi.spi_write(self.spi_handle, pixel_bytes)
         else:
             for i in range(0, data_len, chunk_size):
-                self.pi.spi_write(
-                    self.spi_handle, pixel_bytes[i:i + chunk_size]
-                )
+                self.pi.spi_write(self.spi_handle, pixel_bytes[i : i + chunk_size])
 
     def display(self, image: Image.Image):
         """
@@ -209,33 +210,29 @@ class ST7789V:
         if image.size != (self.width, self.height):
             image = image.resize((self.width, self.height))
 
-        pixel_bytes = self._optimizers['color_converter'].rgb_to_rgb565_bytes(
+        pixel_bytes = self._optimizers["color_converter"].rgb_to_rgb565_bytes(
             np.array(image)
         )
-        
+
         self.set_window(0, 0, self.width - 1, self.height - 1)
         self.write_pixels(pixel_bytes)
 
-    def display_region(
-            self, image: Image.Image, x0: int, y0: int, x1: int, y1: int
-    ):
+    def display_region(self, image: Image.Image, x0: int, y0: int, x1: int, y1: int):
         """
         Displays a portion of a PIL image within the specified region.
         This is the core function for partial/dirty rectangle updates.
         """
         # Clamp region to be within display boundaries
-        region = self._optimizers['region_optimizer'].clamp_region(
-            (x0, y0, x1, y1),
-            self.width,
-            self.height
+        region = self._optimizers["region_optimizer"].clamp_region(
+            (x0, y0, x1, y1), self.width, self.height
         )
-        
+
         if region[2] <= region[0] or region[3] <= region[1]:
-            return # Skip zero- or negative-sized regions
+            return  # Skip zero- or negative-sized regions
 
         # Crop the image to the specified region and convert to pixel data
         region_img = image.crop(region)
-        pixel_bytes = self._optimizers['color_converter'].rgb_to_rgb565_bytes(
+        pixel_bytes = self._optimizers["color_converter"].rgb_to_rgb565_bytes(
             np.array(region_img)
         )
 
@@ -247,10 +244,10 @@ class ST7789V:
         """Cleans up resources (turns off backlight, closes SPI handle)."""
         try:
             self.pi.write(self.backlight_pin, 0)
-            if hasattr(self, 'spi_handle') and self.spi_handle >= 0:
+            if hasattr(self, "spi_handle") and self.spi_handle >= 0:
                 self.pi.spi_close(self.spi_handle)
         finally:
-            if self.pi.connected:
+            if not self._is_external_pi and self.pi.connected:
                 self.pi.stop()
 
     def dispoff(self):

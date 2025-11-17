@@ -86,7 +86,7 @@ class HardwareAbstractionLayer:
 
         # --- Initialize Buzzer ---
         if self.config.buzzer and self.config.buzzer.pin:
-            self.buzzer = MusicBuzzer(self.pi, self.config.buzzer.pin)
+            self.buzzer = MusicBuzzer(pin=self.config.buzzer.pin, pi=self.pi)
             log.info(f"Buzzer initialized on pin {self.config.buzzer.pin}.")
         else:
             log.info("No buzzer pin configured. Skipping buzzer initialization.")
