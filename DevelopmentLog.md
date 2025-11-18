@@ -1,4 +1,13 @@
+### 2025-11-18 - Motion System Ported and Refactored
+
+- **Completed Sub-Phase 2.4.4**: Ported the motion control and recording logic from the V3 archive into the `ninja_core` application.
+    - **Created `movement_controller.py`**: Implemented the `MovementController` class, which handles the execution of complex, interpolated servo movements. It is fully integrated with the HAL and `NinjaConfig`, removing all direct hardware access and file I/O.
+    - **Created `movement_cli.py`**: The interactive CLI for recording, editing, and testing movement sequences was ported into its own module to separate developer tools from runtime logic.
+    - **Added `movement-tool` CLI Command**: Exposed the interactive movement CLI through the main `ninja_core` entry point (`uv run ninja_core movement-tool`).
+    - **Documentation**: Added a comprehensive guide to the `ninja_core/README.md` explaining the Motion System's architecture, command rules, and testing procedures.
+
 ### 2025-11-17 - Distance Detection Feature Added
+
 
 - **Completed New Feature**: Implemented a centralized distance detection feature as requested.
     - **HAL Integration**: The `VL53L0X` distance sensor driver was fully integrated into the Hardware Abstraction Layer (`hal.py`).

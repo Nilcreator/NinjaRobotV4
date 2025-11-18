@@ -3,12 +3,19 @@ from pathlib import Path
 import click
 
 from .config import load_config, save_config, ServoCalibration
+from .movement_cli import run_cli as run_movement_cli
 
 
 @click.group()
 def main():
     """Command-line interface for NinjaRobotV4 core application."""
     pass
+
+
+@main.command("movement-tool")
+def movement_tool():
+    """Launch the interactive CLI tool for recording and editing servo movements."""
+    run_movement_cli()
 
 
 @main.group()
@@ -55,9 +62,7 @@ def import_all():
                     made_changes = True
         click.echo("...servo import complete.")
     else:
-        click.echo(
-            f"Info: Servo config not found at '{servo_config_path}'. Skipping."
-        )
+        click.echo(f"Info: Servo config not found at '{servo_config_path}'. Skipping.")
 
     # --- Import buzzer pin ---
     if buzzer_config_path.exists():
@@ -78,7 +83,9 @@ def import_all():
     if made_changes:
         save_config(main_config)
         click.echo(
-            click.style("Successfully imported settings and updated config.json!", fg="green")
+            click.style(
+                "Successfully imported settings and updated config.json!", fg="green"
+            )
         )
     else:
         click.echo("No new settings to import or no changes detected.")
