@@ -214,7 +214,7 @@ def edit_sequence_menu(
 ) -> list | None:
     """UI for editing a sequence. Operates on a copy."""
     temp_sequence = copy.deepcopy(sequence_to_edit)
-    # servo_defs = controller.servo_definitions
+    servo_defs = controller.servo_definitions
 
     try:
         while True:
@@ -223,22 +223,108 @@ def edit_sequence_menu(
                 print(f"Step {i + 1}: Speed={step['speed']}, Moves={step['moves']}")
 
             print(
-                "\nOptions: 1. Edit | 2. Insert | 3. Delete | 4. Preview | 5. Save | 6. Abort"
+                "\nOptions: 1. Edit Step | 2. Insert Step | 3. Delete Step | 4. Preview | 5. Save & Exit | 6. Abort"
             )
             edit_choice = input("Select an option: ").strip()
 
-            if edit_choice == "1":  # Edit
-                # ... (Implementation for editing a step)
-                pass
-            elif edit_choice == "2":  # Insert
-                # ... (Implementation for inserting a step)
-                pass
-            elif edit_choice == "3":  # Delete
-                # ... (Implementation for deleting a step)
-                pass
-            elif edit_choice == "4":  # Preview
+            # 1. Edit a step
+            if edit_choice == "1":
+                try:
+                    step_num = int(input("Enter step number to edit: ")) - 1
+                    if not 0 <= step_num < len(temp_sequence):
+                        raise ValueError("Invalid step number.")
+
+                    print(f"Current step: {temp_sequence[step_num]}")
+                    command_str = input(
+                        "Enter new movement command (e.g., 'S_17:30/27:C'): "
+                    ).strip()
+                    speed, moves = parse_movement_command(command_str, servo_defs)
+
+                    if moves:
+                        # Auto-complete the move based on previous step
+                        completed_moves = moves.copy()
+                        base_angles = (
+                            temp_sequence[step_num - 1]["moves"]
+                            if step_num > 0
+                            else controller.get_current_angles()
+                        )
+                        for pin_str in servo_defs.keys():
+                            pin = int(pin_str)
+                            if pin not in completed_moves:
+                                completed_moves[pin] = base_angles.get(
+                                    str(pin), base_angles.get(pin, 0)
+                                )
+
+                        temp_sequence[step_num] = {
+                            "speed": speed,
+                            "moves": completed_moves,
+                        }
+                        print("Step updated.")
+
+                except (ValueError, IndexError) as e:
+                    print(f"Error: {e}")
+
+            # 2. Insert a new step
+            elif edit_choice == "2":
+                try:
+                    pos = (
+                        int(
+                            input(
+                                f"Enter position to insert new step (1 to {len(temp_sequence) + 1}): "
+                            )
+                        )
+                        - 1
+                    )
+                    if not 0 <= pos <= len(temp_sequence):
+                        raise ValueError("Invalid position.")
+
+                    command_str = input(
+                        "Enter movement command for the new step: "
+                    ).strip()
+                    speed, moves = parse_movement_command(command_str, servo_defs)
+
+                    if moves:
+                        # Auto-complete based on the state before the insertion point
+                        completed_moves = moves.copy()
+                        base_angles = (
+                            temp_sequence[pos - 1]["moves"]
+                            if pos > 0
+                            else controller.get_current_angles()
+                        )
+                        for pin_str in servo_defs.keys():
+                            pin = int(pin_str)
+                            if pin not in completed_moves:
+                                completed_moves[pin] = base_angles.get(
+                                    str(pin), base_angles.get(pin, 0)
+                                )
+
+                        temp_sequence.insert(
+                            pos, {"speed": speed, "moves": completed_moves}
+                        )
+                        print("Step inserted.")
+
+                except (ValueError, IndexError) as e:
+                    print(f"Error: {e}")
+
+            # 3. Delete a step
+            elif edit_choice == "3":
+                try:
+                    step_num = int(input("Enter step number to delete: ")) - 1
+                    if not 0 <= step_num < len(temp_sequence):
+                        raise ValueError("Invalid step number.")
+
+                    confirm = input(f"Delete Step {step_num + 1}? (y/n): ").lower()
+                    if confirm == "y":
+                        del temp_sequence[step_num]
+                        print("Step deleted.")
+                except (ValueError, IndexError) as e:
+                    print(f"Error: {e}")
+
+            # 4. Preview
+            elif edit_choice == "4":
                 print("Previewing sequence...")
                 controller.center_all_servos()
+                time.sleep(0.5)
                 for i, step in enumerate(temp_sequence):
                     print(f"  - Step {i + 1}: {step['moves']}")
                     moves = {int(k): v for k, v in step["moves"].items()}
@@ -246,13 +332,21 @@ def edit_sequence_menu(
                 print("Preview finished.")
                 time.sleep(1)
                 controller.center_all_servos()
-            elif edit_choice == "5":  # Save
+
+            # 5. Finish and Save
+            elif edit_choice == "5":
+                print("Finishing and saving changes.")
                 return temp_sequence
-            elif edit_choice == "6":  # Abort
+
+            # 6. Abort
+            elif edit_choice == "6":
+                print("Aborting without saving.")
                 return None
             else:
                 print("Invalid option.")
+
     except KeyboardInterrupt:
+        print("\nModification cancelled. No changes were saved.")
         return None
 
 
@@ -260,32 +354,65 @@ def modify_existing_movement(controller: MovementController, config: NinjaConfig
     """Handles the non-destructive modification of a movement sequence."""
     print("\n--- Modify Existing Movement ---")
     if not config.movements:
-        print("No movements recorded.")
+        print("No movements have been recorded yet.")
         return
 
-    # ... (UI for selecting movement) ...
-    # selected_name = ...
-    # original_sequence = config.movements[selected_name]
-    # modified_sequence = edit_sequence_menu(controller, original_sequence)
-    # if modified_sequence:
-    #     config.movements[selected_name] = modified_sequence
-    #     config.save()
-    #     print("Saved changes.")
-    print("Modification logic not fully implemented in this port.")
+    print("Select a movement to modify:")
+    names = list(config.movements.keys())
+    for i, name in enumerate(names):
+        print(f"{i + 1}. {name}")
+
+    try:
+        choice = int(input("Enter number: ")) - 1
+        if not 0 <= choice < len(names):
+            raise ValueError()
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+
+    selected_name = names[choice]
+    original_sequence = config.movements[selected_name]
+
+    print(f"\nLoading '{selected_name}' into the editor.")
+
+    modified_sequence = edit_sequence_menu(controller, original_sequence)
+
+    if modified_sequence is not None:
+        config.movements[selected_name] = modified_sequence
+        print(f"Successfully saved changes to '{selected_name}'.")
+    else:
+        print(f"No changes were made to '{selected_name}'.")
 
 
 def clear_movement(controller: MovementController, config: NinjaConfig):
     """Handles clearing a movement sequence."""
     print("\n--- Clear Movement ---")
     if not config.movements:
-        print("No movements recorded.")
+        print("No movements have been recorded yet.")
         return
 
-    # ... (UI for selecting and confirming deletion) ...
-    # del config.movements[selected_name]
-    # config.save()
-    # print("Movement deleted.")
-    print("Clear logic not fully implemented in this port.")
+    print("Select a movement to clear:")
+    names = list(config.movements.keys())
+    for i, name in enumerate(names):
+        print(f"{i + 1}. {name}")
+
+    try:
+        choice = int(input("Enter number: ")) - 1
+        if not 0 <= choice < len(names):
+            raise ValueError()
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+
+    selected_name = names[choice]
+    confirm = input(
+        f"Are you sure you want to permanently delete '{selected_name}'? (y/n): "
+    ).lower()
+    if confirm == "y":
+        del config.movements[selected_name]
+        print(f"Movement '{selected_name}' has been deleted.")
+    else:
+        print("Deletion cancelled.")
 
 
 def run_cli():
