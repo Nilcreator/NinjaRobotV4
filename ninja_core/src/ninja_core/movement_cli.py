@@ -1,5 +1,6 @@
 import copy
 import select
+import subprocess
 import sys
 import termios
 import time
@@ -415,6 +416,50 @@ def clear_movement(controller: MovementController, config: NinjaConfig):
         print("Deletion cancelled.")
 
 
+def run_calibration(hal: HardwareAbstractionLayer, config: NinjaConfig):
+    """Handles the servo calibration process."""
+    print("\n--- Calibrate a Servo ---")
+    if not config.servos.calibration:
+        print("No servos configured. Please run 'config import-all' first.")
+        return
+
+    pins = list(config.servos.calibration.keys())
+    print("Select a servo pin to calibrate:")
+    for i, pin in enumerate(pins):
+        print(f"{i + 1}. GPIO {pin}")
+
+    try:
+        choice = int(input("Enter number: ")) - 1
+        if not 0 <= choice < len(pins):
+            raise ValueError()
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+
+    selected_pin = pins[choice]
+    print(
+        f"\nSelected GPIO {selected_pin}. Handing over to pi0servo calibration tool..."
+    )
+    print("Press 'q' in the tool to return here.")
+    time.sleep(2)
+
+    # Release hardware control before calling subprocess
+    hal.shutdown()
+
+    try:
+        # Launch the external calibration tool
+        subprocess.run(["uv", "run", "pi0servo", "calib", selected_pin])
+    finally:
+        # Re-acquire hardware control
+        print("\nCalibration tool exited. Re-initializing hardware...")
+        hal.initialize()
+        print("Hardware re-initialized.")
+        print(
+            "\nIMPORTANT: To use the new calibration, exit the movement tool and run:"
+        )
+        print("  uv run ninja_core config import-all")
+
+
 def run_cli():
     """Main entry point for the interactive movement CLI tool."""
     config = load_config()
@@ -426,22 +471,25 @@ def run_cli():
 
         while True:
             print("\n--- Servo Movement CLI Tool ---")
-            print("1. Record new movement")
-            print("2. Modify existing movement")
-            print("3. Execute a movement")
-            print("4. Clear movement")
-            print("5. Exit")
+            print("1. Calibrate a Servo")
+            print("2. Record new movement")
+            print("3. Modify existing movement")
+            print("4. Execute a movement")
+            print("5. Clear movement")
+            print("6. Exit")
             choice = input("Select an option: ")
 
             if choice == "1":
-                record_new_movement(controller, config)
+                run_calibration(hal, config)
             elif choice == "2":
-                modify_existing_movement(controller, config)
+                record_new_movement(controller, config)
             elif choice == "3":
-                execute_movement_cli(controller)
+                modify_existing_movement(controller, config)
             elif choice == "4":
-                clear_movement(controller, config)
+                execute_movement_cli(controller)
             elif choice == "5":
+                clear_movement(controller, config)
+            elif choice == "6":
                 break
             else:
                 print("Invalid choice.")
