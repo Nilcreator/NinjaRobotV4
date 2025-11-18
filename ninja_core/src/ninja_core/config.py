@@ -100,16 +100,14 @@ def load_config(path: Path = CONFIG_FILE_PATH) -> NinjaConfig:
         return NinjaConfig.model_validate(data)
 
 
-def import_and_update_config(config: NinjaConfig) -> bool:
+def import_and_update_config():
     """
-    Imports settings from individual hardware config files and updates the config object.
+    Loads the main config, updates it from hardware files, and saves it.
 
-    Args:
-        config: The NinjaConfig object to update in memory.
-
-    Returns:
-        True if changes were made, False otherwise.
+    If servo.json does not exist, it populates the servo calibration with
+    a hardcoded default set.
     """
+    config = load_config()
     servo_config_path = Path("servo.json")
     buzzer_config_path = Path("buzzer.json")
     made_changes = False
@@ -121,31 +119,55 @@ def import_and_update_config(config: NinjaConfig) -> bool:
             servo_data = json.load(f)
 
         if isinstance(servo_data, list):
-            for servo_entry in servo_data:
-                pin = servo_entry.get("pin")
-                if pin is None:
-                    continue
-
-                pin_str = str(pin)
-                new_calib = ServoCalibration.model_validate(servo_entry)
-                if config.servos.calibration.get(pin_str) != new_calib:
-                    config.servos.calibration[pin_str] = new_calib
-                    made_changes = True
+            # Create a temporary dict from the list for easier comparison
+            new_calibs = {
+                str(s.get("pin")): ServoCalibration.model_validate(s)
+                for s in servo_data
+                if s.get("pin") is not None
+            }
+            if config.servos.calibration != new_calibs:
+                config.servos.calibration = new_calibs
+                made_changes = True
         print("...servo import complete.")
     else:
-        print(f"Info: Servo config '{servo_config_path}' not found. Skipping.")
+        print(
+            f"Info: '{servo_config_path}' not found. Applying default servo calibration."
+        )
+        default_calib = {
+            "5": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "17": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "21": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "22": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "23": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "24": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "25": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "27": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+        }
+        # Validate and assign the default data
+        validated_defaults = {
+            k: ServoCalibration.model_validate(v) for k, v in default_calib.items()
+        }
+        if config.servos.calibration != validated_defaults:
+            config.servos.calibration = validated_defaults
+            made_changes = True
+        print("...default servo calibration applied.")
 
     # --- Import buzzer pin ---
     if buzzer_config_path.exists():
-        print(f"Found buzzer config at '{buzzer_config_path}'. Importing...")
         with open(buzzer_config_path, "r") as f:
             buzzer_data = json.load(f)
 
         if "pin" in buzzer_data and config.buzzer.pin != buzzer_data["pin"]:
+            print(f"Found buzzer config at '{buzzer_config_path}'. Importing...")
             config.buzzer.pin = buzzer_data["pin"]
             made_changes = True
-        print("...buzzer import complete.")
+            print("...buzzer import complete.")
     else:
         print(f"Info: Buzzer config '{buzzer_config_path}' not found. Skipping.")
 
-    return made_changes
+    # --- Save changes if any were made ---
+    if made_changes:
+        save_config(config)
+        print("\nConfiguration updated and saved to config.json!")
+    else:
+        print("\nNo configuration changes were detected.")

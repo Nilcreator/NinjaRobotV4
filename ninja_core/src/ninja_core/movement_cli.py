@@ -5,6 +5,7 @@ import sys
 import termios
 import time
 import tty
+from pathlib import Path
 
 from ninja_core.config import (
     NinjaConfig,
@@ -421,17 +422,21 @@ def clear_movement(controller: MovementController, config: NinjaConfig):
         print("Deletion cancelled.")
 
 
-def run_calibration(hal: HardwareAbstractionLayer, config: NinjaConfig) -> bool:
+def run_calibration(hal: HardwareAbstractionLayer):
     """
-    Handles the servo calibration process.
-    Returns True if calibration was run, False otherwise.
+    Handles the servo calibration process by calling the external tool.
+    Manages the hardware lifecycle (shutdown and re-initialization).
     """
     print("\n--- Calibrate a Servo ---")
-    if not config.servos.calibration:
-        print("No servos configured. Please run 'config import-all' first.")
-        return False
+    if not Path("servo.json").exists():
+        print("Note: 'servo.json' not found. The calibration tool will create it.")
 
-    pins = list(config.servos.calibration.keys())
+    # Check for servo config to get the list of pins
+    if not hal.config.servos.calibration:
+        print("No servos configured. Please run 'config import-all' first.")
+        return
+
+    pins = list(hal.config.servos.calibration.keys())
     print("Select a servo pin to calibrate:")
     for i, pin in enumerate(pins):
         print(f"{i + 1}. GPIO {pin}")
@@ -442,32 +447,26 @@ def run_calibration(hal: HardwareAbstractionLayer, config: NinjaConfig) -> bool:
             raise ValueError()
     except (ValueError, IndexError):
         print("Invalid selection.")
-        return False
+        return
 
     selected_pin = pins[choice]
     print(
         f"\nSelected GPIO {selected_pin}. Handing over to pi0servo calibration tool..."
     )
     print("Press 'q' in the tool to return here.")
-    time.sleep(2)
+    time.sleep(1)
 
     # Release hardware control before calling subprocess
     hal.shutdown()
-    did_run = False
+
     try:
         # Launch the external calibration tool
         subprocess.run(["uv", "run", "pi0servo", "calib", selected_pin])
-        print("\nCalibration tool exited. Automatically importing new settings...")
-        # Immediately import the new settings from servo.json into the config object
-        import_and_update_config(config)
-        did_run = True
     finally:
         # Re-acquire hardware control
-        print("Re-initializing hardware with updated calibration...")
+        print("\nCalibration tool exited. Re-initializing hardware...")
         hal.initialize()
         print("Hardware re-initialized.")
-
-    return did_run
 
 
 def run_cli():
@@ -490,10 +489,13 @@ def run_cli():
             choice = input("Select an option: ")
 
             if choice == "1":
-                # If calibration runs, we need to refresh the controller
-                if run_calibration(hal, config):
-                    controller = MovementController(hal, config)
-                    print("Controller has been updated with new calibration.")
+                run_calibration(hal)
+                # Explicitly re-sync and reload everything to prevent stale objects
+                print("\nSyncing calibration data to config.json...")
+                import_and_update_config()
+                config = load_config()
+                controller = MovementController(hal, config)
+                print("Controller has been updated with new calibration.")
             elif choice == "2":
                 record_new_movement(controller, config)
             elif choice == "3":

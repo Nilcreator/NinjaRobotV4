@@ -1,6 +1,6 @@
 import click
 
-from .config import load_config, save_config, import_and_update_config
+from .config import import_and_update_config
 
 from .movement_cli import run_cli as run_movement_cli
 
@@ -30,27 +30,13 @@ def config():
 def import_all():
     """
 
-    Imports settings from individual hardware config files (servo.json, buzzer.json)
+    Imports settings from hardware files (e.g., servo.json) into the main
 
-    into the main config.json.
+    config.json, or applies defaults if files are missing.
 
     """
 
-    main_config = load_config()
-
-    made_changes = import_and_update_config(main_config)
-
-    if made_changes:
-        save_config(main_config)
-
-        click.echo(
-            click.style(
-                "Successfully imported settings and updated config.json!", fg="green"
-            )
-        )
-
-    else:
-        click.echo("No new settings to import or no changes detected.")
+    import_and_update_config()
 
 
 if __name__ == "__main__":
