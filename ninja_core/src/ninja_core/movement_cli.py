@@ -28,7 +28,8 @@ def parse_movement_command(
         try:
             pin_str, angle_char = part.split(":")
             pin = int(pin_str)
-            if pin not in definitions:
+            # The keys in the definitions dict are strings, so we must check against a string.
+            if pin_str not in definitions:
                 raise ValueError(f"Servo pin {pin} is not defined.")
 
             angle = 0
