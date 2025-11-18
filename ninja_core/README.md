@@ -24,17 +24,74 @@ This class is the runtime engine for executing pre-defined motion sequences.
 
 This is an interactive, command-line tool for developers to **create, edit, and test** motion sequences. You can launch it by running `uv run ninja_core movement-tool` from the project root.
 
-#### Servo Movement Command Rules
+The tool presents a main menu with the following options:
 
-When recording or editing movements, you use a special command syntax:
+- **1. Record new movement:** Starts the interactive recorder to create a new, named motion sequence step-by-step.
+- **2. Modify existing movement:** (Placeholder) This will allow editing a previously saved movement.
+- **3. Execute a movement:** Plays back a saved movement, with options for looping.
+- **4. Clear movement:** (Placeholder) This will delete a saved movement from the `config.json`.
+- **5. Exit:** Closes the tool and safely shuts down the hardware.
+
+#### In-Depth Guide: Recording a New Movement
+
+This is the core feature of the tool. It allows you to define a sequence of positions for your servos, which are then saved as a single, named movement (e.g., "wave", "nod", "look_left").
+
+##### Command Input Rules
+
+When recording, you define each step using a special command syntax:
 
 | Rule                | Description                                                                                                                            | Example                |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| **Basic Format**    | A GPIO pin number and an angle, separated by a colon.                                                                                  | `17:45`                |
+| **Basic Format**    | A GPIO pin number and an angle, separated by a colon. Angles range from -90 to 90.                                                     | `17:45`                |
 | **Angle Keywords**  | Use keywords for common angles: `C` for Center (0°), `M` for Minimum (-90°), and `X` for Maximum (90°).                                  | `17:C`                 |
-| **Chaining**        | Multiple servo movements in the same step are chained with a `/`.                                                                      | `17:45/22:-30`         |
+| **Chaining**        | Multiple servo movements in the same step are chained together with a `/`.                                                              | `17:45/22:-30`         |
 | **Speed Prefix**    | Set the speed for a step with a prefix: `S_` (Slow), `M_` (Medium), or `F_` (Fast). Medium is the default.                               | `S_17:90/22:90`        |
-| **Auto-Completion** | **(Crucial Rule)** If a servo isn't specified in a command, it automatically holds its position from the *previous* step, ensuring smooth, continuous motion. | If step 1 is `17:45` and step 2 is `22:30`, servo 17 remains at 45° during step 2. |
+| **Auto-Completion** | **(Crucial Rule)** If a servo isn't specified in a command, it automatically holds its position from the *previous* step. This is the key to creating smooth, continuous motions. | If step 1 is `17:45` and step 2 is `22:30`, servo 17 remains at 45° during step 2. |
+
+##### Example 1: Recording a Single-Servo Movement (A simple "wave")
+
+Let's assume the arm servo is on pin **17**.
+
+1.  **Start Recording:** Select option **1** from the main menu. The servos will move to their center position.
+2.  **Step 1: Wave Out**
+    -   **Enter command:** `17:90`
+    -   The arm servo moves to its 90-degree position.
+    -   At the prompt, select **1. Confirm & Next**.
+3.  **Step 2: Wave Back**
+    -   **Enter command:** `17:-90`
+    -   The arm servo moves to its -90-degree position.
+    -   Select **1. Confirm & Next**.
+4.  **Step 3: Return to Center**
+    -   **Enter command:** `17:C`
+    -   The arm servo moves back to its center (0-degree) position.
+    -   Select **3. Finish Recording**.
+5.  **Save:**
+    -   When prompted, enter the name `wave` and press Enter.
+
+You have now created a three-step movement named "wave".
+
+##### Example 2: Recording a Multi-Servo Movement (A "peek" motion)
+
+Let's assume the head pan servo is on pin **22** and the head tilt servo is on pin **23**.
+
+1.  **Start Recording:** Select option **1**. Servos move to center.
+2.  **Step 1: Tilt Head Down**
+    -   **Enter command:** `23:-45`
+    -   The head tilts down. Servo 22 (pan) automatically holds its center position.
+    -   Select **1. Confirm & Next**.
+3.  **Step 2: Pan Head Left while Tilted**
+    -   **Enter command:** `22:60`
+    -   The head pans to the left. Because servo 23 (tilt) was not specified, it **automatically holds its -45 degree position** from the previous step.
+    -   Select **1. Confirm & Next**.
+4.  **Step 3: Return to Center**
+    -   **Enter command:** `22:C/23:C`
+    -   Both servos move back to their center positions simultaneously.
+    -   Select **3. Finish Recording**.
+5.  **Save:**
+    -   Name the movement `peek_left` and press Enter.
+
+You have now created a complex, multi-servo movement that leverages the auto-completion rule for smooth animation.
+
 
 ---
 
