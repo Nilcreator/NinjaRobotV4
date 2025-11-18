@@ -21,7 +21,6 @@ class MovementController:
     def move_servos(self, movements: dict[int, float], speed: str = "M"):
         """
         Executes a set of servo movements with smooth interpolation.
-        The duration of the movement is determined by the 'speed' parameter.
 
         Args:
             movements: A dictionary of {pin: angle}.
@@ -31,33 +30,48 @@ class MovementController:
         duration = duration_map.get(speed, 0.5)
 
         # Get current and target angles for interpolation
-        pins_to_move = list(movements.keys())
-        current_angles = self.servos.get_all_angles()
+        current_angles = self.get_current_angles()
         target_angles = movements
 
         steps = int(duration / 0.02)  # 50 FPS update rate
         if steps <= 0:
             steps = 1
 
+        # The driver expects a list of angles in a specific order
+        ordered_pins = self.servos.pins
+
         for i in range(1, steps + 1):
             ratio = i / steps
-            interpolated_angles = {}
-            for pin in pins_to_move:
+            # Build the list of angles for this step in the correct order
+            step_angles_list = []
+            for pin in ordered_pins:
                 start_angle = current_angles.get(pin, 0)
-                end_angle = target_angles.get(pin, 0)
+                # If a pin isn't in the current movement, it should hold its start position
+                end_angle = target_angles.get(pin, start_angle)
 
                 new_angle = start_angle + (end_angle - start_angle) * ratio
-                interpolated_angles[pin] = new_angle
+                step_angles_list.append(new_angle)
 
-            self.servos.move_all_angles(interpolated_angles)
+            self.servos.move_all_angles(step_angles_list)
             time.sleep(0.02)
 
-        # Ensure final position is set accurately
-        self.servos.move_all_angles(target_angles)
+        # Ensure final position is set accurately by creating the final ordered list
+        final_angles_list = []
+        for pin in ordered_pins:
+            start_angle = current_angles.get(pin, 0)
+            final_angle = target_angles.get(pin, start_angle)
+            final_angles_list.append(final_angle)
+
+        self.servos.move_all_angles(final_angles_list)
 
     def get_current_angles(self) -> dict[int, float]:
-        """Returns a dictionary of {pin: current_angle}."""
-        return self.servos.get_all_angles()
+        """
+        Returns a dictionary of {pin: current_angle} by mapping the list
+        from the driver to its corresponding pins.
+        """
+        angle_list = self.servos.get_all_angles()
+        pin_list = self.servos.pins
+        return {pin_list[i]: angle_list[i] for i in range(len(pin_list))}
 
     def center_all_servos(self):
         """Moves all servos to their center position."""
