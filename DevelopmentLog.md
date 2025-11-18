@@ -1,4 +1,19 @@
+### 2025-11-18 - `movement-tool` Finalization and Bug Fixes
+
+- **Completed `movement-tool` Features**:
+    - Implemented the "Modify existing movement" and "Clear movement" functions, making the tool fully featured.
+    - Integrated the `pi0servo` calibration tool directly into the `movement-tool`'s main menu for a unified user experience.
+
+- **Critical Bug Fixes & UX Improvements**:
+    - **Fixed `AttributeError: 'NoneType'`:** Resolved a critical bug where the application would crash after using the calibration tool. The root cause was a stale hardware object being held by the `MovementController`. The fix ensures that the controller is re-instantiated with a fresh, live hardware object after the calibration subprocess completes.
+    - **Seamless Configuration Sync:** The calibration workflow was redesigned to be seamless. After a user calibrates a servo, the new `servo.json` data is now automatically imported into the application's in-memory configuration, eliminating the need for the user to manually run `config import-all` and providing immediate feedback.
+    - **Data Type Mismatches:** Fixed several bugs related to `int` vs `str` keys for servo pins and `list` vs `dict` return types for angle data.
+
+- **Documentation**:
+    - Updated `ninja_core/README.md` with a comprehensive guide to the now-complete `movement-tool`, including the new calibration workflow.
+
 ### 2025-11-18 - Motion System Ported and Refactored
+
 
 - **Completed Sub-Phase 2.4.4**: Ported the motion control and recording logic from the V3 archive into the `ninja_core` application.
     - **Created `movement_controller.py`**: Implemented the `MovementController` class, which handles the execution of complex, interpolated servo movements. It is fully integrated with the HAL and `NinjaConfig`, removing all direct hardware access and file I/O.

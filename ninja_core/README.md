@@ -22,19 +22,20 @@ This class is the runtime engine for executing pre-defined motion sequences.
 
 ### `movement-tool` CLI
 
-This is an interactive, command-line tool for developers to **create, edit, and test** motion sequences. You can launch it by running `uv run ninja_core movement-tool` from the project root.
+This is an interactive, command-line tool for developers to **calibrate, create, edit, and test** all servo-related functions. You can launch it by running `uv run ninja_core movement-tool` from the project root.
 
 The tool presents a main menu with the following options:
 
-- **1. Record new movement:** Starts the interactive recorder to create a new, named motion sequence step-by-step.
-- **2. Modify existing movement:** (Placeholder) This will allow editing a previously saved movement.
-- **3. Execute a movement:** Plays back a saved movement, with options for looping.
-- **4. Clear movement:** (Placeholder) This will delete a saved movement from the `config.json`.
-- **5. Exit:** Closes the tool and safely shuts down the hardware.
+- **1. Calibrate a Servo:** Launches the `pi0servo` calibration tool for a selected servo. This allows you to define the min, center, and max pulse widths. The new calibration is automatically imported into the application's main configuration when the tool is running.
+- **2. Record new movement:** Starts the interactive recorder to create a new, named motion sequence step-by-step.
+- **3. Modify existing movement:** Provides a menu to interactively edit, insert, or delete steps within a saved movement.
+- **4. Execute a movement:** Plays back a saved movement, with options for looping.
+- **5. Clear movement:** Deletes a saved movement from the configuration.
+- **6. Exit:** Closes the tool and safely shuts down the hardware, saving all changes to `config.json`.
 
 #### In-Depth Guide: Recording a New Movement
 
-This is the core feature of the tool. It allows you to define a sequence of positions for your servos, which are then saved as a single, named movement (e.g., "wave", "nod", "look_left").
+This feature allows you to define a sequence of positions for your servos, which are then saved as a single, named movement (e.g., "wave", "nod").
 
 ##### Command Input Rules
 
@@ -48,51 +49,6 @@ When recording, you define each step using a special command syntax:
 | **Speed Prefix**    | Set the speed for a step with a prefix: `S_` (Slow), `M_` (Medium), or `F_` (Fast). Medium is the default.                               | `S_17:90/22:90`        |
 | **Auto-Completion** | **(Crucial Rule)** If a servo isn't specified in a command, it automatically holds its position from the *previous* step. This is the key to creating smooth, continuous motions. | If step 1 is `17:45` and step 2 is `22:30`, servo 17 remains at 45° during step 2. |
 
-##### Example 1: Recording a Single-Servo Movement (A simple "wave")
-
-Let's assume the arm servo is on pin **17**.
-
-1.  **Start Recording:** Select option **1** from the main menu. The servos will move to their center position.
-2.  **Step 1: Wave Out**
-    -   **Enter command:** `17:90`
-    -   The arm servo moves to its 90-degree position.
-    -   At the prompt, select **1. Confirm & Next**.
-3.  **Step 2: Wave Back**
-    -   **Enter command:** `17:-90`
-    -   The arm servo moves to its -90-degree position.
-    -   Select **1. Confirm & Next**.
-4.  **Step 3: Return to Center**
-    -   **Enter command:** `17:C`
-    -   The arm servo moves back to its center (0-degree) position.
-    -   Select **3. Finish Recording**.
-5.  **Save:**
-    -   When prompted, enter the name `wave` and press Enter.
-
-You have now created a three-step movement named "wave".
-
-##### Example 2: Recording a Multi-Servo Movement (A "peek" motion)
-
-Let's assume the head pan servo is on pin **22** and the head tilt servo is on pin **23**.
-
-1.  **Start Recording:** Select option **1**. Servos move to center.
-2.  **Step 1: Tilt Head Down**
-    -   **Enter command:** `23:-45`
-    -   The head tilts down. Servo 22 (pan) automatically holds its center position.
-    -   Select **1. Confirm & Next**.
-3.  **Step 2: Pan Head Left while Tilted**
-    -   **Enter command:** `22:60`
-    -   The head pans to the left. Because servo 23 (tilt) was not specified, it **automatically holds its -45 degree position** from the previous step.
-    -   Select **1. Confirm & Next**.
-4.  **Step 3: Return to Center**
-    -   **Enter command:** `22:C/23:C`
-    -   Both servos move back to their center positions simultaneously.
-    -   Select **3. Finish Recording**.
-5.  **Save:**
-    -   Name the movement `peek_left` and press Enter.
-
-You have now created a complex, multi-servo movement that leverages the auto-completion rule for smooth animation.
-
-
 ---
 
 ## Testing the Core Components
@@ -105,40 +61,39 @@ This guide assumes you are in the root directory of the `NinjaRobotV4` project a
     ```bash
     sudo pigpiod
     ```
-2.  **Hardware Configurations:** Make sure you have run the initial setup for the hardware you want to test, as this creates their required configuration files (e.g., `pi0servo/servo.json`). For example, to calibrate a servo on GPIO 17:
+2.  **Initial Configuration:** If you have not yet created the master `config.json`, run the import command at least once.
     ```bash
-    uv run pi0servo calib 17
+    uv run ninja_core config import-all
     ```
 
-### Step 1: Create or Update the Master Configuration
+### Step 1: Calibrate and Test the Motion System
 
-The `ninja_core` application uses a single `config.json` file. Use the following command to automatically generate this file and import the settings from your individual hardware configurations.
-
-```bash
-uv run ninja_core config import-all
-```
-
-### Step 2: Test the Motion System
+This workflow demonstrates the seamless integration of the calibration and movement tools.
 
 1.  **Launch the Movement Tool:**
     ```bash
     uv run ninja_core movement-tool
     ```
-2.  **Record a Movement:**
-    - Select option **1** to "Record new movement."
-    - At the prompt, enter a command to move a servo (e.g., `17:45`).
-    - The servo will move. Select option **1** to "Confirm & Next."
-    - Enter another command to move it back to center (e.g., `17:C`).
-    - Select option **3** to "Finish Recording."
-    - Name the movement `test_wave` and press Enter.
-3.  **Execute the Movement:**
-    - From the main menu, select option **3** to "Execute a movement."
-    - Choose the `test_wave` movement.
-    - Enter `1` to loop it once.
-    - **Expected Result:** The servo will smoothly move to 45 degrees and back to center.
-4.  **Exit:** Select option **5** to exit the tool.
 
-### Step 3: Test Other Core Components
+2.  **Calibrate a Servo:**
+    - Select option **1** to "Calibrate a Servo."
+    - Choose the servo pin you wish to calibrate from the list.
+    - The `pi0servo` calibration interface will launch. Follow the on-screen instructions (`h` for help) to set the Min, Center, and Max positions.
+    - Press `q` to quit the calibration tool.
+    - The `movement-tool` will automatically import the new settings and re-initialize the hardware.
+
+3.  **Record a Movement:**
+    - Select option **2** to "Record new movement."
+    - Create a simple movement (e.g., `17:45`, confirm, then `17:C`, finish) and name it `test_wave`.
+
+4.  **Execute the Movement:**
+    - Select option **4** to "Execute a movement."
+    - Choose the `test_wave` movement and loop it once.
+    - **Expected Result:** The servo will smoothly move to its 45-degree position and back, respecting the calibration you just set.
+
+5.  **Exit:** Select option **6** to exit. All your new calibration and movement data will be saved to `config.json`.
+
+### Step 2: Test Other Core Components
 
 You can test other hardware functionalities using the pre-made test scripts in the project root:
 
