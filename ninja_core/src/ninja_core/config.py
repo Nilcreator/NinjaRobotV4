@@ -98,3 +98,54 @@ def load_config(path: Path = CONFIG_FILE_PATH) -> NinjaConfig:
     with open(path, "r") as f:
         data = json.load(f)
         return NinjaConfig.model_validate(data)
+
+
+def import_and_update_config(config: NinjaConfig) -> bool:
+    """
+    Imports settings from individual hardware config files and updates the config object.
+
+    Args:
+        config: The NinjaConfig object to update in memory.
+
+    Returns:
+        True if changes were made, False otherwise.
+    """
+    servo_config_path = Path("servo.json")
+    buzzer_config_path = Path("buzzer.json")
+    made_changes = False
+
+    # --- Import servo calibration ---
+    if servo_config_path.exists():
+        print(f"Found servo config at '{servo_config_path}'. Importing...")
+        with open(servo_config_path, "r") as f:
+            servo_data = json.load(f)
+
+        if isinstance(servo_data, list):
+            for servo_entry in servo_data:
+                pin = servo_entry.get("pin")
+                if pin is None:
+                    continue
+
+                pin_str = str(pin)
+                new_calib = ServoCalibration.model_validate(servo_entry)
+                if config.servos.calibration.get(pin_str) != new_calib:
+                    config.servos.calibration[pin_str] = new_calib
+                    made_changes = True
+        print("...servo import complete.")
+    else:
+        print(f"Info: Servo config '{servo_config_path}' not found. Skipping.")
+
+    # --- Import buzzer pin ---
+    if buzzer_config_path.exists():
+        print(f"Found buzzer config at '{buzzer_config_path}'. Importing...")
+        with open(buzzer_config_path, "r") as f:
+            buzzer_data = json.load(f)
+
+        if "pin" in buzzer_data and config.buzzer.pin != buzzer_data["pin"]:
+            config.buzzer.pin = buzzer_data["pin"]
+            made_changes = True
+        print("...buzzer import complete.")
+    else:
+        print(f"Info: Buzzer config '{buzzer_config_path}' not found. Skipping.")
+
+    return made_changes
