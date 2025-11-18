@@ -118,7 +118,6 @@ def record_new_movement(controller: MovementController, config: NinjaConfig):
 
                 # Correctly access and update the Pydantic model
                 config.movements[movement_name] = sequence
-                config.save()
                 print(f"Movement '{movement_name}' saved!")
                 controller.center_all_servos()
                 return
