@@ -15,8 +15,8 @@ class MovementController:
             config: The NinjaConfig instance for loading settings.
         """
         self.servos = hal.servos
-        self.servo_definitions = config.get("servo_definitions", {})
-        self.movements = config.get("movements", {})
+        self.servo_definitions = config.servos.calibration
+        self.movements = config.movements
 
     def move_servos(self, movements: dict[int, float], speed: str = "M"):
         """
@@ -80,5 +80,7 @@ class MovementController:
         print(f"Executing movement: '{movement_name}'...")
         sequence = self.movements[movement_name]
         for step in sequence:
-            self.move_servos(step["moves"], step["speed"])
+            # The keys in 'moves' from JSON will be strings, convert them to int
+            moves = {int(k): v for k, v in step["moves"].items()}
+            self.move_servos(moves, step["speed"])
         print(f"Movement '{movement_name}' finished.")

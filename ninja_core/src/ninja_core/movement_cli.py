@@ -5,7 +5,7 @@ import termios
 import time
 import tty
 
-from ninja_core.config import NinjaConfig, load_config
+from ninja_core.config import NinjaConfig, load_config, save_config
 from ninja_core.hal import HardwareAbstractionLayer
 from ninja_core.movement_controller import MovementController
 
@@ -79,10 +79,11 @@ def record_new_movement(controller: MovementController, config: NinjaConfig):
         all_servo_pins = servo_defs.keys()
         completed_moves = moves.copy()
 
-        for pin in all_servo_pins:
+        for pin_str in all_servo_pins:
+            pin = int(pin_str)
             if pin not in completed_moves:
                 previous_angle = previous_angles.get(pin, 0)
-                completed_moves[int(pin)] = previous_angle
+                completed_moves[pin] = previous_angle
 
         print(f"Executing full movement: {completed_moves} with speed {speed}")
         controller.move_servos(completed_moves, speed)
@@ -114,9 +115,8 @@ def record_new_movement(controller: MovementController, config: NinjaConfig):
                     controller.center_all_servos()
                     return
 
-                all_movements = config.get("movements", {})
-                all_movements[movement_name] = sequence
-                config.set("movements", all_movements)
+                # Correctly access and update the Pydantic model
+                config.movements[movement_name] = sequence
                 config.save()
                 print(f"Movement '{movement_name}' saved!")
                 controller.center_all_servos()
@@ -241,7 +241,8 @@ def edit_sequence_menu(
                 controller.center_all_servos()
                 for i, step in enumerate(temp_sequence):
                     print(f"  - Step {i + 1}: {step['moves']}")
-                    controller.move_servos(step["moves"], step["speed"])
+                    moves = {int(k): v for k, v in step["moves"].items()}
+                    controller.move_servos(moves, step["speed"])
                 print("Preview finished.")
                 time.sleep(1)
                 controller.center_all_servos()
@@ -258,18 +259,16 @@ def edit_sequence_menu(
 def modify_existing_movement(controller: MovementController, config: NinjaConfig):
     """Handles the non-destructive modification of a movement sequence."""
     print("\n--- Modify Existing Movement ---")
-    all_movements = config.get("movements", {})
-    if not all_movements:
+    if not config.movements:
         print("No movements recorded.")
         return
 
     # ... (UI for selecting movement) ...
     # selected_name = ...
-    # original_sequence = all_movements[selected_name]
+    # original_sequence = config.movements[selected_name]
     # modified_sequence = edit_sequence_menu(controller, original_sequence)
     # if modified_sequence:
-    #     all_movements[selected_name] = modified_sequence
-    #     config.set('movements', all_movements)
+    #     config.movements[selected_name] = modified_sequence
     #     config.save()
     #     print("Saved changes.")
     print("Modification logic not fully implemented in this port.")
@@ -278,14 +277,12 @@ def modify_existing_movement(controller: MovementController, config: NinjaConfig
 def clear_movement(controller: MovementController, config: NinjaConfig):
     """Handles clearing a movement sequence."""
     print("\n--- Clear Movement ---")
-    all_movements = config.get("movements", {})
-    if not all_movements:
+    if not config.movements:
         print("No movements recorded.")
         return
 
     # ... (UI for selecting and confirming deletion) ...
-    # del all_movements[selected_name]
-    # config.set('movements', all_movements)
+    # del config.movements[selected_name]
     # config.save()
     # print("Movement deleted.")
     print("Clear logic not fully implemented in this port.")
@@ -323,6 +320,9 @@ def run_cli():
                 print("Invalid choice.")
     finally:
         hal.shutdown()
+        # After CLI runs, save any potential changes made
+        save_config(config)
+        print("Configuration saved.")
 
 
 if __name__ == "__main__":

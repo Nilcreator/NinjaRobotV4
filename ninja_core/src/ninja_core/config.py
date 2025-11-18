@@ -64,6 +64,9 @@ class NinjaConfig(BaseModel):
     buzzer: BuzzerConfig = Field(default_factory=BuzzerConfig)
     display: DisplayConfig = Field(default_factory=DisplayConfig)
     sensors: SensorConfig = Field(default_factory=SensorConfig)
+    movements: Dict[str, list] = Field(
+        default_factory=dict, description="Named servo movement sequences."
+    )
     api_keys: Dict[str, str] = Field(
         default_factory=dict, description="API keys for services like Google Gemini."
     )
