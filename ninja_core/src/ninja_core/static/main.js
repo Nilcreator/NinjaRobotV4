@@ -14,7 +14,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     const chatSendBtn = document.getElementById('chat-send-btn');
     const systemLog = document.getElementById('system-log');
-    // const micButton = document.getElementById('micButton'); // Voice disabled for now
+    const micButton = document.getElementById('micButton');
+    const langSelect = document.getElementById('lang-select');
+
+    // --- Speech Recognition Setup ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+    let recordingTimeout = null;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            isRecording = true;
+            micButton.classList.add('recording');
+            appendLog("Voice recording started...");
+            // Auto-stop after 30 seconds
+            recordingTimeout = setTimeout(() => {
+                if (isRecording) {
+                    recognition.stop();
+                    appendLog("Voice recording timed out (30s).");
+                }
+            }, 30000);
+        };
+
+        recognition.onend = () => {
+            isRecording = false;
+            micButton.classList.remove('recording');
+            if (recordingTimeout) clearTimeout(recordingTimeout);
+            appendLog("Voice recording ended.");
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            chatInput.value = transcript;
+            appendLog(`Recognized: "${transcript}"`);
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            appendLog(`Voice Error: ${event.error}`);
+            isRecording = false;
+            micButton.classList.remove('recording');
+        };
+
+        micButton.addEventListener('click', () => {
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.lang = langSelect.value;
+                try {
+                    recognition.start();
+                } catch (e) {
+                    appendLog(`Could not start recording: ${e.message}`);
+                }
+            }
+        });
+    } else {
+        micButton.style.display = 'none';
+        langSelect.style.display = 'none';
+        console.log("Web Speech API not supported in this browser.");
+    }
 
     // --- Generic API Call Functions ---
     async function fetchApi(endpoint, options = {}) {
@@ -81,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showExpressionBtn.addEventListener('click', () => fetchApi(`/api/display/expressions/${expressionsSelect.value}`, { method: 'POST' }));
     playEmotionBtn.addEventListener('click', () => fetchApi(`/api/sound/emotions/${emotionsSelect.value}`, { method: 'POST' }));
-    
+
     setApiKeyBtn.addEventListener('click', async () => {
         const apiKey = prompt('Please enter your Gemini API key:');
         if (apiKey && apiKey.trim()) {
@@ -127,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateSelect(movementsSelect, 'servos/movements', 'movements');
         populateSelect(expressionsSelect, 'display/expressions', 'expressions');
         populateSelect(emotionsSelect, 'sound/emotions', 'emotions');
-        
+
         try {
             const status = await fetchApi('/api/agent/status');
             showChatInterface(status.active);

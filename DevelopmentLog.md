@@ -3,6 +3,10 @@
     - Modified `web_server.py` to catch `MissingAPIKeyError` during startup. The server now starts even if the Gemini API key is missing (AI features disabled).
     - Refined `ninja_core server` startup to intelligently check for existing `ngrok` configuration and prompt the user accordingly.
     - Implemented a **Welcome Greeting** (Happy Face + Sound) that triggers automatically when a user connects to the web interface (via localhost or ngrok).
+    - Added **Voice Input** support to the web interface:
+        - Uses Web Speech API for client-side recognition.
+        - Supports English, Japanese, and Chinese via a language selector.
+        - Includes a 30-second recording timeout and visual feedback.
 - **Documentation**:
     - Updated `ninja_core/README.md` with detailed steps for creating a Google Gemini API key and an ngrok account/authtoken.
     - Clarified setup instructions for new users.

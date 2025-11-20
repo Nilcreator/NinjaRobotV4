@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,8 @@
     <link rel="stylesheet" href="/static/style.css">
     <style>
         #micButton {
-            background-color: #4CAF50; /* Green */
+            background-color: #4CAF50;
+            /* Green */
             border: none;
             color: white;
             padding: 10px 12px;
@@ -20,11 +22,14 @@
             border-radius: 8px;
             vertical-align: middle;
         }
+
         #micButton.recording {
-            background-color: #f44336; /* Red */
+            background-color: #f44336;
+            /* Red */
         }
     </style>
 </head>
+
 <body>
     <h1>NinjaRobot V4 Control Panel</h1>
 
@@ -63,13 +68,16 @@
         <div class="control-section" id="agent-controls">
             <h2>Ninja AI Agent</h2>
             <button id="set-api-key-btn">Set/Update AI API Key</button>
-            
+
             <div id="chat-container" style="display: none;">
                 <div id="chat-history"></div>
                 <div id="chat-input-container">
-                    <input type="text" id="chat-input" placeholder="Ask the robot to do something...">
-                    <!-- Voice button commented out until supported in V4 backend -->
-                    <!-- <button id="micButton">&#127908;</button> -->
+                    <select id="lang-select" style="padding: 10px; border-radius: 8px; margin-right: 5px;">
+                        <option value="en-US">English</option>
+                        <option value="ja-JP">日本語</option>
+                        <option value="zh-CN">中文</option>
+                    </select>
+                    <button id="micButton" title="Start Voice Input">&#127908;</button>
                     <button id="chat-send-btn">Send</button>
                 </div>
             </div>
@@ -83,4 +91,5 @@
 
     <script src="/static/main.js"></script>
 </body>
+
 </html>
