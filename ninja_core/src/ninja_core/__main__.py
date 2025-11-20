@@ -58,6 +58,7 @@ def chat():
     This initializes the robot hardware and allows you to type commands.
     """
     import asyncio
+    import time
     from .config import load_config
     from .hal import HardwareAbstractionLayer
     from .ninja_agent import NinjaAgent
@@ -75,6 +76,9 @@ def chat():
         # Initialize Distance Monitor
         distance_monitor = DistanceMonitor(hal)
         distance_monitor.start_continuous(interval=0.01)
+        
+        # Initialize Controllers (declare outside try for finally access)
+        faces = None
 
         try:
             print("Initializing AI Agent...")
@@ -153,6 +157,8 @@ def chat():
             print(f"\nError: {e}")
         finally:
             print("\nShutting down...")
+            if faces:
+                faces.stop()
             distance_monitor.stop_continuous()
             hal.shutdown()
 

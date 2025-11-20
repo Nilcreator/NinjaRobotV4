@@ -4,6 +4,9 @@
 - **Idle Status Management**:
     - The agent now defaults to the "idle" face.
     - Automatically returns to the "idle" face 3 seconds after completing any interaction.
+- **Bug Fixes**:
+    - Fixed `NameError: name 'time' is not defined` by importing the `time` module.
+    - Fixed `pigpio.error: 'unknown handle'` by ensuring the facial animation thread is stopped (`faces.stop()`) before the HAL shutdown.
 
 ### 2025-11-20 - Obstacle Avoidance Feature
 - **Implemented Safety Reflex**:
