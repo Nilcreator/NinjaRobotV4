@@ -74,7 +74,7 @@ def chat():
         
         # Initialize Distance Monitor
         distance_monitor = DistanceMonitor(hal)
-        distance_monitor.start_continuous(interval=0.1)
+        distance_monitor.start_continuous(interval=0.01)
 
         try:
             print("Initializing AI Agent...")

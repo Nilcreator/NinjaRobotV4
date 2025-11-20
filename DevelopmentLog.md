@@ -2,6 +2,7 @@
 - **Implemented Safety Reflex**:
     - Modified `MovementController` to support emergency stops via an `abort_check` callback.
     - Updated `__main__.py` (chat command) to continuously monitor distance during movements.
+    - **Refinement**: Decreased monitoring interval from 0.1s to 0.01s for higher sensitivity and faster reaction time.
     - **Behavior**: If an object is detected < 5cm away, the robot immediately stops, centers servos, and displays a "frightened" reaction.
 
 ### 2025-11-20 - AI Agent (`ninja_agent.py`) Implementation
