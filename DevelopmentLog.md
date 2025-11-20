@@ -150,3 +150,19 @@
 - Testing progress
     - Added `ninja_utils/samples/sample.py` demonstrating `get_logger` and `NonBlockingKeyboard`.
     - Provided installation and run instructions emphasizing editable installation.
+
+### 2025-11-20 - AI Agent (`ninja_agent.py`) Implementation
+
+- **Completed Phase 2.5**: Implemented the core AI Agent logic.
+    - **Created `ninja_agent.py`**:
+        - Integrated **Google Gemini** for natural language processing.
+        - Implemented **Nuance & Semantic Understanding**: The agent now interprets synonyms (e.g., "joyful" -> "happy") and maps them to robot actions.
+        - Implemented **Multilingual Support**: The agent detects and responds in the user's language (English, Japanese, Chinese).
+        - Implemented **Real-Time Web Search**: Integrated `googlesearch-python` to answer questions about current events.
+        - Implemented **Automatic Emotional Expression**: The robot automatically displays a "speaking" face/sound if the AI response has no physical actions.
+    - **Updated `config.py` & `__main__.py`**:
+        - Added `api_keys` management to `NinjaConfig`.
+        - Added `ninja_core config set-key` CLI command for easy API key setup.
+    - **Verified Functionality**:
+        - Created `verify_agent.py` to test logic, JSON parsing, and auto-emotion rules without hardware.
+        - Verified that the agent correctly handles missing API keys and generates valid action plans.

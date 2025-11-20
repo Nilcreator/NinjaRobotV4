@@ -1,7 +1,7 @@
 import math
 import threading
 import time
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -14,9 +14,15 @@ class AnimatedFaces:
     This class is thread-safe and integrates with the HAL.
     """
 
-    def __init__(self, hal: HardwareAbstractionLayer):
-        self.lcd = hal.display
-        self.width, self.height = self.lcd.width, self.lcd.height
+    def __init__(self, hal: Optional[HardwareAbstractionLayer]):
+        if hal:
+            self.lcd = hal.display
+            self.width, self.height = self.lcd.width, self.lcd.height
+        else:
+            # Dummy values for introspection
+            self.lcd = None
+            self.width, self.height = 240, 240
+
         self.bg_color = "black"
         self.face_color = "white"
         self.blush_color = "#FF69B4"

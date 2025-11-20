@@ -115,3 +115,26 @@ You can test other hardware functionalities using the pre-made test scripts in t
   ```
 
 This confirms that all `ninja_core` systems are successfully communicating with and controlling the hardware.
+
+### Step 3: Test the AI Agent
+
+The AI Agent allows you to control the robot using natural language.
+
+1.  **Set your Google Gemini API Key:**
+    You need a valid API key from Google AI Studio.
+    ```bash
+    uv run ninja_core config set-key gemini YOUR_ACTUAL_API_KEY_HERE
+    ```
+
+2.  **Run the Interactive Chat:**
+    This command initializes the robot and the AI agent, allowing you to type commands.
+    ```bash
+    uv run ninja_core chat
+    ```
+
+3.  **Test Capabilities:**
+    -   **Nuance:** Type "I am feeling joyful." -> Robot should show a happy face.
+    -   **Multilingual:** Type "こんにちは" (Konnichiwa). -> Robot should reply in Japanese.
+    -   **Search:** Type "What is the weather in Tokyo?" -> Robot should search and answer.
+    -   **Auto-Emotion:** Type "Tell me a joke." -> Robot should speak (show speaking face) while answering.
+    -   **Movement:** Type "Do a wave." (if you recorded a 'wave' movement). -> Robot should execute the movement.

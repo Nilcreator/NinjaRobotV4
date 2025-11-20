@@ -171,3 +171,13 @@ def import_and_update_config():
         print("\nConfiguration updated and saved to config.json!")
     else:
         print("\nNo configuration changes were detected.")
+
+
+def set_api_key(service: str, key: str):
+    """
+    Sets an API key for a specific service and saves the configuration.
+    """
+    config = load_config()
+    config.api_keys[service] = key
+    save_config(config)
+    print(f"API key for '{service}' has been saved.")
