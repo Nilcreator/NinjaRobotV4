@@ -191,7 +191,10 @@ The Web Server provides a user-friendly interface for controlling the robot from
     - **Option B (Local Network):** Open a browser on your computer and go to `http://<robot-ip>:8000` (The IP is printed in the terminal).
 
 3.  **Test Web Features:**
-    - **AI Chat:** Type a message in the chat box (e.g., "Hello"). The robot should respond, and the chat history will update.
+    - **AI Chat & Voice Input:**
+        - **Text Chat:** Type a message in the input box and click **Send**.
+        - **Voice Input:** Select your language (English, 日本語, 繁體中文, 简体中文), click the **Microphone** icon, speak your command, and the text will appear in the input box.
+        - **Multilingual Support:** The robot will detect the selected language and respond in the same language (including distinguishing between Traditional and Simplified Chinese).
     - **Servo Movements:** Select a movement from the dropdown and click **Execute**.
     - **Facial Expressions:** Select an expression and click **Show**.
     - **Sounds:** Select an emotion sound and click **Play**.
