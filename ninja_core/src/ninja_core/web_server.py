@@ -15,7 +15,7 @@ from pyngrok import ngrok
 
 from .config import load_config, set_api_key
 from .hal import HardwareAbstractionLayer
-from .ninja_agent import NinjaAgent
+from .ninja_agent import NinjaAgent, MissingAPIKeyError
 from .facial_expressions import AnimatedFaces
 from .robot_sound import RobotSoundPlayer
 from .movement_controller import MovementController, EmergencyStop
@@ -68,6 +68,9 @@ async def lifespan(app: FastAPI):
     try:
         app.state.ninja.agent = NinjaAgent(config)
         print("Ninja AI Agent initialized.")
+    except MissingAPIKeyError:
+        print("WARNING: Gemini API Key not found. AI Agent will be disabled.")
+        print("Run 'ninja_core config set-key gemini <KEY>' or use the web interface to set it.")
     except ValueError as e:
         print(f"Ninja AI Agent not initialized: {e}")
 
@@ -307,4 +310,13 @@ async def websocket_distance(websocket: WebSocket):
         pass
 
 def run_server():
+    print("--- NinjaRobot Web Server Setup ---")
+    
+    # Prompt for ngrok token
+    print("Checking ngrok configuration...")
+    token = input("Enter your ngrok Authtoken (leave empty to use existing config): ").strip()
+    if token:
+        print("Setting ngrok authtoken...")
+        ngrok.set_auth_token(token)
+    
     uvicorn.run("ninja_core.web_server:app", host="0.0.0.0", port=8000, reload=False)

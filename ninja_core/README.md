@@ -111,8 +111,22 @@ You can test other hardware functionalities using the pre-made test scripts in t
   ```
 - **Test Perception System:**
   ```bash
-  uv run python test_perception.py
-  ```
+-   **Test HAL (Servos and Buzzer):**
+    ```bash
+    uv run python test_hal.py
+    ```
+-   **Test Display System:**
+    ```bash
+    uv run python test_facial_expressions.py
+    ```
+-   **Test Sound System:**
+    ```bash
+    uv run python test_robot_sound.py
+    ```
+-   **Test Perception System:**
+    ```bash
+    uv run python test_perception.py
+    ```
 
 This confirms that all `ninja_core` systems are successfully communicating with and controlling the hardware.
 
@@ -120,19 +134,40 @@ This confirms that all `ninja_core` systems are successfully communicating with 
 
 The AI Agent allows you to control the robot using natural language.
 
-1.  **Set your Google Gemini API Key:**
-    You need a valid API key from Google AI Studio.
+#### 3.1. Setup Google Gemini API Key
+
+1.  **Create an API Key:**
+    -   Go to [Google AI Studio](https://aistudio.google.com/).
+    -   Click on "Get API key" -> "Create API key".
+    -   Copy the generated key.
+
+2.  **Set the Key in NinjaRobot:**
     ```bash
     uv run ninja_core config set-key gemini YOUR_ACTUAL_API_KEY_HERE
     ```
 
-2.  **Run the Interactive Chat:**
+#### 3.2. Setup ngrok (For Remote Access)
+
+To access the web server from outside your local network, you need an ngrok account.
+
+1.  **Create an Account:**
+    -   Go to [ngrok.com](https://ngrok.com/) and sign up for a free account.
+
+2.  **Get Your Authtoken:**
+    -   Go to your [ngrok Dashboard](https://dashboard.ngrok.com/get-started/your-authtoken).
+    -   Copy your Authtoken.
+
+3.  **Configure NinjaRobot:**
+    -   When you run `uv run ninja_core server` for the first time, you will be prompted to enter this token.
+    -   Alternatively, you can set it manually via the ngrok CLI if installed, but the server prompt is the easiest method.
+
+#### 3.3. Run the Interactive Chat
     This command initializes the robot and the AI agent, allowing you to type commands.
     ```bash
     uv run ninja_core chat
     ```
 
-3.  **Test Capabilities:**
+#### 3.4. Test Capabilities
     -   **Nuance:** Type "I am feeling joyful." -> Robot should show a happy face.
     -   **Multilingual:** Type "こんにちは" (Konnichiwa). -> Robot should reply in Japanese.
     -   **Search:** Type "What is the weather in Tokyo?" -> Robot should search and answer.
