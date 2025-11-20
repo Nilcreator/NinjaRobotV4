@@ -91,8 +91,14 @@ def chat():
             # --- Safety Check Function ---
             def safety_check() -> bool:
                 dist = distance_monitor.get_continuous_distance()
-                # Check if valid reading (>=0) and within 50mm (5cm)
-                if 0 <= dist < 50:
+                
+                # Display distance (flush=True to ensure immediate output)
+                display_dist = dist if dist != -1 else "---"
+                print(f"Distance: {display_dist}mm   ", end="\r", flush=True)
+
+                # Check if valid reading (>=0) and within 50mm (inclusive)
+                if 0 <= dist <= 50:
+                    print()  # Newline so the emergency message is on a new line
                     return True
                 return False
             # -----------------------------
