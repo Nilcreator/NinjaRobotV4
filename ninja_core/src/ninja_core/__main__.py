@@ -68,8 +68,8 @@ def chat():
     async def run_chat():
         print("Initializing NinjaRobot Hardware...")
         config = load_config()
-        hal = HardwareAbstractionLayer()
-        hal.initialize(config)
+        hal = HardwareAbstractionLayer(config)
+        hal.initialize()
 
         try:
             print("Initializing AI Agent...")
