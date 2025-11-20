@@ -138,3 +138,30 @@ The AI Agent allows you to control the robot using natural language.
     -   **Search:** Type "What is the weather in Tokyo?" -> Robot should search and answer.
     -   **Auto-Emotion:** Type "Tell me a joke." -> Robot should speak (show speaking face) while answering.
     -   **Movement:** Type "Do a wave." (if you recorded a 'wave' movement). -> Robot should execute the movement.
+
+### Step 4: Test Web Server & Remote Access
+
+The Web Server provides a user-friendly interface for controlling the robot from any device on the network or over the internet.
+
+1.  **Start the Server:**
+    ```bash
+    uv run ninja_core server
+    ```
+    - The robot will initialize all hardware.
+    - It will attempt to start an `ngrok` tunnel automatically.
+    - **Check the Display:** The robot's LCD screen should display a **QR Code**.
+
+2.  **Connect to the Interface:**
+    - **Option A (Mobile/Remote):** Scan the QR code on the robot's screen with your phone.
+    - **Option B (Local Network):** Open a browser on your computer and go to `http://<robot-ip>:8000` (The IP is printed in the terminal).
+
+3.  **Test Web Features:**
+    - **AI Chat:** Type a message in the chat box (e.g., "Hello"). The robot should respond, and the chat history will update.
+    - **Servo Movements:** Select a movement from the dropdown and click **Execute**.
+    - **Facial Expressions:** Select an expression and click **Show**.
+    - **Sounds:** Select an emotion sound and click **Play**.
+    - **Distance Sensor:** Verify that the distance reading updates in real-time (every ~200ms).
+
+4.  **Test Obstacle Avoidance (Safety):**
+    - While a movement is executing (e.g., a long sequence), place your hand in front of the sensor (< 50mm).
+    - **Expected Result:** The robot should **immediately stop**, display a "scary" face, play a warning sound, and the web interface should show an error or stop notification.

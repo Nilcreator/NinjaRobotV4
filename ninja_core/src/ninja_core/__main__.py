@@ -165,5 +165,15 @@ def chat():
     asyncio.run(run_chat())
 
 
+@main.command("server")
+def server():
+    """
+    Start the NinjaRobot Web Server.
+    Provides a web interface for remote control and AI chat.
+    """
+    from .web_server import run_server
+    run_server()
+
+
 if __name__ == "__main__":
     main()

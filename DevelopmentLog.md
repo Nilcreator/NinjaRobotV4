@@ -1,3 +1,19 @@
+### 2025-11-20 - Web Server & Remote Access (Phase 2.6)
+- **Implemented Web Server**:
+    - Created `web_server.py` using FastAPI and Uvicorn.
+    - Integrated `HardwareAbstractionLayer` and `NinjaAgent` into the web application state.
+    - Implemented API endpoints for Chat, Servo Movements, Facial Expressions, Sounds, and Distance Sensor.
+    - Added `ninja_core server` CLI command.
+- **Remote Access**:
+    - Integrated `pyngrok` to automatically create a public tunnel.
+    - Displays a QR code of the public URL on the robot's screen.
+- **Web Interface**:
+    - Ported `index.html`, `style.css`, and `main.js` from V3.
+    - Updated frontend to communicate with V4 API endpoints.
+    - Added real-time distance monitoring via WebSocket.
+- **Safety Integration**:
+    - Enforced Obstacle Avoidance in web-triggered movements using `abort_check`.
+
 ### 2025-11-20 - Chat Features Enhancement
 - **Welcome Greeting**:
     - Added a "happy" face and greeting message ("Hello! I am ready.") upon starting the chat.
