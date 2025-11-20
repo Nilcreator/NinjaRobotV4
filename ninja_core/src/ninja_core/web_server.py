@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from pyngrok import ngrok
+from pyngrok import ngrok, conf
 
 from .config import load_config, set_api_key
 from .hal import HardwareAbstractionLayer
@@ -312,9 +312,34 @@ async def websocket_distance(websocket: WebSocket):
 def run_server():
     print("--- NinjaRobot Web Server Setup ---")
     
-    # Prompt for ngrok token
+    # Check for existing token
+    token_exists = False
+    if conf.get_default().auth_token:
+        token_exists = True
+    else:
+        # Check common config paths
+        paths = [
+            os.path.join(os.path.expanduser("~"), ".ngrok2", "ngrok.yml"),
+            os.path.join(os.path.expanduser("~"), "Library", "Application Support", "ngrok", "ngrok.yml"),
+            os.path.join(os.path.expanduser("~"), ".config", "ngrok", "ngrok.yml")
+        ]
+        for p in paths:
+            if os.path.exists(p):
+                try:
+                    with open(p, 'r') as f:
+                        if "authtoken" in f.read():
+                            token_exists = True
+                            break
+                except Exception:
+                    pass
+
     print("Checking ngrok configuration...")
-    token = input("Enter your ngrok Authtoken (leave empty to use existing config): ").strip()
+    
+    if token_exists:
+        token = input("Proceed with existing ngrok account by pressing ENTER or input new ngrok authtoken to proceed: ").strip()
+    else:
+        token = input("Please input your ngrok authtoken to proceed: ").strip()
+
     if token:
         print("Setting ngrok authtoken...")
         ngrok.set_auth_token(token)

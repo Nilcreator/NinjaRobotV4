@@ -1,7 +1,7 @@
 ### 2025-11-20 - Web Server Fixes & Documentation
 - **Server Startup Robustness**:
     - Modified `web_server.py` to catch `MissingAPIKeyError` during startup. The server now starts even if the Gemini API key is missing (AI features disabled).
-    - Added an interactive prompt in `ninja_core server` to input the `ngrok` Authtoken if needed.
+    - Refined `ninja_core server` startup to intelligently check for existing `ngrok` configuration and prompt the user accordingly.
 - **Documentation**:
     - Updated `ninja_core/README.md` with detailed steps for creating a Google Gemini API key and an ngrok account/authtoken.
     - Clarified setup instructions for new users.
