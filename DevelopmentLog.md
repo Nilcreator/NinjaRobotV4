@@ -1,3 +1,10 @@
+### 2025-11-20 - Chat Features Enhancement
+- **Welcome Greeting**:
+    - Added a "happy" face and greeting message ("Hello! I am ready.") upon starting the chat.
+- **Idle Status Management**:
+    - The agent now defaults to the "idle" face.
+    - Automatically returns to the "idle" face 3 seconds after completing any interaction.
+
 ### 2025-11-20 - Obstacle Avoidance Feature
 - **Implemented Safety Reflex**:
     - Modified `MovementController` to support emergency stops via an `abort_check` callback.

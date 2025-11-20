@@ -88,6 +88,13 @@ def chat():
             print("\n--- Ninja Agent Ready ---")
             print("Type 'exit' or 'quit' to stop.")
             
+            # --- Welcome Greeting ---
+            faces.play("happy", duration_s=3.0)
+            print("Ninja: Hello! I am ready.")
+            time.sleep(3.0)
+            faces.play("idle", duration_s=float('inf'))
+            # ------------------------
+
             # --- Safety Check Function ---
             def safety_check() -> bool:
                 dist = distance_monitor.get_continuous_distance()
@@ -135,6 +142,12 @@ def chat():
                         print("Ninja: Whoa! Too close!")
 
                 print(f"Ninja: {response_text}")
+                
+                # --- Idle Status Management ---
+                # Return to idle status 3 seconds after completion
+                time.sleep(3.0)
+                faces.play("idle", duration_s=float('inf'))
+                # ------------------------------
 
         except Exception as e:
             print(f"\nError: {e}")
