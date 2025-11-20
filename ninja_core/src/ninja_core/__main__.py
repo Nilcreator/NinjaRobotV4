@@ -63,13 +63,18 @@ def chat():
     from .ninja_agent import NinjaAgent
     from .facial_expressions import AnimatedFaces
     from .robot_sound import RobotSoundPlayer
-    from .movement_controller import MovementController
+    from .perception import DistanceMonitor
+    from .movement_controller import MovementController, EmergencyStop
 
     async def run_chat():
         print("Initializing NinjaRobot Hardware...")
         config = load_config()
         hal = HardwareAbstractionLayer(config)
         hal.initialize()
+        
+        # Initialize Distance Monitor
+        distance_monitor = DistanceMonitor(hal)
+        distance_monitor.start_continuous(interval=0.1)
 
         try:
             print("Initializing AI Agent...")
@@ -82,6 +87,15 @@ def chat():
 
             print("\n--- Ninja Agent Ready ---")
             print("Type 'exit' or 'quit' to stop.")
+            
+            # --- Safety Check Function ---
+            def safety_check() -> bool:
+                dist = distance_monitor.get_continuous_distance()
+                # Check if valid reading (>=0) and within 50mm (5cm)
+                if 0 <= dist < 50:
+                    return True
+                return False
+            # -----------------------------
             
             while True:
                 user_input = input("\nYou: ")
@@ -102,14 +116,25 @@ def chat():
                     sound.play(action_plan["sound"])
                     
                 if action_plan.get("movement"):
-                    movement.execute_movement(action_plan["movement"])
-                
+                    try:
+                        movement.execute_movement(
+                            action_plan["movement"], 
+                            abort_check=safety_check
+                        )
+                    except EmergencyStop:
+                        print("!!! OBSTACLE DETECTED - STOPPING !!!")
+                        # Reaction: Frightened
+                        faces.play("scary")  # Using 'scary' as frightened
+                        sound.play("scary")
+                        print("Ninja: Whoa! Too close!")
+
                 print(f"Ninja: {response_text}")
 
         except Exception as e:
             print(f"\nError: {e}")
         finally:
             print("\nShutting down...")
+            distance_monitor.stop_continuous()
             hal.shutdown()
 
     asyncio.run(run_chat())

@@ -3,6 +3,13 @@ from ninja_core.hal import HardwareAbstractionLayer
 from ninja_core.config import NinjaConfig
 
 
+from typing import Callable, Optional
+
+class EmergencyStop(Exception):
+    """Raised when a movement is aborted due to safety checks."""
+    pass
+
+
 class MovementController:
     """A controller to manage and execute complex, multi-servo movement sequences."""
 
@@ -18,13 +25,19 @@ class MovementController:
         self.servo_definitions = config.servos.calibration
         self.movements = config.movements
 
-    def move_servos(self, movements: dict[int, float], speed: str = "M"):
+    def move_servos(
+        self,
+        movements: dict[int, float],
+        speed: str = "M",
+        abort_check: Optional[Callable[[], bool]] = None,
+    ):
         """
         Executes a set of servo movements with smooth interpolation.
 
         Args:
             movements: A dictionary of {pin: angle}.
             speed: A character representing speed ('S'low, 'M'edium, 'F'ast).
+            abort_check: An optional function that returns True if the movement should stop.
         """
         duration_map = {"S": 1.0, "M": 0.5, "F": 0.2}
         duration = duration_map.get(speed, 0.5)
@@ -41,6 +54,13 @@ class MovementController:
         ordered_pins = self.servos.pins
 
         for i in range(1, steps + 1):
+            # --- Safety Check ---
+            if abort_check and abort_check():
+                print("! EMERGENCY STOP TRIGGERED !")
+                self.center_all_servos()
+                raise EmergencyStop("Movement aborted by safety check.")
+            # --------------------
+
             ratio = i / steps
             # Build the list of angles for this step in the correct order
             step_angles_list = []
@@ -77,15 +97,19 @@ class MovementController:
         """Moves all servos to their center position."""
         print("Centering all servos...")
         center_angles = {int(pin): 0 for pin in self.servo_definitions.keys()}
-        self.move_servos(center_angles, speed="M")
+        # We don't pass abort_check here to ensure centering always happens
+        self.move_servos(center_angles, speed="F") 
         time.sleep(0.5)
 
-    def execute_movement(self, movement_name: str):
+    def execute_movement(
+        self, movement_name: str, abort_check: Optional[Callable[[], bool]] = None
+    ):
         """
         Executes a pre-defined movement sequence by name.
 
         Args:
             movement_name: The name of the movement to execute.
+            abort_check: An optional function that returns True if the movement should stop.
         """
         if movement_name not in self.movements:
             print(f"Error: Movement '{movement_name}' not found.")
@@ -96,5 +120,5 @@ class MovementController:
         for step in sequence:
             # The keys in 'moves' from JSON will be strings, convert them to int
             moves = {int(k): v for k, v in step["moves"].items()}
-            self.move_servos(moves, step["speed"])
+            self.move_servos(moves, step["speed"], abort_check=abort_check)
         print(f"Movement '{movement_name}' finished.")
