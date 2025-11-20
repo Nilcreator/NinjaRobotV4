@@ -42,6 +42,7 @@ class AppState:
         self.movement: Optional[MovementController] = None
         self.distance_monitor: Optional[DistanceMonitor] = None
         self.first_interaction: bool = True
+        self.has_greeted: bool = False
 
 # --- Lifecycle ---
 @asynccontextmanager
@@ -130,6 +131,29 @@ async def setup_network_and_display(app: FastAPI):
 async def handle_first_interaction(app_state: AppState):
     if app_state.first_interaction:
         app_state.first_interaction = False
+        # Only set to idle if we haven't just greeted (to avoid overriding happy face)
+        # But actually, if we are chatting, we probably want to be in a neutral state or the chat state.
+        # If has_greeted is True, we might be in "happy" state or "idle" state.
+        # Let's just ensure we are in a known state.
+        if app_state.faces:
+            app_state.faces.play("idle", duration_s=float('inf'))
+
+async def trigger_welcome(app_state: AppState):
+    """Plays greeting (happy face + sound) if not already greeted."""
+    if not app_state.has_greeted:
+        app_state.has_greeted = True
+        print("Triggering Welcome Greeting...")
+        
+        # Play Happy Face
+        if app_state.faces:
+            app_state.faces.play("happy", duration_s=3.0)
+        
+        # Play Happy Sound (Non-blocking)
+        if app_state.sound:
+            asyncio.create_task(asyncio.to_thread(app_state.sound.play, "happy"))
+        
+        # Wait 3s then return to idle
+        await asyncio.sleep(3.0)
         if app_state.faces:
             app_state.faces.play("idle", duration_s=float('inf'))
 
@@ -295,6 +319,8 @@ app.include_router(api_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
+    # Trigger welcome greeting on page load
+    asyncio.create_task(trigger_welcome(request.app.state.ninja))
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.websocket("/ws/distance")
