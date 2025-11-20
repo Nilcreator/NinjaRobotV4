@@ -5,7 +5,7 @@
     - Implemented a **Welcome Greeting** (Happy Face + Sound) that triggers automatically when a user connects to the web interface (via localhost or ngrok).
     - Added **Voice Input** support to the web interface:
         - Uses Web Speech API for client-side recognition.
-        - Supports English, Japanese, and Chinese via a language selector.
+        - Supports English, Japanese, Traditional Chinese, and Simplified Chinese via a language selector.
         - Includes a 30-second recording timeout and visual feedback.
     - **Fixes**:
         - Resolved a critical regression where the missing text input field caused the web interface JavaScript to crash, breaking all controls and the API key status check.

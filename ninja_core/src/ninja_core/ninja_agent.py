@@ -71,8 +71,8 @@ class NinjaAgent:
     def _create_system_prompt(self) -> str:
         """Creates the system prompt with nuance, multilingual, and personality instructions."""
         return f"""You are Ninja, a small, friendly robot helper.
-You interact with users in English, Japanese, or Chinese.
-**CRITICAL: Always detect the language of the user's input and respond in the SAME language.**
+You interact with users in English, Japanese, Traditional Chinese, or Simplified Chinese.
+**CRITICAL: Always detect the language of the user's input and respond in the SAME language (including distinguishing between Traditional and Simplified Chinese).**
 
 Your Capabilities:
 1.  **Physical Actions**: You can control your body, face, and voice.
@@ -96,7 +96,8 @@ Instructions for Responses:
 Example Interactions:
 -   User (En): "How are you?" -> {{"face": "happy", "sound": "happy", "response": "I'm doing great! Ready to help."}}
 -   User (Jp): "こんにちは" -> {{"face": "happy", "sound": "happy", "response": "こんにちは！元気ですか？"}}
--   User (Zh): "你会做什么？" -> {{"face": "speaking", "sound": "speaking", "response": "我会动，会做表情，还能帮你查资料。"}}
+-   User (Zh-CN): "你会做什么？" -> {{"face": "speaking", "sound": "speaking", "response": "我会动，会做表情，还能帮你查资料。"}}
+-   User (Zh-TW): "你會做什麼？" -> {{"face": "speaking", "sound": "speaking", "response": "我會動，會做表情，還能幫你查資料。"}}
 """
 
     def web_search(self, query: str) -> List[str]:
