@@ -72,13 +72,17 @@
             <div id="chat-container" style="display: none;">
                 <div id="chat-history"></div>
                 <div id="chat-input-container">
-                    <select id="lang-select" style="padding: 10px; border-radius: 8px; margin-right: 5px;">
-                        <option value="en-US">English</option>
-                        <option value="ja-JP">日本語</option>
-                        <option value="zh-CN">中文</option>
-                    </select>
-                    <button id="micButton" title="Start Voice Input">&#127908;</button>
-                    <button id="chat-send-btn">Send</button>
+                    <input type="text" id="chat-input" placeholder="Ask the robot to do something..."
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box;">
+                    <div class="input-controls" style="display: flex; align-items: center; gap: 10px;">
+                        <select id="lang-select" style="padding: 10px; border-radius: 8px;">
+                            <option value="en-US">English</option>
+                            <option value="ja-JP">日本語</option>
+                            <option value="zh-CN">中文</option>
+                        </select>
+                        <button id="micButton" title="Start Voice Input">&#127908;</button>
+                        <button id="chat-send-btn">Send</button>
+                    </div>
                 </div>
             </div>
         </div>

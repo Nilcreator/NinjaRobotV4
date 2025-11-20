@@ -7,6 +7,9 @@
         - Uses Web Speech API for client-side recognition.
         - Supports English, Japanese, and Chinese via a language selector.
         - Includes a 30-second recording timeout and visual feedback.
+    - **Fixes**:
+        - Resolved a critical regression where the missing text input field caused the web interface JavaScript to crash, breaking all controls and the API key status check.
+        - Restored the text input field and reorganized the layout (controls below input) as requested.
 - **Documentation**:
     - Updated `ninja_core/README.md` with detailed steps for creating a Google Gemini API key and an ngrok account/authtoken.
     - Clarified setup instructions for new users.
