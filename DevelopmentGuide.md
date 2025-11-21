@@ -1,0 +1,1776 @@
+# NinjaRobotV4 Development Guide
+
+**Version:** 0.1.0  
+**Last Updated:** 2025-11-21  
+**Target Audience:** Experienced Developers
+
+This guide provides a comprehensive technical reference for the NinjaRobotV4 project. It serves as the source of truth for understanding the project architecture, library APIs, and development workflows.
+
+---
+
+## Table of Contents
+
+1. [Project Architecture](#1-project-architecture)
+2. [Development Environment Setup](#2-development-environment-setup)
+3. [Library Reference](#3-library-reference)
+   - [3.1 ninja_utils](#31-ninja_utils)
+   - [3.2 pi0buzzer](#32-pi0buzzer)
+   - [3.3 pi0vl53l0x](#33-pi0vl53l0x)
+   - [3.4 pi0disp](#34-pi0disp)
+   - [3.5 pi0servo](#35-pi0servo)
+   - [3.6 ninja_core](#36-ninja_core)
+4. [Configuration System](#4-configuration-system)
+5. [Testing & Debugging](#5-testing--debugging)
+6. [Contributing Guidelines](#6-contributing-guidelines)
+
+---
+
+## 1. Project Architecture
+
+### 1.1 Overall Structure
+
+NinjaRobotV4 follows a **layered monorepo architecture** with 6 independent Python packages:
+
+```
+NinjaRobotV4/
+├── pyproject.toml              # Root project configuration (unified install)
+├── config.json                 # Runtime configuration (generated)
+├── servo.json                  # Servo calibration data (generated)
+├── buzzer.json                 # Buzzer configuration (generated)
+├── LICENSE                     # MIT License
+├── README.md                   # Project introduction
+├── InstallationGuide.md        # End-user installation guide
+├── DevelopmentGuide.md         # This document
+├── DevelopmentLog.md           # Development history
+├── ReconstructionGuide.md      # Architecture design decisions
+│
+├── ninja_utils/                # Shared utilities library
+│   ├── pyproject.toml
+│   ├── LICENSE
+│   ├── README.md
+│   └── src/ninja_utils/
+│       ├── __init__.py
+│       ├── my_logger.py        # Centralized logging
+│       └── keyboard.py         # Non-blocking keyboard input
+│
+├── pi0buzzer/                  # Buzzer control library
+│   ├── pyproject.toml
+│   ├── LICENSE
+│   ├── README.md
+│   └── src/pi0buzzer/
+│       ├── __init__.py
+│       ├── __main__.py         # CLI entry point
+│       └── driver.py           # Buzzer and MusicBuzzer classes
+│
+├── pi0vl53l0x/                 # VL53L0X distance sensor library
+│   ├── pyproject.toml
+│   ├── LICENSE
+│   ├── README.md
+│   └── src/pi0vl53l0x/
+│       ├── __init__.py
+│       ├── __main__.py         # CLI entry point
+│       ├── constants.py        # Sensor register addresses
+│       ├── driver.py           # VL53L0X driver class
+│       └── config_manager.py   # Configuration I/O
+│
+├── pi0disp/                    # ST7789V display library
+│   ├── pyproject.toml
+│   ├── LICENSE
+│   ├── README.md
+│   └── src/pi0disp/
+│       ├── __init__.py
+│       ├── __main__.py         # CLI entry point
+│       ├── disp/
+│       │   └── st7789v.py      # ST7789V driver class
+│       ├── fonts/              # Bundled Noto fonts
+│       ├── utils/
+│       │   ├── performance_core.py  # Optimization classes
+│       │   └── image_processor.py   # Image utilities
+│       └── commands/
+│           ├── ball_anime.py   # Demo animation
+│           └── image.py        # Image display command
+│
+├── pi0servo/                   # Servo motor control library
+│   ├── pyproject.toml
+│   ├── LICENSE
+│   ├── README.md
+│   └── src/pi0servo/
+│       ├── __init__.py
+│       ├── __main__.py         # CLI entry point
+│       ├── core/
+│       │   ├── piservo.py      # Base PiServo class
+│       │   ├── calibrable_servo.py  # CalibrableServo class
+│       │   └── multi_servo.py  # MultiServo class
+│       ├── helper/
+│       │   ├── thread_worker.py      # Thread worker
+│       │   └── thread_multi_servo.py # Async wrapper
+│       ├── utils/
+│       │   └── servo_config_manager.py  # Config I/O
+│       └── command/
+│           ├── cmd_calib.py    # Calibration TUI
+│           └── cmd_servo.py    # Single servo control
+│
+└── ninja_core/                 # Main application
+    ├── pyproject.toml
+    ├── LICENSE
+    ├── README.md
+    └── src/ninja_core/
+        ├── __init__.py
+        ├── __main__.py         # CLI entry point
+        ├── config.py           # Centralized configuration
+        ├── hal.py              # Hardware Abstraction Layer
+        ├── ninja_agent.py      # AI agent (Gemini)
+        ├── movement_controller.py  # Motion system
+        ├── movement_cli.py     # Movement recording tool
+        ├── facial_expressions.py   # Visual emotions
+        ├── robot_sound.py      # Auditory feedback
+        ├── perception.py       # Distance monitoring
+        ├── web_server.py       # FastAPI web server
+        ├── static/
+        │   ├── style.css       # Web UI styles
+        │   └── main.js         # Web UI logic
+        └── templates/
+            └── index.html      # Web UI template
+```
+
+### 1.2 Design Principles
+
+1. **Separation of Concerns**: Each library has a single, well-defined responsibility
+2. **Dependency Injection**: Hardware dependencies (e.g., `pigpio.pi`) are passed to constructors
+3. **Configuration over Code**: Hardware settings live in `config.json`, not hardcoded
+4. **Fail-Safe Defaults**: Libraries provide sensible defaults if configuration is missing
+5. **Testability**: Libraries can be imported and tested without full hardware
+
+### 1.3 Dependency Graph
+
+```
+ninja_core
+    ├─→ ninja_utils
+    ├─→ pi0buzzer → ninja_utils (optional logger)
+    ├─→ pi0vl53l0x → ninja_utils (logger)
+    ├─→ pi0disp → ninja_utils (logger)
+    ├─→ pi0servo → ninja_utils (logger, keyboard)
+    ├─→ fastapi, uvicorn, pyngrok
+    └─→ google-generativeai, googlesearch-python
+```
+
+**Key External Dependencies:**
+- `pigpio` - GPIO control daemon (system-level)
+- `pydantic` - Configuration validation
+- `Pillow` - Image processing
+- `numpy` - Numerical operations
+- `click` - CLI framework
+- `blessed` - Terminal UI (servo calibration)
+
+---
+
+## 2. Development Environment Setup
+
+### 2.1 Prerequisites
+
+- **Raspberry Pi Zero 2W** (or compatible model)
+- **Raspberry Pi OS** (64-bit recommended)
+- **Python 3.9+**
+- **uv** package manager (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- **pigpiod** daemon (`sudo apt install pigpio && sudo pigpiod`)
+
+### 2.2 Installation
+
+```bash
+# Clone repository
+git clone https://github.com/Nilcreator/NinjaRobotV4.git
+cd NinjaRobotV4
+
+# Install all packages in editable mode
+uv pip install -e .
+
+# Or install individually
+uv pip install -e ./ninja_utils
+uv pip install -e ./pi0buzzer
+uv pip install -e ./pi0vl53l0x
+uv pip install -e ./pi0disp
+uv pip install -e ./pi0servo
+uv pip install -e ./ninja_core
+```
+
+### 2.3 Development Tools
+
+**Linting:**
+```bash
+uv run ruff check <file_path>
+uv run ruff check <file_path> --fix
+uv run ruff format <file_path>
+```
+
+**Running CLI Tools:**
+```bash
+uv run ninja_core --help
+uv run pi0servo calib 17
+uv run pi0disp image test.jpg
+```
+
+---
+
+## 3. Library Reference
+
+### 3.1 ninja_utils
+
+**Purpose:** Shared utilities to avoid code duplication across libraries
+
+**Dependencies:** None (pure Python)
+
+**Location:** `ninja_utils/src/ninja_utils/`
+
+#### 3.1.1 `my_logger.py`
+
+**Module:** `ninja_utils.my_logger`
+
+##### Function: `get_logger(name: str = "robot") -> logging.Logger`
+
+Returns a configured logger instance with consistent formatting.
+
+**Parameters:**
+- `name` (str): Logger name (default: "robot")
+
+**Returns:**
+- `logging.Logger`: Configured logger with ISO timestamp format
+
+**Usage:**
+```python
+from ninja_utils.my_logger import get_logger
+
+log = get_logger(__name__)
+log.info("Robot initialized")
+log.error("Sensor failed", exc_info=True)
+```
+
+**Log Format:**
+```
+2025-11-21 12:00:00 - <name> - <level> - <message>
+```
+
+---
+
+#### 3.1.2 `keyboard.py`
+
+**Module:** `ninja_utils.keyboard`
+
+##### Class: `NonBlockingKeyboard`
+
+Provides non-blocking keyboard input for interactive CLI tools.
+
+**Constructor:**
+```python
+def __init__(self)
+```
+
+**Methods:**
+
+**`get_key() -> str | None`**
+- Returns the key pressed since last call, or `None` if no key
+- Non-blocking (returns immediately)
+
+**`cleanup() -> None`**
+- Restores terminal to normal mode
+- **Must be called before exiting** to avoid terminal corruption
+
+**Usage:**
+```python
+from ninja_utils.keyboard import NonBlockingKeyboard
+import time
+
+kb = NonBlockingKeyboard()
+try:
+    while True:
+        key = kb.get_key()
+        if key == 'q':
+            break
+        elif key:
+            print(f"Pressed: {key}")
+        time.sleep(0.1)
+finally:
+    kb.cleanup()
+```
+
+**Thread Safety:** Not thread-safe (use from main thread only)
+
+---
+
+### 3.2 pi0buzzer
+
+**Purpose:** Control a passive buzzer for sound and music generation
+
+**Dependencies:** `pigpio`, `click`
+
+**Location:** `pi0buzzer/src/pi0buzzer/`
+
+**Hardware Interface:** GPIO PWM
+
+#### 3.2.1 `driver.py`
+
+**Module:** `pi0buzzer.driver`
+
+##### Class: `Buzzer`
+
+Base class for buzzer control.
+
+**Constructor:**
+```python
+def __init__(self, pi: pigpio.pi, pin: int)
+```
+
+**Parameters:**
+- `pi` (pigpio.pi): Shared pigpio connection
+- `pin` (int): GPIO pin number
+
+**Methods:**
+
+**`play_sound(frequency: int, duration: float) -> None`**
+- Plays a tone at the specified frequency for the given duration
+- **Parameters:**
+  - `frequency` (int): Tone frequency in Hz (50-10000)
+  - `duration` (float): Duration in seconds
+- **Blocking:** Yes (sleeps for duration)
+
+**`off() -> None`**
+- Stops the buzzer immediately
+
+**Usage:**
+```python
+import pigpio
+from pi0buzzer.driver import Buzzer
+
+pi = pigpio.pi()
+buzzer = Buzzer(pi, pin=26)
+
+buzzer.play_sound(440, 0.5)  # A4 note for 0.5 seconds
+buzzer.off()
+pi.stop()
+```
+
+---
+
+##### Class: `MusicBuzzer`
+
+Extends `Buzzer` with melody playback capabilities.
+
+**Constructor:**
+```python
+def __init__(self, pi: pigpio.pi, pin: int)
+```
+
+**Inherits:** `Buzzer`
+
+**Methods:**
+
+**`play_song(song: list[tuple[int, float]]) -> None`**
+- Plays a sequence of notes
+- **Parameters:**
+  - `song` (list): List of (frequency, duration) tuples
+- **Blocking:** Yes
+
+**Usage:**
+```python
+from pi0buzzer.driver import MusicBuzzer
+
+buzzer = MusicBuzzer(pi, pin=26)
+
+# Define a melody
+melody = [
+    (262, 0.25),  # C4
+    (294, 0.25),  # D4
+    (330, 0.25),  # E4
+    (262, 0.5),   # C4 (longer)
+]
+
+buzzer.play_song(melody)
+```
+
+**Pre-defined Songs:** See `pi0buzzer/__main__.py` for built-in melodies
+
+---
+
+#### 3.2.2 CLI Commands
+
+**Entry Point:** `uv run pi0buzzer <command>`
+
+**Commands:**
+
+**`init <pin>`**
+- Creates `buzzer.json` with the specified GPIO pin
+- **Example:** `uv run pi0buzzer init 26`
+
+**`beep`**
+- Plays a short test beep
+- **Example:** `uv run pi0buzzer beep`
+
+**`playmusic`**
+- Plays a pre-defined melody
+- **Example:** `uv run pi0buzzer playmusic`
+
+---
+
+### 3.3 pi0vl53l0x
+
+**Purpose:** Driver for VL53L0X Time-of-Flight distance sensor
+
+**Dependencies:** `pigpio`, `numpy`, `click`, `ninja_utils`
+
+**Location:** `pi0vl53l0x/src/pi0vl53l0x/`
+
+**Hardware Interface:** I2C (default address: 0x29)
+
+#### 3.3.1 `constants.py`
+
+**Module:** `pi0vl53l0x.constants`
+
+Contains all register addresses and configuration constants for the VL53L0X sensor.
+
+**Key Constants:**
+- `VL53L0X_REG_SYSRANGE_START = 0x00`
+- `VL53L0X_REG_RESULT_RANGE_STATUS = 0x14`
+- `DEVICE_ADDRESS = 0x29`
+
+**Refer to this module** when working with low-level sensor operations.
+
+---
+
+#### 3.3.2 `driver.py`
+
+**Module:** `pi0vl53l0x.driver`
+
+##### Class: `VL53L0X`
+
+Main driver for the VL53L0X distance sensor.
+
+**Constructor:**
+```python
+def __init__(self, pi: pigpio.pi, address: int = 0x29)
+```
+
+**Parameters:**
+- `pi` (pigpio.pi): Shared pigpio connection
+- `address` (int): I2C address (default: 0x29)
+
+**Methods:**
+
+**`initialize() -> None`**
+- Performs sensor initialization sequence
+- **Must be called** after construction before taking measurements
+- **Raises:** `RuntimeError` if sensor not detected
+
+**`get_range() -> int`**
+- Takes a single distance measurement
+- **Returns:** Distance in millimeters (30-2000mm typical range)
+- **Returns:** `8190` if out of range or error
+- **Blocking:** ~30ms per reading
+
+**`set_offset(offset_mm: int) -> None`**
+- Sets calibration offset
+- **Parameters:**
+  - `offset_mm` (int): Offset value in mm (-127 to +127)
+
+**`calibrate(true_distance_mm: int, num_samples: int = 10) -> int`**
+- Calculates required offset for accurate readings
+- **Parameters:**
+  - `true_distance_mm` (int): Known actual distance in mm
+  - `num_samples` (int): Number of samples to average
+- **Returns:** Calculated offset value
+- **Side Effect:** Automatically applies the offset via `set_offset()`
+
+**`close() -> None`**
+- Cleanup method (currently a no-op, for future use)
+
+**Low-Level I2C Methods:**
+- `read_byte(reg: int) -> int`
+- `write_byte(reg: int, value: int) -> None`
+- `read_word(reg: int) -> int`
+- `write_word(reg: int, value: int) -> None`
+
+**Usage:**
+```python
+import pigpio
+from pi0vl53l0x.driver import VL53L0X
+
+pi = pigpio.pi()
+sensor = VL53L0X(pi)
+sensor.initialize()
+
+# Take 10 readings
+for _ in range(10):
+    distance = sensor.get_range()
+    print(f"Distance: {distance}mm")
+
+# Calibrate with object at 100mm
+offset = sensor.calibrate(true_distance_mm=100)
+print(f"Calibrated with offset: {offset}mm")
+
+sensor.close()
+pi.stop()
+```
+
+---
+
+#### 3.3.3 `config_manager.py`
+
+**Module:** `pi0vl53l0x.config_manager`
+
+##### Function: `load_config(path: str = "sensor_config.json") -> dict`
+
+Loads sensor configuration from JSON file.
+
+**Returns:** `{"offset": int}` or `{}`
+
+##### Function: `save_config(config: dict, path: str = "sensor_config.json") -> None`
+
+Saves sensor configuration to JSON file.
+
+---
+
+#### 3.3.4 CLI Commands
+
+**Entry Point:** `uv run pi0vl53l0x <command>`
+
+**Commands:**
+
+**`get --count N --interval T`**
+- Takes N distance readings at T second intervals
+- **Example:** `uv run pi0vl53l0x get --count 10 --interval 1.0`
+
+**`performance --count N`**
+- Measures sensor sampling rate
+- **Example:** `uv run pi0vl53l0x performance --count 100`
+
+**`calibrate --distance D`**
+- Interactive calibration tool
+- **Example:** `uv run pi0vl53l0x calibrate --distance 100`
+
+---
+
+### 3.4 pi0disp
+
+**Purpose:** High-performance driver for ST7789V 240x240 SPI display
+
+**Dependencies:** `pigpio`, `numpy`, `Pillow`, `click`, `ninja_utils`
+
+**Location:** `pi0disp/src/pi0disp/`
+
+**Hardware Interface:** SPI0 (SCLK, MOSI) + GPIO (DC, RST, BLK)
+
+#### 3.4.1 `disp/st7789v.py`
+
+**Module:** `pi0disp.disp.st7789v`
+
+##### Class: `ST7789V`
+
+Main display driver class.
+
+**Constructor:**
+```python
+def __init__(
+    self,
+    pi: pigpio.pi,
+    channel: int = 0,
+    dc_pin: int = 18,
+    rst_pin: int = 19,
+    backlight_pin: int = 20,
+    width: int = 240,
+    height: int = 240
+)
+```
+
+**Parameters:**
+- `pi` (pigpio.pi): Shared pigpio connection
+- `channel` (int): SPI channel (0 or 1)
+- `dc_pin` (int): Data/Command GPIO pin
+- `rst_pin` (int): Reset GPIO pin
+- `backlight_pin` (int): Backlight GPIO pin
+- `width`, `height` (int): Display dimensions
+
+**Methods:**
+
+**`display(image: PIL.Image.Image) -> None`**
+- Displays a full-screen image
+- **Parameters:**
+  - `image` (PIL.Image): RGB image (will be resized to 240x240)
+- **Performance:** ~50ms for full update at 40MHz SPI
+
+**`display_region(image: PIL.Image.Image, x: int, y: int, width: int, height: int) -> None`**
+- Updates a rectangular region (for animations)
+- **Parameters:**
+  - `image` (PIL.Image): Source image
+  - `x`, `y` (int): Top-left corner
+  - `width`, `height` (int): Region size
+
+**`close() -> None`**
+- Turns off backlight and releases GPIO
+
+**Usage:**
+```python
+import pigpio
+from PIL import Image
+from pi0disp.disp.st7789v import ST7789V
+
+pi = pigpio.pi()
+display = ST7789V(pi, channel=0, dc_pin=18, rst_pin=19, backlight_pin=20)
+
+# Display an image
+img = Image.open("face.jpg")
+display.display(img)
+
+# Cleanup
+display.close()
+pi.stop()
+```
+
+---
+
+#### 3.4.2 `utils/performance_core.py`
+
+**Module:** `pi0disp.utils.performance_core`
+
+Contains optimization classes for high-performance rendering:
+
+##### Class: `MemoryPool`
+- Manages reusable memory buffers to reduce allocations
+
+##### Class: `LookupTableCache`
+- Caches color conversion and gamma correction lookup tables
+
+##### Class: `RegionOptimizer`
+- Merges overlapping dirty regions for efficient updates
+
+##### Class: `PerformanceMonitor`
+- Tracks FPS and frame times
+
+##### Class: `AdaptiveChunking`
+- Dynamically adjusts SPI transfer chunk sizes
+
+##### Class: `ColorConverter`
+- Fast RGB565 conversion
+
+**Usage:** These are primarily internal utility classes used by `ST7789V`.
+
+---
+
+#### 3.4.3 `utils/image_processor.py`
+
+**Module:** `pi0disp.utils.image_processor`
+
+##### Class: `ImageProcessor`
+
+Static utility methods for image manipulation.
+
+**Methods:**
+
+**`resize_with_aspect_ratio(image: PIL.Image.Image, target_size: tuple[int, int]) -> PIL.Image.Image`**
+- Resizes image maintaining aspect ratio
+- Centers on black background if needed
+
+**`apply_gamma(image: PIL.Image.Image, gamma: float) -> PIL.Image.Image`**
+- Applies gamma correction
+- **Parameters:**
+  - `gamma` (float): Gamma value (0.5-2.0, default 1.0 = no change)
+
+**Usage:**
+```python
+from PIL import Image
+from pi0disp.utils.image_processor import ImageProcessor
+
+img = Image.open("photo.jpg")
+img = ImageProcessor.resize_with_aspect_ratio(img, (240, 240))
+img = ImageProcessor.apply_gamma(img, 1.5)  # Brighten
+```
+
+---
+
+#### 3.4.4 CLI Commands
+
+**Entry Point:** `uv run pi0disp <command>`
+
+**Commands:**
+
+**`image <path>`**
+- Displays an image with gamma cycling
+- **Example:** `uv run pi0disp image assets/images/sample_face.jpg`
+
+**`ball_anime --num-balls N`**
+- Runs a physics-based bouncing ball animation
+- **Example:** `uv run pi0disp ball_anime --num-balls 5`
+
+---
+
+### 3.5 pi0servo
+
+**Purpose:** Multi-servo control with calibration and interpolation
+
+**Dependencies:** `pigpio`, `click`, `blessed`, `ninja_utils`
+
+**Location:** `pi0servo/src/pi0servo/`
+
+**Hardware Interface:** GPIO PWM (500-2500μs pulse width)
+
+#### 3.5.1 `core/piservo.py`
+
+**Module:** `pi0servo.core.piservo`
+
+##### Class: `PiServo`
+
+Base servo control class.
+
+**Constructor:**
+```python
+def __init__(
+    self,
+    pi: pigpio.pi,
+    pin: int,
+    min_pulse: int = 500,
+    max_pulse: int = 2500,
+    angle_range: int = 180
+)
+```
+
+**Parameters:**
+- `pi` (pigpio.pi): Shared pigpio connection
+- `pin` (int): GPIO pin number
+- `min_pulse`, `max_pulse` (int): Pulse width in microseconds
+- `angle_range` (int): Total rotation range in degrees
+
+**Methods:**
+
+**`set_angle(angle: float) -> None`**
+- Moves servo to specified angle
+- **Parameters:**
+  - `angle` (float): Target angle (-90 to +90 for 180° servo)
+
+**`get_angle() -> float`**
+- Returns current servo angle
+
+**`off() -> None`**
+- Stops PWM signal (servo relaxes)
+
+**Usage:**
+```python
+import pigpio
+from pi0servo.core.piservo import PiServo
+
+pi = pigpio.pi()
+servo = PiServo(pi, pin=17)
+
+servo.set_angle(0)    # Center
+servo.set_angle(45)   # Right
+servo.set_angle(-45)  # Left
+servo.off()
+
+pi.stop()
+```
+
+---
+
+#### 3.5.2 `core/calibrable_servo.py`
+
+**Module:** `pi0servo.core.calibrable_servo`
+
+##### Class: `CalibrableServo`
+
+Extends `PiServo` with calibration data support.
+
+**Constructor:**
+```python
+def __init__(
+    self,
+    pi: pigpio.pi,
+    pin: int,
+    calib_data: dict | None = None
+)
+```
+
+**Parameters:**
+- `pi` (pigpio.pi): Shared pigpio connection
+- `pin` (int): GPIO pin number
+- `calib_data` (dict): Calibration dict with keys: `min_pulse`, `center_pulse`, `max_pulse`, `angle_range`
+
+**Additional Methods:**
+
+**`set_calibration(calib_data: dict) -> None`**
+- Updates calibration parameters
+
+**`get_calibration() -> dict`**
+- Returns current calibration data
+
+---
+
+#### 3.5.3 `core/multi_servo.py`
+
+**Module:** `pi0servo.core.multi_servo`
+
+##### Class: `MultiServo`
+
+Controls multiple servos simultaneously.
+
+**Constructor:**
+```python
+def __init__(
+    self,
+    pi: pigpio.pi,
+    pins: list[int],
+    conf_file: str = "servo.json"
+)
+```
+
+**Parameters:**
+- `pi` (pigpio.pi): Shared pigpio connection
+- `pins` (list[int]): List of GPIO pin numbers
+- `conf_file` (str): Path to calibration JSON file
+
+**Methods:**
+
+**`move_all_angles(angles: list[float]) -> None`**
+- Moves all servos to specified angles
+- **Parameters:**
+  - `angles` (list[float]): Angles for each servo (same order as `pins`)
+
+**`get_all_angles() -> list[float]`**
+- Returns current angles for all servos
+
+**`move_all_angles_sync(angles: list[float], duration: float = 0.5) -> None`**
+- Smoothly interpolates all servos to target angles over duration
+- **Parameters:**
+  - `angles` (list[float]): Target angles
+  - `duration` (float): Movement duration in seconds
+
+**`off() -> None`**
+- Turns off all servos
+
+**Usage:**
+```python
+import pigpio
+from pi0servo.core.multi_servo import MultiServo
+
+pi = pigpio.pi()
+multi = MultiServo(pi, pins=[17, 22, 27], conf_file="servo.json")
+
+# Move all servos instantly
+multi.move_all_angles([0, 45, -30])
+
+# Smooth synchronized movement
+multi.move_all_angles_sync([90, 0, -45], duration=1.0)
+
+multi.off()
+pi.stop()
+```
+
+---
+
+#### 3.5.4 `helper/thread_multi_servo.py`
+
+**Module:** `pi0servo.helper.thread_multi_servo`
+
+##### Class: `ThreadMultiServo`
+
+Thread-safe asynchronous wrapper around `MultiServo`.
+
+**Constructor:**
+```python
+def __init__(
+    self,
+    pi: pigpio.pi,
+    pins: list[int],
+    conf_file: str = "servo.json"
+)
+```
+
+**Methods:**
+
+**`move_all_angles_async(angles: list[float]) -> None`**
+- Queues a movement command (non-blocking)
+
+**`stop_thread() -> None`**
+- Stops the worker thread (must be called before program exit)
+
+**Usage:**
+```python
+from pi0servo.helper.thread_multi_servo import ThreadMultiServo
+
+multi = ThreadMultiServo(pi, pins=[17, 22, 27])
+
+# Non-blocking movement
+multi.move_all_angles_async([0, 45, -30])
+# Program continues immediately
+
+multi.stop_thread()
+```
+
+---
+
+#### 3.5.5 CLI Commands
+
+**Entry Point:** `uv run pi0servo <command>`
+
+**Commands:**
+
+**`servo <pin> <angle|min|center|max>`**
+- Moves a single servo
+- **Example:** `uv run pi0servo servo 17 center`
+- **Example:** `uv run pi0servo servo 17 45`
+
+**`calib <pin>`**
+- Interactive TUI calibration tool
+- **Keybindings:**
+  - `v`, `c`, `x` - Select Min/Center/Max target
+  - `Up`/`Down` - Large adjustments (±10μs)
+  - `w`/`s` - Fine adjustments (±1μs)
+  - `Enter`/`Space` - Save current position
+  - `q` - Quit and save to `servo.json`
+
+---
+
+### 3.6 ninja_core
+
+**Purpose:** Main robot application integrating all libraries
+
+**Dependencies:** All hardware libraries + `fastapi`, `uvicorn`, `pyngrok`, `google-generativeai`, `googlesearch-python`, `websockets`, `python-multipart`, `qrcode`, `Pillow`, `jinja2`, `python-dotenv`, `pydantic`
+
+**Location:** `ninja_core/src/ninja_core/`
+
+#### 3.6.1 `config.py`
+
+**Module:** `ninja_core.config`
+
+Centralized configuration management using Pydantic.
+
+##### Data Models
+
+**`ServoCalibration`** (Pydantic BaseModel)
+```python
+class ServoCalibration(BaseModel):
+    min_pulse: int = 500
+    center_pulse: int = 1500
+    max_pulse: int = 2500
+    angle_range: int = 180
+```
+
+**`ServosConfig`** (Pydantic BaseModel)
+```python
+class ServosConfig(BaseModel):
+    pins: Dict[str, int] = Field(default_factory=dict)
+    calibration: Dict[str, ServoCalibration] = Field(default_factory=dict)
+```
+
+**`BuzzerConfig`** (Pydantic BaseModel)
+```python
+class BuzzerConfig(BaseModel):
+    pin: Optional[int] = None
+```
+
+**`DisplayConfig`** (Pydantic BaseModel)
+```python
+class DisplayConfig(BaseModel):
+    dc: Optional[int] = 18
+    rst: Optional[int] = 19
+    blk: Optional[int] = 20
+```
+
+**`SensorConfig`** (Pydantic BaseModel)
+```python
+class SensorConfig(BaseModel):
+    pass  # Placeholder for future sensor settings
+```
+
+**`NinjaConfig`** (Pydantic BaseModel)
+```python
+class NinjaConfig(BaseModel):
+    servos: ServosConfig = Field(default_factory=ServosConfig)
+    buzzer: BuzzerConfig = Field(default_factory=BuzzerConfig)
+    display: DisplayConfig = Field(default_factory=DisplayConfig)
+    sensors: SensorConfig = Field(default_factory=SensorConfig)
+    movements: Dict[str, list] = Field(default_factory=dict)
+    api_keys: Dict[str, str] = Field(default_factory=dict)
+```
+
+##### Functions
+
+**`load_config(path: Path = Path("config.json")) -> NinjaConfig`**
+- Loads configuration from JSON, creates default if missing
+
+**`save_config(config: NinjaConfig, path: Path = Path("config.json")) -> None`**
+- Saves configuration to JSON
+
+**`import_and_update_config() -> None`**
+- Imports `servo.json` and `buzzer.json` into main `config.json`
+- Applies default servo calibration if `servo.json` not found
+
+**`set_api_key(service: str, key: str) -> None`**
+- Sets an API key (e.g., "gemini") and saves config
+
+**Usage:**
+```python
+from ninja_core.config import load_config, save_config, set_api_key
+
+config = load_config()
+print(config.servos.calibration)
+print(config.api_keys.get("gemini"))
+
+set_api_key("gemini", "AIzaSy...")
+```
+
+---
+
+#### 3.6.2 `hal.py`
+
+**Module:** `ninja_core.hal`
+
+Hardware Abstraction Layer providing unified hardware access.
+
+##### Class: `HardwareAbstractionLayer`
+
+**Constructor:**
+```python
+def __init__(self, config: NinjaConfig)
+```
+
+**Attributes (after `initialize()` called):**
+- `pi` (pigpio.pi): Shared pigpio connection
+- `servos` (MultiServo | None): Servo controller
+- `buzzer` (MusicBuzzer | None): Buzzer controller
+- `display` (ST7789V | None): Display controller
+- `distance_sensor` (VL53L0X | None): Sensor instance
+
+**Methods:**
+
+**`initialize() -> None`**
+- Connects to `pigpiod`
+- Initializes all hardware based on config
+- **Raises:** `ConnectionError` if pigpiod not running
+
+**`shutdown() -> None`**
+- Safely turns off all hardware
+- Disconnects from pigpiod
+
+**Usage:**
+```python
+from ninja_core.config import load_config
+from ninja_core.hal import HardwareAbstractionLayer
+
+config = load_config()
+hal = HardwareAbstractionLayer(config)
+hal.initialize()
+
+# Use hardware
+hal.servos.move_all_angles([0, 0, 0])
+hal.buzzer.play_sound(440, 0.5)
+hal.display.display(my_image)
+distance = hal.distance_sensor.get_range()
+
+# Cleanup
+hal.shutdown()
+```
+
+---
+
+#### 3.6.3 `ninja_agent.py`
+
+**Module:** `ninja_core.ninja_agent`
+
+AI agent powered by Google Gemini for natural language understanding.
+
+##### Exception: `MissingAPIKeyError`
+
+Raised when Gemini API key is not configured.
+
+##### Class: `NinjaAgent`
+
+**Constructor:**
+```python
+def __init__(self, config: NinjaConfig)
+```
+
+**Raises:** `MissingAPIKeyError` if `config.api_keys["gemini"]` is missing
+
+**Attributes:**
+- `api_key` (str): Gemini API key
+- `robot_capabilities` (dict): Available movements, faces, sounds
+- `system_prompt` (str): AI instruction prompt
+- `model` (genai.GenerativeModel): Gemini model instance
+
+**Methods:**
+
+**`_load_robot_capabilities(config: NinjaConfig) -> dict`**
+- Private method to extract available actions from config
+
+**`_create_system_prompt() -> str`**
+- Private method to generate the AI system prompt
+- Includes multilingual instructions and JSON output format
+
+**`web_search(query: str) -> list[str]`**
+- Performs a Google search and returns top 3 results
+- **Returns:** List of search result strings
+
+**`async process_command(user_input: str) -> dict`**
+- Main method to process text commands
+- **Parameters:**
+  - `user_input` (str): User's message
+- **Returns:** Dict with keys:
+  - `movement` (str | None): Movement name to execute
+  - `face` (str | None): Facial expression to show
+  - `sound` (str | None): Sound to play
+  - `response` (str): AI's text response
+  - `logs` (list[str]): Debug log messages
+
+**`async process_audio_command(audio_file_path: str) -> dict`**
+- Processes voice commands from audio file
+- **Parameters:**
+  - `audio_file_path` (str): Path to audio file (e.g., `.webm`)
+- **Returns:** Same format as `process_command()`
+- **Note:** Uses Gemini's audio transcription + processing
+
+**Usage:**
+```python
+import asyncio
+from ninja_core.config import load_config
+from ninja_core.ninja_agent import NinjaAgent
+
+config = load_config()
+agent = NinjaAgent(config)
+
+async def main():
+    result = await agent.process_command("Show me a happy face")
+    print(result["response"])
+    print(f"Face: {result['face']}, Sound: {result['sound']}")
+
+asyncio.run(main())
+```
+
+---
+
+#### 3.6.4 `movement_controller.py`
+
+**Module:** `ninja_core.movement_controller`
+
+Motion system with smooth interpolation and safety checks.
+
+##### Exception: `EmergencyStop`
+
+Raised when `abort_check` callback returns `True` during movement.
+
+##### Class: `MovementController`
+
+**Constructor:**
+```python
+def __init__(self, hal: HardwareAbstractionLayer, config: NinjaConfig)
+```
+
+**Attributes:**
+- `servos` (MultiServo): Reference to HAL's servo controller
+- `servo_definitions` (dict): Calibration data
+- `movements` (dict): Named movement sequences from config
+
+**Methods:**
+
+**`move_servos(movements: dict[int, float], speed: str = "M", abort_check: Callable[[], bool] | None = None) -> None`**
+- Executes smooth interpolated movement
+- **Parameters:**
+  - `movements` (dict): `{pin: target_angle}` mapping
+  - `speed` (str): "S" (slow, 1.0s), "M" (medium, 0.5s), "F" (fast, 0.2s)
+  - `abort_check` (callable): Optional safety callback
+- **Raises:** `EmergencyStop` if abort_check returns True
+
+**`get_current_angles() -> dict[int, float]`**
+- Returns current angles for all servos
+
+**`center_all_servos() -> None`**
+- Moves all servos to 0° (center position)
+
+**`execute_movement(movement_name: str, abort_check: Callable[[], bool] | None = None) -> None`**
+- Executes a pre-defined movement sequence by name
+- **Raises:** `EmergencyStop` if safety check fails
+
+**Usage:**
+```python
+from ninja_core.movement_controller import MovementController
+
+controller = MovementController(hal, config)
+
+# Execute single movement
+controller.move_servos({17: 45, 22: -30}, speed="M")
+
+# Execute named sequence
+controller.execute_movement("wave")
+
+# With safety check
+def check_distance():
+    return hal.distance_sensor.get_range() <= 50
+
+try:
+    controller.execute_movement("forward", abort_check=check_distance)
+except EmergencyStop:
+    print("Movement aborted due to obstacle!")
+```
+
+---
+
+#### 3.6.5 `facial_expressions.py`
+
+**Module:** `ninja_core.facial_expressions`
+
+Programmatic facial animation system.
+
+##### Class: `AnimatedFaces`
+
+Draws and animates facial expressions on the display.
+
+**Constructor:**
+```python
+def __init__(self, hal: HardwareAbstractionLayer | None)
+```
+
+**Parameters:**
+- `hal` (HardwareAbstractionLayer | None): HAL instance (can be None for introspection)
+
+**Attributes:**
+- `lcd` (ST7789V): Display driver
+- `animations` (dict): Mapping of expression names to animation functions
+- `current_expression` (str): Name of currently playing expression
+
+**Available Expressions:**
+- `"idle"` - Neutral/calm face
+- `"happy"` - Smiling face
+- `"sad"` - Frowning face
+- `"angry"` - Angry expression
+- `"surprised"` - Wide-eyed surprise
+- `"thinking"` - Thoughtful expression
+- `"speaking"` - Talking animation
+- `"scary"` - Frightened/shocked face
+- `"laughing"` - Joyful laughing
+- `"sleeping"` - Closed eyes
+
+**Methods:**
+
+**`play(expression: str, duration_s: float = float('inf')) -> None`**
+- Starts playing an expression animation in a background thread
+- **Parameters:**
+  - `expression` (str): Expression name from `animations.keys()`
+  - `duration_s` (float): Duration in seconds (default: infinite)
+
+**`stop() -> None`**
+- Stops the current animation thread
+
+**Usage:**
+```python
+from ninja_core.facial_expressions import AnimatedFaces
+
+faces = AnimatedFaces(hal)
+
+# Play happy face for 3 seconds
+faces.play("happy", duration_s=3.0)
+time.sleep(3.5)
+
+# Play speaking animation
+faces.play("speaking")
+time.sleep(2.0)
+faces.stop()
+```
+
+---
+
+#### 3.6.6 `robot_sound.py`
+
+**Module:** `ninja_core.robot_sound`
+
+Emotional sound generation.
+
+##### Class: `RobotSoundPlayer`
+
+**Constructor:**
+```python
+def __init__(self, hal: HardwareAbstractionLayer)
+```
+
+**Attributes:**
+- `buzzer` (MusicBuzzer): Reference to HAL's buzzer
+- `SOUNDS` (dict): Mapping of emotion names to note sequences
+- `NOTES` (dict): Note name to frequency mapping
+
+**Available Sounds:**
+- `"happy"` - Cheerful ascending melody
+- `"sad"` - Descending sad tones
+- `"excited"` - Fast upbeat melody
+- `"scary"` - Spooky low tones
+- `"thinking"` - Contemplative sequence
+- `"speaking"` - Speech-like pattern
+- `"error"` - Error beep
+- `"success"` - Success chime
+
+**Methods:**
+
+**`play(emotion: str) -> None`**
+- Plays sound sequence for given emotion
+- **Blocking:** Yes (plays full sequence)
+
+**Usage:**
+```python
+from ninja_core.robot_sound import RobotSoundPlayer
+
+sound = RobotSoundPlayer(hal)
+
+sound.play("happy")
+sound.play("thinking")
+```
+
+---
+
+#### 3.6.7 `perception.py`
+
+**Module:** `ninja_core.perception`
+
+Background distance monitoring.
+
+##### Class: `DistanceMonitor`
+
+**Constructor:**
+```python
+def __init__(self, hal: HardwareAbstractionLayer)
+```
+
+**Attributes:**
+- `sensor` (VL53L0X): Reference to HAL's distance sensor
+- `_thread` (Thread): Background polling thread
+- `_latest_distance` (int): Most recent reading
+
+**Methods:**
+
+**`get_distance() -> int`**
+- Single-shot distance measurement (blocking ~30ms)
+
+**`start_continuous(interval: float = 0.2) -> None`**
+- Starts background thread polling at specified interval
+- **Parameters:**
+  - `interval` (float): Polling interval in seconds
+
+**`get_continuous_distance() -> int`**
+- Returns latest distance from background thread (non-blocking)
+- **Returns:** `0` if continuous mode not started
+
+**`stop_continuous() -> None`**
+- Stops background thread
+
+**Usage:**
+```python
+from ninja_core.perception import DistanceMonitor
+
+monitor = DistanceMonitor(hal)
+
+# Background monitoring
+monitor.start_continuous(interval=0.1)
+
+while True:
+    d = monitor.get_continuous_distance()
+    print(f"Distance: {d}mm")
+    time.sleep(0.5)
+
+monitor.stop_continuous()
+```
+
+---
+
+#### 3.6.8 `web_server.py`
+
+**Module:** `ninja_core.web_server`
+
+FastAPI web server with WebSocket and ngrok integration.
+
+##### Data Models
+
+**`SetApiKeyRequest`** (Pydantic BaseModel)
+```python
+class SetApiKeyRequest(BaseModel):
+    api_key: str
+```
+
+**`AgentChatRequest`** (Pydantic BaseModel)
+```python
+class AgentChatRequest(BaseModel):
+    message: str
+```
+
+##### Class: `AppState`
+
+Global application state container.
+
+**Attributes:**
+- `hal` (HardwareAbstractionLayer | None)
+- `agent` (NinjaAgent | None)
+- `faces` (AnimatedFaces | None)
+- `sound` (RobotSoundPlayer | None)
+- `movement` (MovementController | None)
+- `distance_monitor` (DistanceMonitor | None)
+- `first_interaction` (bool): Whether first user request received
+- `has_greeted` (bool): Whether welcome greeting played
+
+##### Function: `lifespan(app: FastAPI)`
+
+FastAPI lifespan context manager for startup/shutdown.
+
+**Startup:**
+1. Loads config
+2. Initializes HAL
+3. Attempts to initialize NinjaAgent (catches `MissingAPIKeyError`)
+4. Initializes faces, sound, movement, distance monitor
+5. Calls `setup_network_and_display(app)` for ngrok
+
+**Shutdown:**
+1. Stops all background threads (faces, distance monitor)
+2. Shuts down HAL
+3. Kills ngrok process
+
+##### Function: `setup_network_and_display(app: FastAPI)`
+
+Sets up ngrok tunnel and displays QR code.
+
+##### Helper Functions
+
+**`handle_first_interaction(app_state: AppState) -> None`**
+- Clears QR code and shows idle face on first user request
+
+**`trigger_welcome(app_state: AppState) -> None`**
+- Plays happy face + sound for 3 seconds (called on web connect)
+
+**`safety_check(app_state: AppState) -> bool`**
+- Returns True if distance <= 50mm
+
+**`execute_action_plan(app_state: AppState, action_plan: dict) -> None`**
+- Executes AI agent's action plan (face, sound, movement)
+- Runs face and sound in parallel threads
+- Waits for movements to complete
+
+##### API Endpoints
+
+**`GET /`**
+- Serves main HTML template
+
+**`GET /api/agent/status`**
+- Returns `{"active": bool}`
+
+**`POST /api/agent/set_api_key`**
+- Body: `SetApiKeyRequest`
+- Sets Gemini API key and reinitializes agent
+
+**`POST /api/agent/chat`**
+- Body: `AgentChatRequest`
+- Processes text chat message
+- Returns `{"response": str, "logs": list}`
+
+**`GET /api/movements`**
+- Returns list of movement names
+
+**`POST /api/movements/{name}`**
+- Executes named movement with obstacle avoidance
+
+**`GET /api/expressions`**
+- Returns list of facial expressions
+
+**`POST /api/expressions/{name}`**
+- Shows facial expression
+
+**`GET /api/sounds`**
+- Returns list of sounds
+
+**`POST /api/sounds/{name}`**
+- Plays sound
+
+**`GET /api/distance`**
+- Returns current distance in mm
+
+**`WebSocket /ws/distance`**
+- Streams distance readings at 5Hz
+
+##### Function: `run_server()`
+
+Main entry point for server.
+
+**Behavior:**
+1. Prompts for ngrok authtoken (if not configured)
+2. Starts uvicorn on `0.0.0.0:8000`
+
+**Usage:**
+```bash
+uv run ninja_core server
+```
+
+---
+
+#### 3.6.9 Frontend Files
+
+**`templates/index.html`**
+- Main web UI template (Jinja2)
+- Includes chat interface, control panels, status displays
+
+**`static/main.js`**
+- Client-side JavaScript
+- Features:
+  - WebSocket distance monitoring
+  - Web Speech API integration (voice input)
+  - Language selector (EN/JP/ZH-TW/ZH-CN)
+  - API calls for all robot functions
+
+**`static/style.css`**
+- UI styles
+
+---
+
+#### 3.6.10 CLI Commands
+
+**Entry Point:** `uv run ninja_core <command>`
+
+**Commands:**
+
+**`server`**
+- Starts the web server with ngrok
+- **Example:** `uv run ninja_core server`
+
+**`chat`**
+- Interactive terminal chat with AI agent
+- Includes obstacle avoidance monitoring
+- **Example:** `uv run ninja_core chat`
+
+**`movement-tool`**
+- Interactive TUI for recording and editing movement sequences
+- **Example:** `uv run ninja_core movement-tool`
+
+**`config import-all`**
+- Imports `servo.json` and `buzzer.json` into `config.json`
+- **Example:** `uv run ninja_core config import-all`
+
+**`config set-key <service> <key>`**
+- Sets an API key
+- **Example:** `uv run ninja_core config set-key gemini AIzaSy...`
+
+---
+
+## 4. Configuration System
+
+### 4.1 Configuration Files
+
+**`config.json`** (Main Config)
+- **Location:** Project root
+- **Format:** JSON
+- **Managed by:** `ninja_core.config`
+- **Contains:** All hardware settings, movements, API keys
+
+**`servo.json`** (Servo Calibration)
+- **Location:** Project root or `pi0servo/`
+- **Format:** JSON array of servo objects
+- **Managed by:** `pi0servo` calibration tool
+- **Imported into:** `config.json` via `config import-all`
+
+**`buzzer.json`** (Buzzer Pin)
+- **Location:** Project root or `pi0buzzer/`
+- **Format:** `{"pin": <int>}`
+- **Managed by:** `pi0buzzer init`
+- **Imported into:** `config.json` via `config import-all`
+
+### 4.2 Configuration Workflow
+
+1. **Initial Setup:**
+   ```bash
+   uv run pi0buzzer init 26
+   uv run pi0servo calib 17  # Repeat for all servos
+   uv run ninja_core config import-all
+   ```
+
+2. **Set API Key:**
+   ```bash
+   uv run ninja_core config set-key gemini YOUR_KEY
+   ```
+
+3. **Verify:**
+   ```bash
+   cat config.json
+   ```
+
+### 4.3 Example `config.json`
+
+```json
+{
+    "servos": {
+        "pins": {},
+        "calibration": {
+            "17": {
+                "min_pulse": 600,
+                "center_pulse": 1500,
+                "max_pulse": 2400,
+                "angle_range": 180
+            }
+        }
+    },
+    "buzzer": {
+        "pin": 26
+    },
+    "display": {
+        "dc": 18,
+        "rst": 19,
+        "blk": 20
+    },
+    "sensors": {},
+    "movements": {
+        "wave": [
+            {"moves": {"17": 45, "22": 0}, "speed": "M"},
+            {"moves": {"17": -45, "22": 0}, "speed": "F"}
+        ]
+    },
+    "api_keys": {
+        "gemini": "AIzaSy..."
+    }
+}
+```
+
+---
+
+## 5. Testing & Debugging
+
+### 5.1 Hardware Tests
+
+**Test Scripts (in project root):**
+- `test_hal.py` - HAL initialization
+- `test_perception.py` - Distance sensor
+- `test_robot_sound.py` - Sound system
+- `test_facial_expressions.py` - Display and facial expressions
+- `verify_agent.py` - AI agent logic (no API key needed)
+
+**Run Example:**
+```bash
+uv run python test_hal.py
+```
+
+### 5.2 Component Testing
+
+**Individual Library Tests:**
+```bash
+# Buzzer
+uv run pi0buzzer beep
+
+# Distance Sensor
+uv run pi0vl53l0x get --count 10 --interval 0.5
+
+# Display
+uv run pi0disp image assets/images/sample_face.jpg
+
+# Servo
+uv run pi0servo servo 17 center
+```
+
+### 5.3 Debug Mode
+
+**Enable Logging:**
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+**Check pigpiod:**
+```bash
+ps aux | grep pigpiod
+sudo systemctl status pigpiod
+```
+
+**Check I2C:**
+```bash
+sudo i2cdetect -y 1
+```
+
+**Check SPI:**
+```bash
+ls /dev/spidev*
+```
+
+---
+
+## 6. Contributing Guidelines
+
+### 6.1 Code Style
+
+- **Linter:** `ruff`
+- **Format:** `ruff format`
+- **Type Hints:** Required for public APIs
+- **Docstrings:** Google style
+
+### 6.2 Adding New Hardware
+
+1. Create new library in project root (e.g., `pi0camera/`)
+2. Follow existing library structure
+3. Add to root `pyproject.toml` dependencies
+4. Create HAL integration in `ninja_core/hal.py`
+5. Add config model to `ninja_core/config.py`
+
+### 6.3 Adding New Movements
+
+Use the interactive tool:
+```bash
+uv run ninja_core movement-tool
+```
+
+Or manually edit `config.json`:
+```json
+{
+    "movements": {
+        "custom_move": [
+            {"moves": {"17": 45, "22": -30}, "speed": "M"},
+            {"moves": {"17": 0, "22": 0}, "speed": "S"}
+        ]
+    }
+}
+```
+
+### 6.4 Pull Request Process
+
+1. Fork repository
+2. Create feature branch
+3. Make changes with tests
+4. Run linter: `uv run ruff check .`
+5. Update `DevelopmentLog.md`
+6. Submit PR with clear description
+
+---
+
+## Appendix A: Pin Reference
+
+| Component | Pin Type | Default GPIO |
+|-----------|----------|--------------|
+| Servo 1   | PWM      | 5            |
+| Servo 2   | PWM      | 17           |
+| Servo 3   | PWM      | 21           |
+| Servo 4   | PWM      | 22           |
+| Servo 5   | PWM      | 23           |
+| Servo 6   | PWM      | 24           |
+| Servo 7   | PWM      | 25           |
+| Servo 8   | PWM      | 27           |
+| Buzzer    | PWM      | 26           |
+| Display DC | GPIO    | 18           |
+| Display RST | GPIO   | 19           |
+| Display BLK | PWM    | 20           |
+| Display SCL | SPI    | 11 (SPI0 SCLK) |
+| Display SDA | SPI    | 10 (SPI0 MOSI) |
+| Sensor SCL | I2C     | 3 (I2C1 SCL) |
+| Sensor SDA | I2C     | 2 (I2C1 SDA) |
+
+---
+
+## Appendix B: Common Issues
+
+**Issue:** `Could not connect to pigpiod daemon`  
+**Solution:** `sudo pigpiod`
+
+**Issue:** `ImportError: No module named 'ninja_utils'`  
+**Solution:** `uv pip install -e ./ninja_utils`
+
+**Issue:** Display shows nothing  
+**Solution:** Check SPI enabled in `raspi-config`
+
+**Issue:** Distance sensor returns 8190  
+**Solution:** Check I2C wiring and run `sudo i2cdetect -y 1`
+
+---
+
+**End of Development Guide**
+
+For user-facing documentation, see [InstallationGuide.md](InstallationGuide.md) and [README.md](README.md).
