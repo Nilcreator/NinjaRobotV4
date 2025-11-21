@@ -305,9 +305,20 @@ cd NinjaRobotV4
 > [!NOTE]
 > If the repository is private or you're using a different source, adjust the URL accordingly.
 
-### Step 6.2: Install All Dependencies
+### Step 6.2: Create a Virtual Environment
 
-This single command installs everything you need:
+It is best practice to install Python packages in a virtual environment to avoid conflicts.
+
+```bash
+uv venv
+source .venv/bin/activate
+```
+
+You should see `(NinjaRobotV4)` or `(.venv)` appear at the start of your terminal line.
+
+### Step 6.3: Install All Dependencies
+
+Now install the project dependencies into the virtual environment:
 
 ```bash
 uv pip install -e .
@@ -320,7 +331,7 @@ This will:
 
 The installation may take 5-10 minutes.
 
-### Step 6.3: Verify Installation
+### Step 6.4: Verify Installation
 
 Check that the main command is available:
 
@@ -965,9 +976,20 @@ cd NinjaRobotV4
 > [!NOTE]
 > リポジトリがプライベートまたは別のソースを使用している場合は、URLを適宜調整してください。
 
-### ステップ6.2: すべての依存関係のインストール
+### ステップ6.2: 仮想環境の作成
 
-この1つのコマンドで必要なものすべてをインストールします:
+競合を避けるために、Pythonパッケージを仮想環境にインストールすることをお勧めします。
+
+```bash
+uv venv
+source .venv/bin/activate
+```
+
+ターミナルの行の先頭に`(NinjaRobotV4)`または`(.venv)`が表示されるはずです。
+
+### ステップ6.3: すべての依存関係のインストール
+
+プロジェクトの依存関係を仮想環境にインストールします:
 
 ```bash
 uv pip install -e .
@@ -980,7 +1002,7 @@ uv pip install -e .
 
 インストールには5〜10分かかる場合があります。
 
-### ステップ6.3: インストールの確認
+### ステップ6.4: インストールの確認
 
 メインコマンドが使用可能か確認:
 
