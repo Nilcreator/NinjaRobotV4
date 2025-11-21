@@ -348,11 +348,9 @@ You should see a list of available commands like `chat`, `server`, `config`, etc
 Before running the robot, you need to calibrate the servos and configure the hardware.
 
 ### Step 7.1: Configure Buzzer
-
 Tell the system which GPIO pin the buzzer is connected to:
 
 ```bash
-cd ~/NinjaRobotV4/pi0buzzer
 uv run pi0buzzer init 26
 ```
 
@@ -365,12 +363,6 @@ uv run pi0buzzer beep
 You should hear a short beep.
 
 ### Step 7.2: Test Distance Sensor
-
-Return to the project root:
-
-```bash
-cd ~/NinjaRobotV4
-```
 
 Test the sensor:
 
@@ -1023,7 +1015,6 @@ ninja_core --help
 ブザーが接続されているGPIOピンをシステムに伝えます:
 
 ```bash
-cd ~/NinjaRobotV4/pi0buzzer
 uv run pi0buzzer init 26
 ```
 
@@ -1036,12 +1027,6 @@ uv run pi0buzzer beep
 短いビープ音が聞こえるはずです。
 
 ### ステップ7.2: 距離センサーのテスト
-
-プロジェクトルートに戻る:
-
-```bash
-cd ~/NinjaRobotV4
-```
 
 センサーをテスト:
 

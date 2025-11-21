@@ -21,7 +21,7 @@ def init(pin):
     with open('buzzer.json', 'w') as f:
         json.dump({'pin': pin}, f)
 
-    buzzer = Buzzer(pi, pin)
+    buzzer = Buzzer(pin, pi)
     buzzer.off()
     pi.stop()
     click.echo(f"Buzzer initialized on GPIO {pin} and config saved to buzzer.json")
@@ -44,7 +44,7 @@ def beep(pin, frequency, duration):
         except FileNotFoundError:
             raise click.ClickException("Buzzer not initialized. Please run 'pi0buzzer init <pin>' first or specify a pin with --pin.")
 
-    buzzer = Buzzer(pi, pin)
+    buzzer = Buzzer(pin, pi)
     click.echo(f"Beeping at {frequency} Hz for {duration}s...")
     buzzer.play_sound(frequency, duration)
     time.sleep(duration) # Keep the script alive for the duration of the sound
@@ -68,7 +68,7 @@ def playmusic(pin):
         except FileNotFoundError:
             raise click.ClickException("Buzzer not initialized. Please run 'pi0buzzer init <pin>' first or specify a pin with --pin.")
 
-    music_buzzer = MusicBuzzer(pi, pin)
+    music_buzzer = MusicBuzzer(pin, pi)
     music_buzzer.play_music()
     pi.stop()
 
