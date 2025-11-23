@@ -570,6 +570,8 @@ If you want the robot to start automatically when you turn on the power, follow 
 
 > [!IMPORTANT]
 > **Prerequisites:** Ensure you have completed all previous steps, including hardware calibration and API key setup. The robot must be fully functional before enabling autostart.
+>
+> **Ngrok Requirement:** For autostart to work, you **must** have a valid ngrok authtoken configured. If the token is missing, the service will fail to start to avoid hanging in the background.
 
 ### Step 10.1: Install the Startup Service
 

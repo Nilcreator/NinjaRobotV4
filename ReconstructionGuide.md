@@ -452,6 +452,13 @@ While this plan does not have a dedicated testing phase, it is highly recommende
     *   Verify service status with `sudo systemctl status ninjarobot`.
     *   Reboot and verify the web server starts automatically.
 
+**2.8.3. Startup Logic Refinement**
+*   **Objective:** Ensure robust startup behavior for both CLI and Service modes.
+*   **Implementation:**
+    *   `ninja_core server` command accepts an `--autostart` flag.
+    *   **Interactive Mode (default):** Prompts for ngrok token if missing.
+    *   **Autostart Mode (`--autostart`):** Checks for token; if missing, exits immediately to prevent service hang.
+
 ### Phase 3: Advanced Multi-Agent Architecture
 
 **Objective:** To refactor `ninja_core` into a multi-agent system where a central Orchestration Agent delegates tasks to specialized, function-specific agents, enabling more complex and coordinated robot behaviors.

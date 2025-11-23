@@ -166,13 +166,14 @@ def chat():
 
 
 @main.command("server")
-def server():
+@click.option("--autostart", is_flag=True, help="Run in autostart mode (non-interactive).")
+def server(autostart):
     """
     Start the NinjaRobot Web Server.
     Provides a web interface for remote control and AI chat.
     """
     from .web_server import run_server
-    run_server()
+    run_server(autostart=autostart)
 
 
 if __name__ == "__main__":

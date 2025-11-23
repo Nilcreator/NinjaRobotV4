@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 import socket
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -335,7 +336,7 @@ async def websocket_distance(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
 
-def run_server():
+def run_server(autostart: bool = False):
     print("--- NinjaRobot Web Server Setup ---")
     
     # Check for existing token
@@ -361,13 +362,23 @@ def run_server():
 
     print("Checking ngrok configuration...")
     
-    if token_exists:
-        token = input("Proceed with existing ngrok account by pressing ENTER or input new ngrok authtoken to proceed: ").strip()
+    if autostart:
+        if token_exists:
+            print("✅ Ngrok authtoken found. Starting server...")
+        else:
+            print("❌ ERROR: Ngrok authtoken not found.")
+            print("Autostart aborted to prevent service hang.")
+            print("Please run 'uv run ninja_core server' manually to configure ngrok.")
+            sys.exit(1)
     else:
-        token = input("Please input your ngrok authtoken to proceed: ").strip()
+        # Interactive Mode
+        if token_exists:
+            token = input("Proceed with existing ngrok account by pressing ENTER or input new ngrok authtoken to proceed: ").strip()
+        else:
+            token = input("Please input your ngrok authtoken to proceed: ").strip()
 
-    if token:
-        print("Setting ngrok authtoken...")
-        ngrok.set_auth_token(token)
+        if token:
+            print("Setting ngrok authtoken...")
+            ngrok.set_auth_token(token)
     
     uvicorn.run("ninja_core.web_server:app", host="0.0.0.0", port=8000, reload=False)

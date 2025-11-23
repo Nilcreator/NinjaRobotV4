@@ -91,7 +91,7 @@ Requires=pigpiod.service
 Type=simple
 User={self.user}
 WorkingDirectory={self.project_root}
-ExecStart={self.uv_path} run ninja_core server
+ExecStart={self.uv_path} run ninja_core server --autostart
 Restart=always
 RestartSec=5
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
