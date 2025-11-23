@@ -1783,6 +1783,111 @@ Or manually edit `config.json`:
 
 ---
 
+## 7. UI/UX Design Guidelines
+
+### 7.1 Design Philosophy
+**"Dark Modern Dashboard"**
+The interface is designed to feel premium, futuristic, and highly responsive. It uses a deep dark mode palette with vibrant gradients for actions, soft shadows for depth, and a clean, grid-based layout that adapts seamlessly from mobile to desktop.
+
+### 7.2 Color Palette
+
+#### Backgrounds
+| Token | Value | Usage |
+| :--- | :--- | :--- |
+| `--bg-app` | `#141414` | Main application background (Deep Black/Gray) |
+| `--bg-surface` | `#1F2226` | Card and container background (Dark Blue-Gray) |
+| `--bg-surface-hover` | `#282C31` | Hover state for interactive surfaces |
+| `--bg-input` | `#121212` | Input fields and log background (Darker inset) |
+
+#### Typography
+| Token | Value | Usage |
+| :--- | :--- | :--- |
+| `--text-primary` | `#FFFFFF` | Main headings and body text |
+| `--text-secondary` | `#8F95A3` | Subtitles, labels, and status text |
+| `--text-disabled` | `#4A4F5A` | Disabled states and placeholders |
+
+#### Accents & Status
+| Token | Value | Usage |
+| :--- | :--- | :--- |
+| `--accent-primary` | `linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)` | Primary action buttons (Orange/Red Gradient) |
+| `--accent-glow` | `rgba(255, 107, 107, 0.4)` | Glow effects for primary actions |
+| `--status-success` | `#4CD964` | Online status, success logs (Green) |
+| `--status-warning` | `#FFCC00` | Warnings (Yellow) |
+| `--status-error` | `#FF3B30` | Errors, Recording state, Power Off (Red) |
+
+### 7.3 Typography
+*   **Font Family**: `'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif`
+*   **Headings**:
+    *   `h1`: 24px, Bold (700), Letter-spacing -0.5px.
+    *   `h2`: 16px, Medium (500), Uppercase, Letter-spacing 1px, Color: Secondary.
+*   **Body**: 14px-16px, Regular.
+*   **Monospace**: `'Fira Code', monospace` (for System Log).
+
+### 7.4 Layout System
+
+#### Grid Structure
+*   **Container**: `max-width: 1200px`, centered.
+*   **Gap**: `24px`.
+
+#### Responsive Behavior
+*   **Mobile (< 768px)**:
+    *   Single column (`1fr`).
+    *   Stacked controls.
+    *   Full-width buttons.
+    *   Simplified padding (20px).
+*   **Desktop (≥ 1024px)**:
+    *   3-Column Grid.
+    *   **Row 1**: Sensor | Servo | Expressions.
+    *   **Row 2**: Sound | Agent (Spans 2 cols, 2 rows).
+    *   **Row 3**: Log | System.
+
+### 7.5 Component Library
+
+#### Cards (`.control-section`)
+*   **Background**: `--bg-surface`
+*   **Border Radius**: `24px`
+*   **Shadow**: `10px 10px 20px rgba(0,0,0,0.25), -5px -5px 15px rgba(255,255,255,0.02)`
+*   **Border**: `1px solid rgba(255, 255, 255, 0.02)`
+*   **Hover**: Slight lift (`translateY(-2px)`), increased shadow.
+
+#### Buttons
+*   **Primary**: Gradient background, white text, glow shadow.
+*   **Shape**: Rounded (`border-radius: 16px`).
+*   **Interaction**: Scale up on hover, scale down on click.
+
+#### Inputs & Selects
+*   **Background**: `--bg-input` (Darker than surface).
+*   **Shadow**: Inner shadow (`inset 2px 2px 5px rgba(0,0,0,0.5)`).
+*   **Border**: None (until focus).
+*   **Focus**: Inner glow + Secondary color border.
+
+#### Special Components
+
+##### 1. Microphone Button
+*   **Size**: Large (80px x 80px).
+*   **Shape**: Circle.
+*   **Position**: Centered below chat input.
+*   **State - Idle**: Surface color, subtle border.
+*   **State - Recording**: Red (`--status-error`), pulsing animation (`scale(1.1)`).
+
+##### 2. Power Off Slider
+*   **Concept**: "Slide to Unlock" style interaction to prevent accidental shutdowns.
+*   **Track**: Dark inset path.
+*   **Thumb**: White circular handle.
+*   **Action**: Drag > 90% to trigger shutdown.
+
+##### 3. Header
+*   **Logo**: 50px height.
+*   **Status**: Dot indicator (Green = Online).
+*   **Language Selector**: Full-width on mobile, integrated into header.
+
+### 7.6 Iconography
+*   **Type**: SVG Icons.
+*   **Style**: Minimalist, Filled or Stroked.
+*   **Usage**: Mic icon, Power icon, Status dot.
+
+---
+
 ## Appendix A: Pin Reference
 
 | Component | Pin Type | Default GPIO |

@@ -1,3 +1,20 @@
+### 2025-11-23 - UI/UX Redesign & Mobile Refinements
+- **UI/UX Overhaul ("Dark Modern Dashboard")**:
+    - **New Design System**: Implemented a premium dark mode aesthetic (`style.css`) with neumorphic cards, gradient buttons, and soft shadows.
+    - **Header Update**: Added the "Ninja Robot V4.0" logo and a status indicator to the header.
+    - **Grid Layout**: Refactored `index.html` to use a responsive CSS Grid layout that adapts from single-column on mobile to a 3-column dashboard on desktop.
+- **Mobile Experience Refinements**:
+    - **Viewport Fix**: Added `user-scalable=no` to the viewport meta tag to prevent auto-zooming on input focus, resolving layout breakage.
+    - **Chat Interface**:
+        - Stacked layout: Input -> Send Button -> Large Mic Button.
+        - **Mic Button**: Significantly enlarged (80px circle) and centered for easier touch interaction.
+    - **Power Off Slider**: Replaced the dangerous "Power Off" button with an iPhone-style **"Slide to Power Off"** slider to prevent accidental shutdowns.
+    - **Responsive Fixes**: Adjusted container sizing and text wrapping to ensure no elements overflow on small screens.
+- **Multilingual Support**:
+    - **Internationalization (i18n)**: Implemented full frontend translation support for English, Japanese, Traditional Chinese, and Simplified Chinese.
+    - **Dynamic Switching**: The interface language updates instantly when selected from the new header dropdown.
+- **Footer**: Added a copyright footer ("© 2025 NinjaRobot. All Rights Reserved.").
+
 ### 2025-11-23 - Safe Power-Off Functionality
 - **Implemented Safe Shutdown**:
     - Added `POST /api/system/shutdown` endpoint to `ninja_core` web server.
