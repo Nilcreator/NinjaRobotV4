@@ -178,6 +178,47 @@ footer {
     margin: 0 auto;
 }
 
+/* Desktop Specific Layout Adjustments */
+@media (min-width: 1024px) {
+    #app {
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 Columns on PC */
+    }
+
+    /* Row 1: Sensor, Servo, Expression */
+    #sensor-controls {
+        grid-column: span 1;
+    }
+
+    #servo-controls {
+        grid-column: span 1;
+    }
+
+    #display-controls {
+        grid-column: span 1;
+    }
+
+    /* Row 2: Sound (Left), Agent (Center/Right - Span 2) */
+    #sound-controls {
+        grid-column: span 1;
+    }
+
+    #agent-controls {
+        grid-column: span 2;
+        grid-row: span 2;
+        /* Make Agent tall */
+    }
+
+    /* Row 3: Log (Left), System (Below Log) */
+    #log-controls {
+        grid-column: span 1;
+    }
+
+    #system-controls {
+        grid-column: span 1;
+    }
+}
+
 /* Cards */
 .control-section {
     background-color: var(--bg-surface);
@@ -186,6 +227,43 @@ footer {
     box-shadow: var(--shadow-card);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.02);
+    /* Ensure content doesn't overflow */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fix for System Controls Text Overflow */
+.slider-container {
+    width: 100%;
+    /* Ensure it fits parent */
+    box-sizing: border-box;
+    /* Include padding/border in width */
+}
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+    #app {
+        grid-template-columns: 1fr;
+        /* Single column on mobile */
+    }
+
+    .control-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    button {
+        width: 100%;
+    }
+
+    /* Reset Spans for Mobile */
+    #agent-controls,
+    #log-controls,
+    #system-controls {
+        grid-column: auto;
+        grid-row: auto;
+    }
 }
 
 .control-section:hover {
