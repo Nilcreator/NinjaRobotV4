@@ -185,6 +185,87 @@ document.addEventListener('DOMContentLoaded', () => {
     chatSendBtn.addEventListener('click', handleChatSend);
     chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleChatSend(); });
 
+    // --- Slider Logic ---
+    const sliderContainer = document.getElementById('power-off-slider');
+    const sliderThumb = document.getElementById('slider-thumb');
+    const sliderText = document.querySelector('.slider-text');
+    let isDragging = false;
+    let startX = 0;
+    let currentX = 0;
+
+    if (sliderContainer && sliderThumb) {
+        const maxSlide = sliderContainer.clientWidth - sliderThumb.clientWidth - 8; // 8px padding
+
+        function startDrag(e) {
+            isDragging = true;
+            startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
+            sliderThumb.style.transition = 'none';
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault(); // Prevent scrolling on touch
+
+            const clientX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
+            let delta = clientX - startX;
+
+            // Clamp value
+            if (delta < 0) delta = 0;
+            if (delta > maxSlide) delta = maxSlide;
+
+            currentX = delta;
+            sliderThumb.style.transform = `translateX(${delta}px)`;
+
+            // Fade text
+            const opacity = 1 - (delta / maxSlide);
+            sliderText.style.opacity = opacity;
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            sliderThumb.style.transition = 'transform 0.3s ease';
+
+            if (currentX >= maxSlide * 0.9) {
+                // Trigger Shutdown
+                sliderThumb.style.transform = `translateX(${maxSlide}px)`;
+                sliderText.style.opacity = 0;
+                triggerShutdown();
+            } else {
+                // Reset
+                sliderThumb.style.transform = 'translateX(0)';
+                sliderText.style.opacity = 1;
+            }
+        }
+
+        sliderThumb.addEventListener('mousedown', startDrag);
+        sliderThumb.addEventListener('touchstart', startDrag);
+
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('touchmove', onDrag, { passive: false });
+
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+    }
+
+    async function triggerShutdown() {
+        if (confirm("Are you sure you want to safely shut down the robot?")) {
+            try {
+                const response = await fetchApi('/api/system/shutdown', { method: 'POST' });
+                alert("Shutting down... Please wait for the green light to turn off before unplugging.");
+                document.body.innerHTML = "<div style='display:flex;justify-content:center;align-items:center;height:100vh;color:white;background:#141414;'><h1>System is shutting down...</h1></div>";
+            } catch (error) {
+                // Reset slider if failed
+                sliderThumb.style.transform = 'translateX(0)';
+                sliderText.style.opacity = 1;
+            }
+        } else {
+            // Reset slider if cancelled
+            sliderThumb.style.transform = 'translateX(0)';
+            sliderText.style.opacity = 1;
+        }
+    }
+
     // --- Initialization ---
     async function init() {
         populateSelect(movementsSelect, 'servos/movements', 'movements');
