@@ -1,150 +1,345 @@
+:root {
+    /* Base Colors */
+    --bg-app: #141414;
+    --bg-surface: #1F2226;
+    --bg-surface-hover: #282C31;
+    --bg-input: #121212;
+
+    /* Typography Colors */
+    --text-primary: #FFFFFF;
+    --text-secondary: #8F95A3;
+    --text-disabled: #4A4F5A;
+
+    /* Accent Colors */
+    --accent-primary: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    --accent-glow: rgba(255, 107, 107, 0.4);
+    --status-success: #4CD964;
+    --status-warning: #FFCC00;
+    --status-error: #FF3B30;
+
+    /* Spacing & Layout */
+    --radius-card: 24px;
+    --radius-btn: 16px;
+    --radius-input: 12px;
+    --shadow-card: 10px 10px 20px rgba(0, 0, 0, 0.25), -5px -5px 15px rgba(255, 255, 255, 0.02);
+    --shadow-btn-glow: 0 4px 15px var(--accent-glow);
+    --shadow-inner: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
     margin: 0;
-    background-color: #f4f7f6;
-    color: #333;
+    padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Header */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-img {
+    height: 50px;
+    width: auto;
 }
 
 h1 {
-    text-align: center;
-    color: #fff;
-    background-color: #4a6fa5;
-    padding: 20px 0;
+    font-size: 28px;
+    font-weight: 700;
     margin: 0;
+    background: none;
+    color: var(--text-primary);
+    text-align: left;
+    padding: 0;
+    letter-spacing: -0.5px;
 }
 
-#app {
+.status-indicator {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 20px;
-    gap: 20px;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
 }
 
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--status-success);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--status-success);
+}
+
+/* Layout Grid */
+#app {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Cards */
 .control-section {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 20px;
-    min-width: 300px;
-    flex-basis: 45%;
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.control-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.3), -5px -5px 15px rgba(255, 255, 255, 0.03);
 }
 
 h2 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
     margin-top: 0;
-    color: #166088;
-    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
+/* Controls */
 .control-group {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
-    margin-top: 15px;
 }
 
-select, button, input[type="text"] {
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
+select,
+input[type="text"] {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--radius-input);
+    padding: 12px 16px;
+    font-size: 14px;
+    box-shadow: var(--shadow-inner);
+    width: 100%;
+    outline: none;
+    transition: box-shadow 0.2s;
 }
 
-select {
-    flex-grow: 1;
+select:focus,
+input[type="text"]:focus {
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--text-secondary);
 }
 
 button {
-    background-color: #1db954;
-    color: white;
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-btn);
+    padding: 12px 24px;
+}
+
+/* Primary Action Buttons */
+#execute-movement-btn,
+#show-expression-btn,
+#play-emotion-btn,
+#chat-send-btn,
+#set-api-key-btn {
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: var(--shadow-btn-glow);
 }
 
 button:hover {
-    background-color: #1aa34a;
+    transform: scale(1.02);
+    filter: brightness(1.1);
 }
 
+button:active {
+    transform: scale(0.98);
+}
+
+/* Secondary/Icon Buttons */
+#micButton {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+#micButton.recording {
+    background: var(--status-error);
+    border-color: transparent;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 59, 48, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
+    }
+}
+
+/* Distance Display */
 #distance-display {
-    font-size: 24px;
-    font-weight: bold;
-    color: #4a6fa5;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
     text-align: center;
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #e8f0fe;
-    border-radius: 5px;
+    padding: 30px 0;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+    border-radius: var(--radius-input);
+    margin-top: 0;
+    letter-spacing: -1px;
 }
 
-/* Chat Styles */
+/* Chat Interface */
 #chat-container {
-    margin-top: 15px;
+    margin-top: 0;
 }
 
 #chat-history {
     height: 300px;
     overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
+    background-color: var(--bg-input);
+    border-radius: var(--radius-input);
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: var(--shadow-inner);
+    border: none;
 }
 
 .chat-message {
-    margin-bottom: 8px;
-    padding: 8px;
-    border-radius: 5px;
-    max-width: 80%;
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 85%;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .chat-message-user {
-    background-color: #dcf8c6;
+    background: var(--accent-primary);
+    color: white;
     align-self: flex-end;
     margin-left: auto;
-    text-align: right;
+    border-bottom-right-radius: 2px;
 }
 
 .chat-message-agent {
-    background-color: #fff;
-    border: 1px solid #eee;
+    background-color: var(--bg-surface-hover);
+    color: var(--text-primary);
     align-self: flex-start;
+    border-bottom-left-radius: 2px;
 }
 
 .chat-message-system-info {
-    background-color: #e1f5fe;
-    color: #0277bd;
+    background-color: rgba(76, 217, 100, 0.1);
+    color: var(--status-success);
     text-align: center;
-    font-size: 0.9em;
-    max-width: 100%;
+    margin: 10px auto;
+    font-size: 12px;
 }
 
 .chat-message-system-error {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: rgba(255, 59, 48, 0.1);
+    color: var(--status-error);
     text-align: center;
-    font-size: 0.9em;
-    max-width: 100%;
+    margin: 10px auto;
+    font-size: 12px;
 }
 
 #chat-input-container {
     display: flex;
-    gap: 5px;
+    flex-direction: column;
+    gap: 12px;
 }
 
-#chat-input {
-    flex-grow: 1;
+.input-controls {
+    display: flex;
+    gap: 10px;
 }
 
+#lang-select {
+    flex: 1;
+}
+
+/* System Log */
 #system-log {
-    height: 150px;
-    overflow-y: auto;
-    background-color: #333;
-    color: #0f0;
-    padding: 10px;
-    font-family: monospace;
+    background-color: var(--bg-input);
+    color: var(--status-success);
+    border: none;
+    box-shadow: var(--shadow-inner);
+    font-family: 'Fira Code', monospace;
     font-size: 12px;
-    border-radius: 5px;
+    padding: 15px;
+    border-radius: var(--radius-input);
+}
+
+/* Power Off Button */
+#system-controls {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+#power-off-btn {
+    background-color: var(--bg-surface);
+    color: var(--status-error);
+    border: 1px solid var(--status-error);
+    width: 100%;
+    box-shadow: none;
+}
+
+#power-off-btn:hover {
+    background-color: var(--status-error);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #app {
+        grid-template-columns: 1fr;
+    }
+
+    .control-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    button {
+        width: 100%;
+    }
 }

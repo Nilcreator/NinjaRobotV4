@@ -22,6 +22,7 @@ This guide provides a comprehensive technical reference for the NinjaRobotV4 pro
 4. [Configuration System](#4-configuration-system)
 5. [Testing & Debugging](#5-testing--debugging)
 6. [Contributing Guidelines](#6-contributing-guidelines)
+7. [UI/UX Design Guidelines](#7-uiux-design-guidelines)
 
 ---
 

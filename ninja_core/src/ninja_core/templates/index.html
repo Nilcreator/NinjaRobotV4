@@ -6,35 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NinjaRobot V4 Control Panel</title>
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-        #micButton {
-            background-color: #4CAF50;
-            /* Green */
-            border: none;
-            color: white;
-            padding: 10px 12px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 0 5px;
-            cursor: pointer;
-            border-radius: 8px;
-            vertical-align: middle;
-        }
-
-        #micButton.recording {
-            background-color: #f44336;
-            /* Red */
-        }
-    </style>
+    <!-- Preload fonts if possible, or use system fonts as fallback -->
 </head>
 
 <body>
-    <h1>NinjaRobot V4 Control Panel</h1>
+    <header>
+        <div class="logo-container">
+            <img src="/static/logo.png" alt="NinjaRobot Logo" class="logo-img">
+            <h1>Ninja Robot V4.0</h1>
+        </div>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Online</span>
+        </div>
+    </header>
 
     <div id="app">
-        <!-- Existing Controls -->
+        <!-- Sensor Data (Top Priority) -->
+        <div class="control-section" id="sensor-controls">
+            <h2>Distance Sensor</h2>
+            <div id="distance-display">- mm</div>
+        </div>
+
+        <!-- Servo Controls -->
         <div class="control-section" id="servo-controls">
             <h2>Servo Movements</h2>
             <div class="control-group">
@@ -43,6 +37,7 @@
             </div>
         </div>
 
+        <!-- Facial Expressions -->
         <div class="control-section" id="display-controls">
             <h2>Facial Expressions</h2>
             <div class="control-group">
@@ -51,6 +46,7 @@
             </div>
         </div>
 
+        <!-- Sound Controls -->
         <div class="control-section" id="sound-controls">
             <h2>Emotion Sounds</h2>
             <div class="control-group">
@@ -59,58 +55,60 @@
             </div>
         </div>
 
-        <div class="control-section" id="sensor-controls">
-            <h2>Distance Sensor</h2>
-            <div id="distance-display">- mm</div>
-        </div>
-
-        <!-- New AI Agent Section -->
-        <div class="control-section" id="agent-controls">
+        <!-- AI Agent (Spans full width on mobile, larger on desktop) -->
+        <div class="control-section" id="agent-controls" style="grid-column: 1 / -1;">
             <h2>Ninja AI Agent</h2>
             <button id="set-api-key-btn">Set/Update AI API Key</button>
 
             <div id="chat-container" style="display: none;">
                 <div id="chat-history"></div>
                 <div id="chat-input-container">
-                    <input type="text" id="chat-input" placeholder="Ask the robot to do something..."
-                        style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box;">
-                    <div class="input-controls" style="display: flex; align-items: center; gap: 10px;">
-                        <select id="lang-select" style="padding: 10px; border-radius: 8px;">
+                    <input type="text" id="chat-input" placeholder="Ask the robot to do something...">
+                    <div class="input-controls">
+                        <select id="lang-select">
                             <option value="en-US">English</option>
                             <option value="ja-JP">日本語</option>
                             <option value="zh-TW">繁體中文</option>
                             <option value="zh-CN">简体中文</option>
                         </select>
-                        <button id="micButton" title="Start Voice Input">&#127908;</button>
+                        <button id="micButton" title="Start Voice Input">
+                            <!-- Simple SVG Mic Icon -->
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                <path
+                                    d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.66 9 5v6c0 1.66 1.34 3 3 3z" />
+                                <path
+                                    d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                            </svg>
+                        </button>
                         <button id="chat-send-btn">Send</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="control-section" id="log-controls" style="display: none;">
+        <!-- System Log -->
+        <div class="control-section" id="log-controls" style="display: none; grid-column: 1 / -1;">
             <h2>System Log</h2>
             <pre id="system-log"></pre>
         </div>
 
-        <div class="control-section" id="system-controls"
-            style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+        <!-- System Controls -->
+        <div class="control-section" id="system-controls">
             <h2>System Controls</h2>
-            <button id="power-off-btn"
-                style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Power
-                Off Robot</button>
+            <button id="power-off-btn">Power Off Robot</button>
         </div>
     </div>
 
     <script src="/static/main.js"></script>
     <script>
+        // Inline script for power-off logic (kept for simplicity, could move to main.js)
         document.getElementById('power-off-btn').addEventListener('click', async () => {
             if (confirm("Are you sure you want to safely shut down the robot?")) {
                 try {
                     const response = await fetch('/api/system/shutdown', { method: 'POST' });
                     if (response.ok) {
                         alert("Shutting down... Please wait for the green light to turn off before unplugging.");
-                        document.body.innerHTML = "<h1>System is shutting down...</h1>";
+                        document.body.innerHTML = "<div style='display:flex;justify-content:center;align-items:center;height:100vh;color:white;background:#141414;'><h1>System is shutting down...</h1></div>";
                     } else {
                         const data = await response.json();
                         alert("Shutdown failed: " + (data.detail || "Unknown error"));
