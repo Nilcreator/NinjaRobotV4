@@ -69,7 +69,9 @@ NinjaRobotV4 is a small, friendly robot powered by a **Raspberry Pi Zero 2W** th
 - **Remote Access**: Automatic public URL generation via **ngrok** with QR code display for instant connection
 - **Voice & Text Input**: Interact using your voice (via Web Speech API) or typed messages
 - **Manual Controls**: Direct buttons for servo movements, facial expressions, and sounds
+- **Manual Controls**: Direct buttons for servo movements, facial expressions, and sounds
 - **Safe Shutdown**: Power off the robot safely directly from the web interface
+- **Automatic Startup**: Optional systemd service to start the robot automatically on boot
 
 #### 🔧 **Developer-Friendly Design**
 - **Modular Architecture**: Clean separation between hardware drivers, application logic, and AI agent
@@ -339,6 +341,7 @@ The **Web Server & Remote Access** module has been successfully implemented. The
 - ✅ Obstacle avoidance safety system
 - ✅ Facial expressions and emotion sounds
 - ✅ Motion system with interpolated movements
+- ✅ Automatic startup service with safe shutdown
 
 **Previous Milestones:**
 - The **AI Agent** (`ninja_agent.py`) has been successfully implemented with nuanced semantic understanding, multilingual communication, and real-time web search
@@ -460,6 +463,8 @@ NinjaRobotV4は、**Raspberry Pi Zero 2W**（小型で安価なコンピュー�
 - **リモートアクセス** - **ngrok**（インターネット経由でアクセスできるようにするサービス）を介した自動公開URL生成とQRコード表示で、即座に接続できます
 - **音声とテキスト入力** - 音声（Web Speech API：ブラウザの音声認識機能を使用）または入力したメッセージで対話できます
 - **手動コントロール** - サーボの動き、表情、音を直接操作するボタンがあります
+- **安全なシャットダウン** - Webインターフェースから直接ロボットを安全に電源オフできます
+- **自動起動** - 起動時にロボットを自動的に開始するオプションのsystemdサービスがあります
 
 #### 🔧 **開発者に優しい設計**
 - **モジュール型アーキテクチャ** - ハードウェアドライバー（機器を動かすプログラム）、アプリケーションロジック（処理の流れ）、AIエージェント（AI部分）が明確に分離されています
@@ -729,6 +734,7 @@ ninja_core server
 - ✅ 障害物回避安全システム
 - ✅ 表情と感情音
 - ✅ 補間動作を備えたモーションシステム
+- ✅ 安全なシャットダウンを備えた自動起動サービス
 
 **以前のマイルストーン:**
 - **AIエージェント**（`ninja_agent.py`）が、ニュアンスのある意味理解、多言語コミュニケーション、リアルタイムWeb検索で正常に実装されました

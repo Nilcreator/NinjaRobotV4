@@ -159,6 +159,8 @@ To access the web server from outside your local network, you need an ngrok acco
 
 3.  **Configure NinjaRobot:**
     -   When you run `uv run ninja_core server` for the first time, you will be prompted to enter this token.
+    -   `uv run ninja_core server` - Start the web interface (interactive mode)
+    -   `uv run ninja_core server --autostart` - Start in non-interactive mode (for systemd)
     -   Alternatively, you can set it manually via the ngrok CLI if installed, but the server prompt is the easiest method.
 
 #### 3.3. Run the Interactive Chat

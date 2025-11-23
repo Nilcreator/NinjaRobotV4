@@ -125,7 +125,7 @@ NinjaRobotV4/
         ├── facial_expressions.py   # Visual emotions
         ├── robot_sound.py      # Auditory feedback
         ├── perception.py       # Distance monitoring
-        ├── web_server.py       # FastAPI web server
+        ├── web_server.py       # FastAPI web server (includes /api/system/shutdown)
         ├── static/
         │   ├── style.css       # Web UI styles
         │   └── main.js         # Web UI logic
@@ -293,6 +293,56 @@ finally:
 ```
 
 **Thread Safety:** Not thread-safe (use from main thread only)
+
+**Thread Safety:** Not thread-safe (use from main thread only)
+
+---
+
+#### 3.1.3 `service_manager.py`
+
+**Module:** `ninja_utils.service_manager`
+
+##### Class: `ServiceManager`
+
+Manages the systemd service for automatic startup.
+
+**Constructor:**
+```python
+def __init__(self, service_name: str = "ninjarobot", description: str = "NinjaRobotV4 Web Server")
+```
+
+**Methods:**
+
+**`install() -> None`**
+- Generates and installs the systemd service file
+- Enables and starts the service
+- **Raises:** `RuntimeError` if prerequisites (pigpiod, config) are missing
+
+**`remove() -> None`**
+- Stops, disables, and removes the systemd service file
+
+**`status() -> None`**
+- Prints the current status of the systemd service
+
+---
+
+#### 3.1.4 CLI Commands
+
+**Entry Point:** `uv run ninja_utils <command>`
+
+**Commands:**
+
+**`install-startup`**
+- Installs the autostart service
+- **Example:** `uv run ninja_utils install-startup`
+
+**`remove-startup`**
+- Removes the autostart service
+- **Example:** `uv run ninja_utils remove-startup`
+
+**`status-startup`**
+- Checks service status
+- **Example:** `uv run ninja_utils status-startup`
 
 ---
 
