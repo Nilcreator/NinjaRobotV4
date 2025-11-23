@@ -17,6 +17,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const micButton = document.getElementById('micButton');
     const langSelect = document.getElementById('lang-select');
 
+    // --- Translations ---
+    const translations = {
+        'en-US': {
+            status_online: 'Online',
+            sensor_title: 'Distance Sensor',
+            servo_title: 'Servo Movements',
+            expression_title: 'Facial Expressions',
+            sound_title: 'Emotion Sounds',
+            agent_title: 'Ninja AI Agent',
+            log_title: 'System Log',
+            system_title: 'System Controls',
+            btn_execute: 'Execute',
+            btn_show: 'Show',
+            btn_play: 'Play',
+            btn_set_apikey: 'Set/Update AI API Key',
+            btn_send: 'Send',
+            chat_placeholder: 'Ask the robot to do something...',
+            slider_text: 'Slide to Power Off'
+        },
+        'ja-JP': {
+            status_online: 'オンライン',
+            sensor_title: '距離センサー',
+            servo_title: 'サーボ動作',
+            expression_title: '表情',
+            sound_title: '感情音',
+            agent_title: 'Ninja AIエージェント',
+            log_title: 'システムログ',
+            system_title: 'システム制御',
+            btn_execute: '実行',
+            btn_show: '表示',
+            btn_play: '再生',
+            btn_set_apikey: 'APIキー設定/更新',
+            btn_send: '送信',
+            chat_placeholder: 'ロボットに何か頼んでください...',
+            slider_text: 'スライドして電源オフ'
+        },
+        'zh-TW': {
+            status_online: '連線中',
+            sensor_title: '距離感測器',
+            servo_title: '伺服馬達動作',
+            expression_title: '臉部表情',
+            sound_title: '情感音效',
+            agent_title: 'Ninja AI 代理',
+            log_title: '系統日誌',
+            system_title: '系統控制',
+            btn_execute: '執行',
+            btn_show: '顯示',
+            btn_play: '播放',
+            btn_set_apikey: '設定/更新 API 金鑰',
+            btn_send: '發送',
+            chat_placeholder: '請指示機器人做些什麼...',
+            slider_text: '滑動以關閉電源'
+        },
+        'zh-CN': {
+            status_online: '在线',
+            sensor_title: '距离传感器',
+            servo_title: '舵机动作',
+            expression_title: '面部表情',
+            sound_title: '情感音效',
+            agent_title: 'Ninja AI 代理',
+            log_title: '系统日志',
+            system_title: '系统控制',
+            btn_execute: '执行',
+            btn_show: '显示',
+            btn_play: '播放',
+            btn_set_apikey: '设置/更新 API 密钥',
+            btn_send: '发送',
+            chat_placeholder: '请指示机器人做些什么...',
+            slider_text: '滑动以关闭电源'
+        }
+    };
+
+    function updateLanguage(lang) {
+        const t = translations[lang] || translations['en-US'];
+
+        // Update text content
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key]) el.textContent = t[key];
+        });
+
+        // Update placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (t[key]) el.placeholder = t[key];
+        });
+    }
+
+    langSelect.addEventListener('change', (e) => {
+        updateLanguage(e.target.value);
+    });
+
     // --- Speech Recognition Setup ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
