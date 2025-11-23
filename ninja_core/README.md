@@ -198,7 +198,8 @@ The Web Server provides a user-friendly interface for controlling the robot from
     - **Servo Movements:** Select a movement from the dropdown and click **Execute**.
     - **Facial Expressions:** Select an expression and click **Show**.
     - **Sounds:** Select an emotion sound and click **Play**.
-    - **Distance Sensor:** Verify that the distance reading updates in real-time (every ~200ms).
+    - **Distance Sensor**: Verify that the distance reading updates in real-time (every ~200ms).
+    - **System Controls**: Use the **Power Off Robot** button to safely shut down the Raspberry Pi.
 
 4.  **Test Obstacle Avoidance (Safety):**
     - While a movement is executing (e.g., a long sequence), place your hand in front of the sensor (< 50mm).

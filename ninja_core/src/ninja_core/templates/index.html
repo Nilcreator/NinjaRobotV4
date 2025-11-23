@@ -92,9 +92,35 @@
             <h2>System Log</h2>
             <pre id="system-log"></pre>
         </div>
+
+        <div class="control-section" id="system-controls"
+            style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+            <h2>System Controls</h2>
+            <button id="power-off-btn"
+                style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Power
+                Off Robot</button>
+        </div>
     </div>
 
     <script src="/static/main.js"></script>
+    <script>
+        document.getElementById('power-off-btn').addEventListener('click', async () => {
+            if (confirm("Are you sure you want to safely shut down the robot?")) {
+                try {
+                    const response = await fetch('/api/system/shutdown', { method: 'POST' });
+                    if (response.ok) {
+                        alert("Shutting down... Please wait for the green light to turn off before unplugging.");
+                        document.body.innerHTML = "<h1>System is shutting down...</h1>";
+                    } else {
+                        const data = await response.json();
+                        alert("Shutdown failed: " + (data.detail || "Unknown error"));
+                    }
+                } catch (error) {
+                    alert("Error sending shutdown request: " + error);
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

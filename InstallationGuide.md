@@ -604,6 +604,9 @@ sudo reboot
 
 The robot should start automatically. You can access the web interface via the QR code or `http://ninjarobot.local:8000` after a minute or two.
 
+> [!TIP]
+> **Safe Shutdown:** You can safely shut down the robot using the "Power Off Robot" button at the bottom of the web interface. Wait for the green light on the Raspberry Pi to stop flashing before unplugging the power.
+
 ### Removing Autostart
 
 If you want to stop the robot from starting automatically:

@@ -69,6 +69,7 @@ NinjaRobotV4 is a small, friendly robot powered by a **Raspberry Pi Zero 2W** th
 - **Remote Access**: Automatic public URL generation via **ngrok** with QR code display for instant connection
 - **Voice & Text Input**: Interact using your voice (via Web Speech API) or typed messages
 - **Manual Controls**: Direct buttons for servo movements, facial expressions, and sounds
+- **Safe Shutdown**: Power off the robot safely directly from the web interface
 
 #### 🔧 **Developer-Friendly Design**
 - **Modular Architecture**: Clean separation between hardware drivers, application logic, and AI agent

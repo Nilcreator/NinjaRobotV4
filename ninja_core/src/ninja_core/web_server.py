@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import socket
+import subprocess
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -312,6 +313,25 @@ def get_distance_api(request: Request):
     if request.app.state.ninja.distance_monitor:
         return {"distance_mm": request.app.state.ninja.distance_monitor.get_continuous_distance()}
     return {"distance_mm": -1}
+
+@api_router.post("/system/shutdown")
+async def system_shutdown(request: Request):
+    """Safely shuts down the Raspberry Pi."""
+    print("Received shutdown request via Web UI.")
+    try:
+        # Run shutdown command in a separate thread to avoid blocking the response
+        # giving time for the response to be sent back to the client.
+        async def delayed_shutdown():
+            await asyncio.sleep(1)
+            print("Executing shutdown command...")
+            # sudo is required, and user must have passwordless sudo for shutdown
+            subprocess.run(["sudo", "shutdown", "-h", "now"])
+
+        asyncio.create_task(delayed_shutdown())
+        return {"status": "shutting_down", "message": "System is shutting down..."}
+    except Exception as e:
+        print(f"Shutdown failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- App ---
 app = FastAPI(lifespan=lifespan)

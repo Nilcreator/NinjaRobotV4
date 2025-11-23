@@ -1,3 +1,9 @@
+### 2025-11-23 - Safe Power-Off Functionality
+- **Implemented Safe Shutdown**:
+    - Added `POST /api/system/shutdown` endpoint to `ninja_core` web server.
+    - Added "Power Off Robot" button to the web interface (`index.html`).
+    - Allows users to safely shut down the Raspberry Pi from the browser.
+
 ### 2025-11-23 - Autostart Functionality (Phase 2.8)
 - **Implemented Automatic Startup**:
     - Created `ninja_utils/src/ninja_utils/service_manager.py` to manage systemd services.
