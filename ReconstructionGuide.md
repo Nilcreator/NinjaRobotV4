@@ -430,6 +430,28 @@ The NinjaRobotV4 project will incorporate several key refinements compared to th
 
 While this plan does not have a dedicated testing phase, it is highly recommended to write and run unit tests for each library and module as it is being developed. This will help to ensure the quality and correctness of the code.
 
+### Phase 2.8: Autostart Functionality
+
+**Objective:** Implement an automatic startup function using `systemd` to ensure the robot's web server starts automatically upon boot.
+
+**2.8.1. `ninja_utils` Service Manager**
+*   **Objective:** Create a utility to manage the systemd service.
+*   **Execution Plan:**
+    1.  **`service_manager.py`:**
+        *   **`ServiceManager` class:**
+            *   `generate_content(user, working_dir, uv_path)`: Generates the systemd unit file content.
+            *   `install()`: **Validates prerequisites** (config.json exists, pigpiod running, ninja_core installed), detects paths, writes the service file to `/etc/systemd/system/ninjarobot.service`, reloads daemon, and enables the service.
+            *   `remove()`: Stops, disables, and removes the service file.
+            *   `status()`: Checks the status of the service.
+    2.  **`__main__.py` (CLI):**
+        *   Add `install-startup` and `remove-startup` commands to the `ninja_utils` CLI.
+
+**2.8.2. Verification**
+*   **Manual Verification:**
+    *   Run `uv run ninja_utils install-startup`.
+    *   Verify service status with `sudo systemctl status ninjarobot`.
+    *   Reboot and verify the web server starts automatically.
+
 ### Phase 3: Advanced Multi-Agent Architecture
 
 **Objective:** To refactor `ninja_core` into a multi-agent system where a central Orchestration Agent delegates tasks to specialized, function-specific agents, enabling more complex and coordinated robot behaviors.

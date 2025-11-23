@@ -1,3 +1,12 @@
+### 2025-11-23 - Autostart Functionality (Phase 2.8)
+- **Implemented Automatic Startup**:
+    - Created `ninja_utils/src/ninja_utils/service_manager.py` to manage systemd services.
+    - Added `install-startup`, `remove-startup`, and `status-startup` commands to `ninja_utils` CLI.
+    - **Safety Features**: The installation script validates that `config.json` exists, `pigpiod` is running, and `ninja_core` is installed before enabling the service.
+- **Documentation**:
+    - Updated `ReconstructionGuide.md` with Phase 2.8 details.
+    - Updated `InstallationGuide.md` with instructions for enabling autostart.
+
 ### 2025-11-20 - Web Server Fixes & Documentation
 - **Server Startup Robustness**:
     - Modified `web_server.py` to catch `MissingAPIKeyError` during startup. The server now starts even if the Gemini API key is missing (AI features disabled).

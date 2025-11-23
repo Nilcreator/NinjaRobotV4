@@ -564,7 +564,55 @@ Press **Ctrl+C** in the terminal to stop the server. The robot will safely shut 
 
 ---
 
-## 10. Troubleshooting
+## 10. Automatic Startup (Optional)
+
+If you want the robot to start automatically when you turn on the power, follow these steps.
+
+> [!IMPORTANT]
+> **Prerequisites:** Ensure you have completed all previous steps, including hardware calibration and API key setup. The robot must be fully functional before enabling autostart.
+
+### Step 10.1: Install the Startup Service
+
+Run the following command:
+
+```bash
+uv run ninja_utils install-startup
+```
+
+This will:
+1. Check if your system is ready (config exists, pigpiod running, etc.)
+2. Create a systemd service file
+3. Enable the service to start on boot
+
+### Step 10.2: Verify
+
+You can check the status of the service:
+
+```bash
+uv run ninja_utils status-startup
+```
+
+### Step 10.3: Reboot
+
+Reboot your Raspberry Pi:
+
+```bash
+sudo reboot
+```
+
+The robot should start automatically. You can access the web interface via the QR code or `http://ninjarobot.local:8000` after a minute or two.
+
+### Removing Autostart
+
+If you want to stop the robot from starting automatically:
+
+```bash
+uv run ninja_utils remove-startup
+```
+
+---
+
+## 11. Troubleshooting
 
 ### Problem: "Could not connect to pigpiod daemon"
 

@@ -18,6 +18,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "click>=8.0.0",
+]
+
+[project.scripts]
+ninja_utils = "ninja_utils.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/Nilcreator/NinjaRobotV4"
