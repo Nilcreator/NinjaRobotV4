@@ -298,46 +298,53 @@ class VL53L0X:
         """
         SPAD情報を取得します。
         """
-        # SPAD情報取得のための初期レジスタ設定
-        self.write_byte(C.REG_80, C.VALUE_01)
-        self.write_byte(C.REG_FF, C.VALUE_01)
-        self.write_byte(C.REG_00, C.VALUE_00)
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                # SPAD情報取得のための初期レジスタ設定
+                self.write_byte(C.REG_80, C.VALUE_01)
+                self.write_byte(C.REG_FF, C.VALUE_01)
+                self.write_byte(C.REG_00, C.VALUE_00)
 
-        self.write_byte(C.REG_FF, C.VALUE_06)
-        self.write_byte(C.VALUE_83, (self.read_byte(C.VALUE_83) | C.VALUE_04))
-        self.write_byte(C.REG_FF, C.VALUE_07)
-        self.write_byte(C.REG_81, C.VALUE_01)
+                self.write_byte(C.REG_FF, C.VALUE_06)
+                self.write_byte(C.VALUE_83, (self.read_byte(C.VALUE_83) | C.VALUE_04))
+                self.write_byte(C.REG_FF, C.VALUE_07)
+                self.write_byte(C.REG_81, C.VALUE_01)
 
-        self.write_byte(C.REG_80, C.VALUE_01)
+                self.write_byte(C.REG_80, C.VALUE_01)
 
-        # SPADキャリブレーションをトリガーし、完了を待つ
-        self.write_byte(C.REG_94, C.VALUE_6B)
-        self.write_byte(C.VALUE_83, C.VALUE_00)
-        
-        start = time.time()
-        while self.read_byte(C.VALUE_83) == C.VALUE_00:
-            if time.time() - start > C.TIMEOUT_LIMIT:
-                # Retry mechanism could be implemented here or in the caller
-                # For now, we rely on the increased timeout
-                raise Exception("Timeout waiting for SPAD info")
-        self.write_byte(C.VALUE_83, C.VALUE_01)
+                # SPADキャリブレーションをトリガーし、完了を待つ
+                self.write_byte(C.REG_94, C.VALUE_6B)
+                self.write_byte(C.VALUE_83, C.VALUE_00)
+                
+                start = time.time()
+                while self.read_byte(C.VALUE_83) == C.VALUE_00:
+                    if time.time() - start > C.TIMEOUT_LIMIT:
+                        raise Exception("Timeout waiting for SPAD info")
+                self.write_byte(C.VALUE_83, C.VALUE_01)
 
-        # SPADカウントとアパーチャ情報を読み取る
-        tmp = self.read_byte(C.REG_92)
-        count = tmp & C.SPAD_COUNT_MASK
-        is_aperture = ((tmp & C.SPAD_APERTURE_BIT) != 0)
+                # SPADカウントとアパーチャ情報を読み取る
+                tmp = self.read_byte(C.REG_92)
+                count = tmp & C.SPAD_COUNT_MASK
+                is_aperture = ((tmp & C.SPAD_APERTURE_BIT) != 0)
 
-        # レジスタをデフォルト値に復元
-        self.write_byte(C.REG_81, C.VALUE_00)
-        self.write_byte(C.REG_FF, C.VALUE_06)
-        self.write_byte(C.VALUE_83, (self.read_byte(C.VALUE_83) & ~C.VALUE_04))
-        self.write_byte(C.REG_FF, C.VALUE_01)
-        self.write_byte(C.REG_00, C.VALUE_01)
+                # レジスタをデフォルト値に復元
+                self.write_byte(C.REG_81, C.VALUE_00)
+                self.write_byte(C.REG_FF, C.VALUE_06)
+                self.write_byte(C.VALUE_83, (self.read_byte(C.VALUE_83) & ~C.VALUE_04))
+                self.write_byte(C.REG_FF, C.VALUE_01)
+                self.write_byte(C.REG_00, C.VALUE_01)
 
-        self.write_byte(C.REG_FF, C.VALUE_00)
-        self.write_byte(C.REG_80, C.VALUE_00)
+                self.write_byte(C.REG_FF, C.VALUE_00)
+                self.write_byte(C.REG_80, C.VALUE_00)
 
-        return count, is_aperture
+                return count, is_aperture
+
+            except Exception as e:
+                self.__log.warning(f"SPAD info retrieval failed (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(0.1)  # Brief pause before retry
 
     # 内部ヘルパー関数 (C++版 calcMacroPeriod の移植)
     def _calc_macro_period(self, vcsel_period_pclks: int) -> int:
