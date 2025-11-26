@@ -313,10 +313,13 @@ class VL53L0X:
         # SPADキャリブレーションをトリガーし、完了を待つ
         self.write_byte(C.REG_94, C.VALUE_6B)
         self.write_byte(C.VALUE_83, C.VALUE_00)
+        
         start = time.time()
         while self.read_byte(C.VALUE_83) == C.VALUE_00:
             if time.time() - start > C.TIMEOUT_LIMIT:
-                raise Exception("Timeout")
+                # Retry mechanism could be implemented here or in the caller
+                # For now, we rely on the increased timeout
+                raise Exception("Timeout waiting for SPAD info")
         self.write_byte(C.VALUE_83, C.VALUE_01)
 
         # SPADカウントとアパーチャ情報を読み取る
