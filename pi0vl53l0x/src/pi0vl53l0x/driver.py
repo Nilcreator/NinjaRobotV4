@@ -275,6 +275,18 @@ class VL53L0X:
         # キャリブレーション後に以前のシーケンス設定を復元
         self.write_byte(C.SYSTEM_SEQUENCE_CONFIG, C.VALUE_E8)
 
+    def check_connection(self) -> None:
+        """
+        Check if the sensor is connected by reading the Model ID.
+        """
+        try:
+            model_id = self.read_byte(C.IDENTIFICATION_MODEL_ID)
+            if model_id != 0xEE:
+                raise ConnectionError(f"Invalid Model ID: {hex(model_id)}. Expected 0xEE.")
+            self.__log.debug("Model ID verified: 0xEE")
+        except Exception as e:
+            raise ConnectionError(f"Failed to connect to VL53L0X: {e}")
+
     def reset(self) -> None:
         """
         Perform a software reset of the sensor.
@@ -290,6 +302,9 @@ class VL53L0X:
         """
         センサーを初期化します。
         """
+        # Check connection first
+        self.check_connection()
+
         # Software Reset
         self.reset()
 

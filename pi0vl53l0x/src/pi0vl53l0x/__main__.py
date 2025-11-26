@@ -69,14 +69,19 @@ def get(
         raise click.ClickException("cannnto connect pigpiod")
 
     try:
-        with VL53L0X(pi, debug=debug, config_file_path=ctx.obj["config_file"]) as sensor:
-            for i in range(count):
-                distance: int = sensor.get_range()
-                if distance > 0:
-                    click.echo(f"{i + 1}/{count}: {distance} mm")
-                else:
-                    click.echo(f"{i + 1}/{count}: 無効なデータ。")
-                time.sleep(interval)
+        try:
+            with VL53L0X(pi, debug=debug, config_file_path=ctx.obj["config_file"]) as sensor:
+                for i in range(count):
+                    distance: int = sensor.get_range()
+                    if distance > 0:
+                        click.echo(f"{i + 1}/{count}: {distance} mm")
+                    else:
+                        click.echo(f"{i + 1}/{count}: 無効なデータ。")
+                    time.sleep(interval)
+        except Exception as e:
+            if debug:
+                raise
+            click.echo(f"Error: {e}")
     finally:
         pi.stop()
 
@@ -100,22 +105,27 @@ def performance(ctx: click.Context, count: int) -> None:
         raise click.ClickException("cannnto connect pigpiod")
 
     try:
-        with VL53L0X(pi, debug=debug, config_file_path=ctx.obj["config_file"]) as sensor:
-            click.echo(f"{count}回の距離測定パフォーマンスを評価します...")
-            start_time = time.perf_counter()
-            for _ in range(count):
-                sensor.get_range()
-            end_time = time.perf_counter()
+        try:
+            with VL53L0X(pi, debug=debug, config_file_path=ctx.obj["config_file"]) as sensor:
+                click.echo(f"{count}回の距離測定パフォーマンスを評価します...")
+                start_time = time.perf_counter()
+                for _ in range(count):
+                    sensor.get_range()
+                end_time = time.perf_counter()
 
-            total_time = end_time - start_time
-            avg_time_per_measurement = total_time / count
-            measurements_per_second = count / total_time
+                total_time = end_time - start_time
+                avg_time_per_measurement = total_time / count
+                measurements_per_second = count / total_time
 
-            click.echo("---")
-            click.echo(f"合計時間: {total_time:.4f} 秒")
-            click.echo(f"1回あたりの平均時間: {avg_time_per_measurement * 1000:.4f} ms")
-            click.echo(f"1秒あたりの測定回数: {measurements_per_second:.2f} 回/秒")
-            click.echo("---")
+                click.echo("---")
+                click.echo(f"合計時間: {total_time:.4f} 秒")
+                click.echo(f"1回あたりの平均時間: {avg_time_per_measurement * 1000:.4f} ms")
+                click.echo(f"1秒あたりの測定回数: {measurements_per_second:.2f} 回/秒")
+                click.echo("---")
+        except Exception as e:
+            if debug:
+                raise
+            click.echo(f"Error: {e}")
     finally:
         pi.stop()
 
@@ -148,22 +158,27 @@ def calibrate(ctx: click.Context, distance: int, count: int, output_file: str) -
         raise click.ClickException("cannot connect to pigpiod")
 
     try:
-        with VL53L0X(
-                pi, debug=debug, config_file_path=ctx.obj["config_file"]
-        ) as sensor:
-            click.echo(f"{distance}mmの距離にターゲットを置いてください。")
-            click.echo("準備ができたらEnterキーを押してください...")
-            input()
+        try:
+            with VL53L0X(
+                    pi, debug=debug, config_file_path=ctx.obj["config_file"]
+            ) as sensor:
+                click.echo(f"{distance}mmの距離にターゲットを置いてください。")
+                click.echo("準備ができたらEnterキーを押してください...")
+                input()
 
-            offset = sensor.calibrate(distance, count)
+                offset = sensor.calibrate(distance, count)
 
-            click.echo(f"測定結果から計算されたオフセット値: {offset} mm")
-            click.echo("この値を set_offset() に設定して使用してください。")
+                click.echo(f"測定結果から計算されたオフセット値: {offset} mm")
+                click.echo("この値を set_offset() に設定して使用してください。")
 
-            # オフセット値をファイルに保存
-            config_data = {"offset_mm": offset}
-            save_config(output_file_path, config_data)
-            click.echo(f"オフセット値を {output_file_path} に保存しました。")
+                # オフセット値をファイルに保存
+                config_data = {"offset_mm": offset}
+                save_config(output_file_path, config_data)
+                click.echo(f"オフセット値を {output_file_path} に保存しました。")
+        except Exception as e:
+            if debug:
+                raise
+            click.echo(f"Error: {e}")
 
     finally:
         pi.stop()
