@@ -108,8 +108,13 @@ class HardwareAbstractionLayer:
         # --- Initialize Distance Sensor ---
         if self.config.sensors:
             log.info("Initializing distance sensor...")
-            self.distance_sensor = VL53L0X(pi=self.pi)
-            log.info("Distance sensor initialized.")
+            try:
+                self.distance_sensor = VL53L0X(pi=self.pi)
+                log.info("Distance sensor initialized.")
+            except Exception as e:
+                log.error(f"Failed to initialize distance sensor: {e}")
+                log.warning("Continuing without distance sensor. Obstacle avoidance will be disabled.")
+                self.distance_sensor = None
         else:
             log.info("No sensor config found. Skipping distance sensor.")
 
