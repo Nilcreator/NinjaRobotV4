@@ -275,10 +275,24 @@ class VL53L0X:
         # キャリブレーション後に以前のシーケンス設定を復元
         self.write_byte(C.SYSTEM_SEQUENCE_CONFIG, C.VALUE_E8)
 
+    def reset(self) -> None:
+        """
+        Perform a software reset of the sensor.
+        """
+        self.__log.debug("Resetting VL53L0X...")
+        self.write_byte(C.SOFT_RESET_GO2_SOFT_RESET_N, C.VALUE_00)
+        time.sleep(0.01)
+        self.write_byte(C.SOFT_RESET_GO2_SOFT_RESET_N, C.VALUE_01)
+        time.sleep(0.01)
+        self.__log.debug("VL53L0X reset complete.")
+
     def initialize(self) -> None:
         """
         センサーを初期化します。
         """
+        # Software Reset
+        self.reset()
+
         # I2Cレジスタの初期値を設定
         self._set_i2c_registers_initial_values()
 
