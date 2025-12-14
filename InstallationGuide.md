@@ -44,6 +44,16 @@ Before you begin, ensure the following software is installed on your Raspberry P
 3.  **ST7789V Display Connection (SPI):**
     *   **VCC** -> 3.3V
     *   **GND** -> Ground (GND)
+    *   **DIN** -> MOSI
+    *   **CLK** -> SCLK(SCK)
+    *   **CS** -> CE0
+    *   **DC** -> GPIO 18
+    *   **RST** -> GPIO 19
+    *   **BL** (Backlight) -> GPIO 20
+
+    **Waveshare 2.0 inch Display (SPI): **
+    *   **VCC** -> 3.3V
+    *   **GND** -> Ground (GND)
     *   **SCL** (or **CLK**) -> SPI0 SCLK (GPIO 11)
     *   **SDA** (or **MOSI**) -> SPI0 MOSI (GPIO 10)
     *   **RST** -> GPIO 19
