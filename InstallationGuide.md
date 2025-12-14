@@ -56,9 +56,9 @@ Before you begin, ensure the following software is installed on your Raspberry P
     *   **GND** -> Ground (GND)
     *   **SCL** (or **CLK**) -> SPI0 SCLK (GPIO 11)
     *   **SDA** (or **MOSI**) -> SPI0 MOSI (GPIO 10)
-    *   **RST** -> GPIO 19
-    *   **DC** -> GPIO 18
-    *   **BLK** (Backlight) -> GPIO 20
+    *   **RST** -> GPIO 15
+    *   **DC** -> GPIO 14 
+    *   **BLK** (Backlight) -> GPIO 16
 
 ### 1.4 System Configuration
 
