@@ -117,9 +117,9 @@ Raspberry Pi Zero 2W GPIO Pinout (40-pin header)
 |-------------|------------------|-------------|
 | VCC         | 3.3V             | Power       |
 | GND         | GND              | Ground      |
-| DIN (MOSI)  | GPIO 10 - SPI0 MOSI | SPI Data  |
-| CLK (SCL)   | GPIO 11 - SPI0 SCLK | SPI Clock |
-| CS          | GPIO 11 - SPI0 CE0  |            |
+| DIN (MOSI)  | MOSI             | SPI Data  |
+| CLK (SCL)   | SCLK             | SPI Clock |
+| CS          | CE0              |            |
 | DC          | GPIO 14 (DC)     | Data/Command |
 | RST         | GPIO 15 (RST)    | Reset       |
 | BLK         | GPIO 16 (BL)     | Backlight   |
