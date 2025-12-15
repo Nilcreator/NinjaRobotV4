@@ -112,6 +112,18 @@ Raspberry Pi Zero 2W GPIO Pinout (40-pin header)
 | RST         | Pin 35 (GPIO 19) | Reset       |
 | BLK         | Pin 38 (GPIO 20) | Backlight   |
 
+#### Waveshare 2.0 inch Display (New GPIO Board SPI arrangement)
+| Display Pin | Raspberry Pi Pin | Description |
+|-------------|------------------|-------------|
+| VCC         | 3.3V             | Power       |
+| GND         | GND              | Ground      |
+| DIN (MOSI)  | GPIO 10 - SPI0 MOSI | SPI Data  |
+| CLK (SCL)   | GPIO 11 - SPI0 SCLK | SPI Clock |
+| CS          | GPIO 11 - SPI0 CE0  |            |
+| DC          | GPIO 14 (DC)     | Data/Command |
+| RST         | GPIO 15 (RST)    | Reset       |
+| BLK         | GPIO 16 (BL)     | Backlight   |
+
 #### VL53L0X Distance Sensor (I2C)
 
 | Sensor Pin | Raspberry Pi Pin | Description |
