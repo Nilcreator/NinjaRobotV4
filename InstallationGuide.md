@@ -245,7 +245,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 After installation, close and reopen your terminal, or run:
 
 ```bash
-source $HOME/.cargo/env
+source $HOME/.local/bin/env
 ```
 
 Verify installation:
@@ -962,7 +962,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 インストール後、ターミナルを閉じて再度開くか、次を実行:
 
 ```bash
-source $HOME/.cargo/env
+source $HOME/.local/bin/env
 ```
 
 インストールを確認:
