@@ -322,6 +322,22 @@ async def system_shutdown(request: Request):
         # Run shutdown command in a separate thread to avoid blocking the response
         # giving time for the response to be sent back to the client.
         async def delayed_shutdown():
+            # 1. Clear display to black (so even if backlight flickers back on, it's black)
+            if request.app.state.ninja.hal and request.app.state.ninja.hal.display:
+                try:
+                    from PIL import Image
+                    # Create a black image matching the display size
+                    width = request.app.state.ninja.hal.display.width
+                    height = request.app.state.ninja.hal.display.height
+                    black_screen = Image.new("RGB", (width, height), (0, 0, 0))
+                    request.app.state.ninja.hal.display.display(black_screen)
+                except Exception as e:
+                    print(f"Failed to clear display: {e}")
+
+            # 2. Shutdown HAL (turns off backlight, servos, buzzer)
+            if request.app.state.ninja.hal:
+                request.app.state.ninja.hal.shutdown()
+
             await asyncio.sleep(1)
             print("Executing shutdown command...")
             # sudo is required, and user must have passwordless sudo for shutdown
