@@ -356,8 +356,35 @@ async def websocket_distance(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
 
+def check_port_available(host: str, port: int) -> bool:
+    """Checks if the port is available."""
+    print(f"Checking port availability on {host}:{port}...")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # If connect succeeds (result 0), something is listening -> Port Busy
+        result = s.connect_ex((host, port))
+        if result == 0:
+            return False
+    return True
+
 def run_server(autostart: bool = False):
     print("--- NinjaRobot Web Server Setup ---")
+    
+    # Pre-check port 8000
+    host = "0.0.0.0"
+    port = 8000
+    
+    # Use 127.0.0.1 for checking availability as 0.0.0.0 can be quirky with connect_ex
+    if not check_port_available("127.0.0.1", port):
+        print(f"\n❌ ERROR: Port {port} is already in use!")
+        print("Possible causes:")
+        print("1. Another instance of 'ninja_core' is already running.")
+        print("2. The 'ninjarobot.service' background service is active.")
+        print("3. Another application is using port 8000.")
+        print("\nFix suggestions:")
+        print(" - Stop the background service: 'sudo systemctl stop ninjarobot'")
+        print(" - Kill zombie processes: 'sudo pkill -f ninja_core'")
+        print(" - Check running processes: 'ps aux | grep ninja'")
+        sys.exit(1)
     
     # Check for existing token
     token_exists = False
@@ -393,12 +420,26 @@ def run_server(autostart: bool = False):
     else:
         # Interactive Mode
         if token_exists:
-            token = input("Proceed with existing ngrok account by pressing ENTER or input new ngrok authtoken to proceed: ").strip()
+            try:
+                token = input("Proceed with existing ngrok account by pressing ENTER or input new ngrok authtoken to proceed: ").strip()
+            except EOFError:
+                # Handle non-interactive input gracefully
+                token = ""
         else:
-            token = input("Please input your ngrok authtoken to proceed: ").strip()
+            try:
+                token = input("Please input your ngrok authtoken to proceed: ").strip()
+            except EOFError:
+                print("Error: Input required for ngrok token but no input stream available.")
+                sys.exit(1)
 
         if token:
             print("Setting ngrok authtoken...")
             ngrok.set_auth_token(token)
     
-    uvicorn.run("ninja_core.web_server:app", host="0.0.0.0", port=8000, reload=False)
+    print(f"Starting uvicorn on {host}:{port}...")
+    try:
+        uvicorn.run("ninja_core.web_server:app", host=host, port=port, reload=False)
+    except SystemExit:
+        pass
+    except Exception as e:
+        print(f"Server crashed: {e}")
