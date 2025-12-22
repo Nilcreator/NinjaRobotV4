@@ -1,3 +1,18 @@
+## 2025-12-22: Hardware Configuration Update
+
+### Hardware Changes
+- **Servos**: Reassigned to GPIO `20, 21, 22, 23, 24, 25, 26, 27`.
+- **Display**: Updated SPI control pins to DC=`14`, RST=`15`, BLK=`16`.
+- **Buzzer**: Reassigned to GPIO `17`.
+
+### Code Updates
+- `ninja_core.config`: Updated `DisplayConfig` defaults and `servos` calibration fallback.
+- `pi0disp.disp.st7789v`: Updated default constructor arguments.
+- Updated `InstallationGuide.md` (English & Japanese) with new wiring diagrams and tables.
+- Updated `DevelopmentGuide.md` with new pin references in examples and documentation.
+
+---
+
 ### 2025-11-23 - UI/UX Redesign & Mobile Refinements
 - **UI/UX Overhaul ("Dark Modern Dashboard")**:
     - **New Design System**: Implemented a premium dark mode aesthetic (`style.css`) with neumorphic cards, gradient buttons, and soft shadows.

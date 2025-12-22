@@ -45,9 +45,9 @@ class BuzzerConfig(BaseModel):
 class DisplayConfig(BaseModel):
     """Configuration for the ST7789V display."""
 
-    dc: Optional[int] = Field(18, description="The DC (Data/Command) pin.")
-    rst: Optional[int] = Field(19, description="The RST (Reset) pin.")
-    blk: Optional[int] = Field(20, description="The BLK (Backlight) pin.")
+    dc: Optional[int] = Field(14, description="The DC (Data/Command) pin.")
+    rst: Optional[int] = Field(15, description="The RST (Reset) pin.")
+    blk: Optional[int] = Field(16, description="The BLK (Backlight) pin.")
 
 
 class SensorConfig(BaseModel):
@@ -134,13 +134,13 @@ def import_and_update_config():
             f"Info: '{servo_config_path}' not found. Applying default servo calibration."
         )
         default_calib = {
-            "5": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
-            "17": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "20": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
             "21": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
             "22": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
             "23": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
             "24": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
             "25": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
+            "26": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
             "27": {"min_pulse": 500, "center_pulse": 1500, "max_pulse": 2500},
         }
         # Validate and assign the default data

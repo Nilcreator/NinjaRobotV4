@@ -62,9 +62,9 @@ Raspberry Pi Zero 2W GPIO Pinout (40-pin header)
 │  3.3V  [1] [2]  5V                  │
 │  SDA   [3] [4]  5V                  │
 │  SCL   [5] [6]  GND                 │
-│  GPIO4 [7] [8]  GPIO14 (TXD)        │
-│  GND   [9] [10] GPIO15 (RXD)        │
-│  SPI0 SCLK [11] [12] GPIO18 (DC)    │  ← Display DC
+│  GPIO4 [7] [8]  GPIO14 (DC)         │
+│  GND   [9] [10] GPIO15 (RST)        │
+│  GPIO17[11] [12] GPIO18             │  ← Buzzer (17)
 │  GPIO27[13] [14] GND                │
 │  GPIO22[15] [16] GPIO23             │
 │  3.3V [17] [18] GPIO24              │
@@ -76,8 +76,8 @@ Raspberry Pi Zero 2W GPIO Pinout (40-pin header)
 │  GPIO5[29] [30] GND                 │
 │  GPIO6[31] [32] GPIO12              │
 │  GPIO13[33] [34] GND                │
-│  GPIO19[35] [36] GPIO16             │  ← Display RST (19)
-│  GPIO26[37] [38] GPIO20             │  ← Buzzer (26), Display BLK (20)
+│  GPIO19[35] [36] GPIO16 (BLK)       │
+│  GPIO26[37] [38] GPIO20             │
 │  GND  [39] [40] GPIO21              │
 └─────────────────────────────────────┘
 ```
@@ -88,41 +88,30 @@ Raspberry Pi Zero 2W GPIO Pinout (40-pin header)
 
 | Servo # | GPIO Pin | Signal Wire | Power (5V) | Ground |
 |---------|----------|-------------|------------|--------|
-| 1       | GPIO 5   | Orange/Yellow | External 5V | Common GND |
-| 2       | GPIO 17  | Orange/Yellow | External 5V | Common GND |
-| 3       | GPIO 21  | Orange/Yellow | External 5V | Common GND |
-| 4       | GPIO 22  | Orange/Yellow | External 5V | Common GND |
-| 5       | GPIO 23  | Orange/Yellow | External 5V | Common GND |
-| 6       | GPIO 24  | Orange/Yellow | External 5V | Common GND |
-| 7       | GPIO 25  | Orange/Yellow | External 5V | Common GND |
+| 1       | GPIO 20  | Orange/Yellow | External 5V | Common GND |
+| 2       | GPIO 21  | Orange/Yellow | External 5V | Common GND |
+| 3       | GPIO 22  | Orange/Yellow | External 5V | Common GND |
+| 4       | GPIO 23  | Orange/Yellow | External 5V | Common GND |
+| 5       | GPIO 24  | Orange/Yellow | External 5V | Common GND |
+| 6       | GPIO 25  | Orange/Yellow | External 5V | Common GND |
+| 7       | GPIO 26  | Orange/Yellow | External 5V | Common GND |
 | 8       | GPIO 27  | Orange/Yellow | External 5V | Common GND |
 
 > [!IMPORTANT]
-> **Servo Power:** Connect all servo power wires (red) to your external 5V power supply (NOT the Raspberry Pi). Connect all servo ground wires (brown/black) to a common ground that is also connected to one of the Raspberry Pi's GND pins (e.g., Pin 6, 9, 14, 20, 25, 30, 34, or 39).
+> **Servo Power:** Connect all servo power wires (red) to your external 5V power supply (NOT the Raspberry Pi). Connect all servo ground wires (brown/black) to a common ground that is also connected to one of the Raspberry Pi's GND pins.
 
 #### ST7789V LCD Display (SPI)
 
 | Display Pin | Raspberry Pi Pin | Description |
 |-------------|------------------|-------------|
-| VCC         | Pin 17 (3.3V)    | Power       |
-| GND         | Pin 14 (GND)     | Ground      |
-| SCL (CLK)   | Pin 23 (GPIO 11 - SPI0 SCLK) | SPI Clock |
-| SDA (MOSI)  | Pin 19 (GPIO 10 - SPI0 MOSI) | SPI Data  |
-| DC          | Pin 12 (GPIO 18) | Data/Command |
-| RST         | Pin 35 (GPIO 19) | Reset       |
-| BLK         | Pin 38 (GPIO 20) | Backlight   |
-
-#### Waveshare 2.0 inch Display (New GPIO Board SPI arrangement)
-| Display Pin | Raspberry Pi Pin | Description |
-|-------------|------------------|-------------|
 | VCC         | 3.3V             | Power       |
 | GND         | GND              | Ground      |
-| DIN (MOSI)  | MOSI             | SPI Data  |
-| CLK (SCL)   | SCLK             | SPI Clock |
-| CS          | CE0              |            |
-| DC          | GPIO 14 (DC)     | Data/Command |
-| RST         | GPIO 15 (RST)    | Reset       |
-| BLK         | GPIO 16 (BL)     | Backlight   |
+| DIN (MOSI)  | SPI0 MOSI        | SPI Data    |
+| CLK (SCL)   | SPI0 SCLK        | SPI Clock   |
+| CS          | SPI0 CE0         | Chip Select |
+| DC          | GPIO 14          | Data/Command|
+| RST         | GPIO 15          | Reset       |
+| BLK         | GPIO 16          | Backlight   |
 
 #### VL53L0X Distance Sensor (I2C)
 
@@ -137,18 +126,18 @@ Raspberry Pi Zero 2W GPIO Pinout (40-pin header)
 
 | Buzzer Pin | Raspberry Pi Pin | Description |
 |------------|------------------|-------------|
-| Positive (+) | Pin 37 (GPIO 26) | Signal    |
-| Negative (-) | Pin 39 (GND)     | Ground    |
+| Positive (+) | Pin 11 (GPIO 17) | Signal    |
+| Negative (-) | GND              | Ground    |
 
 ### Wiring Checklist
 
 Before proceeding, verify:
-- [ ] All servo signal wires are connected to the correct GPIO pins
+- [ ] All servo signal wires are connected to the correct GPIO pins (20-27)
 - [ ] Servo power comes from an external 5V supply (NOT the Pi)
 - [ ] Common ground is shared between Pi and external servo power supply
-- [ ] Display is connected via SPI (pins 19, 23, 12, 35, 38)
-- [ ] Distance sensor is connected via I2C (pins 3, 5)
-- [ ] Buzzer is connected to GPIO 26
+- [ ] Display is connected via SPI (SCLK, MOSI, CE0) and GPIO 14, 15, 16
+- [ ] Distance sensor is connected via I2C (SCL, SDA)
+- [ ] Buzzer is connected to GPIO 17
 - [ ] No loose wires or short circuits
 
 ---
@@ -363,7 +352,7 @@ Before running the robot, you need to calibrate the servos and configure the har
 Tell the system which GPIO pin the buzzer is connected to:
 
 ```bash
-uv run pi0buzzer init 26
+uv run pi0buzzer init 17
 ```
 
 Test the buzzer:
@@ -391,7 +380,7 @@ Each servo needs to be calibrated to define its minimum, center, and maximum pos
 For each servo (example for GPIO 17):
 
 ```bash
-uv run pi0servo calib 17
+uv run pi0servo calib 20
 ```
 
 Follow the on-screen instructions:
@@ -402,7 +391,7 @@ Follow the on-screen instructions:
 5. Press `x` to select **Max** position, adjust, and press **Enter**
 6. Press `q` to quit
 
-**Repeat this for all 8 servos** (GPIO pins: 5, 17, 21, 22, 23, 24, 25, 27)
+**Repeat this for all 8 servos** (GPIO pins: 20 through 27)
 
 ### Step 7.4: Import Hardware Configuration
 
@@ -456,17 +445,17 @@ Press **Ctrl+C** to stop.
 Move a servo to its center position:
 
 ```bash
-uv run pi0servo servo 17 center
+uv run pi0servo servo 20 center
 ```
 
-The servo on GPIO 17 should move to 0 degrees.
+The servo on GPIO 20 should move to 0 degrees.
 
 Try other positions:
 
 ```bash
-uv run pi0servo servo 17 45
-uv run pi0servo servo 17 -45
-uv run pi0servo servo 17 max
+uv run pi0servo servo 20 45
+uv run pi0servo servo 20 -45
+uv run pi0servo servo 20 max
 ```
 
 ### Test 8.3: Sound Test
@@ -786,9 +775,9 @@ Raspberry Pi Zero 2W GPIOピン配置（40ピンヘッダー）
 │  3.3V  [1] [2]  5V                  │
 │  SDA   [3] [4]  5V                  │
 │  SCL   [5] [6]  GND                 │
-│  GPIO4 [7] [8]  GPIO14 (TXD)        │
-│  GND   [9] [10] GPIO15 (RXD)        │
-│  SPI0 SCLK [11] [12] GPIO18 (DC)    │  ← ディスプレイDC
+│  GPIO4 [7] [8]  GPIO14 (DC)         │
+│  GND   [9] [10] GPIO15 (RST)        │
+│  GPIO17[11] [12] GPIO18             │  ← ブザー (17)
 │  GPIO27[13] [14] GND                │
 │  GPIO22[15] [16] GPIO23             │
 │  3.3V [17] [18] GPIO24              │
@@ -800,8 +789,8 @@ Raspberry Pi Zero 2W GPIOピン配置（40ピンヘッダー）
 │  GPIO5[29] [30] GND                 │
 │  GPIO6[31] [32] GPIO12              │
 │  GPIO13[33] [34] GND                │
-│  GPIO19[35] [36] GPIO16             │  ← ディスプレイRST (19)
-│  GPIO26[37] [38] GPIO20             │  ← ブザー(26)、ディスプレイBLK(20)
+│  GPIO19[35] [36] GPIO16 (BLK)       │
+│  GPIO26[37] [38] GPIO20             │
 │  GND  [39] [40] GPIO21              │
 └─────────────────────────────────────┘
 ```
@@ -812,13 +801,13 @@ Raspberry Pi Zero 2W GPIOピン配置（40ピンヘッダー）
 
 | サーボ番号 | GPIOピン | 信号線 | 電源（5V） | グラウンド |
 |---------|----------|-------------|------------|-----------|
-| 1       | GPIO 5   | オレンジ/黄色 | 外部5V | 共通GND |
-| 2       | GPIO 17  | オレンジ/黄色 | 外部5V | 共通GND |
-| 3       | GPIO 21  | オレンジ/黄色 | 外部5V | 共通GND |
-| 4       | GPIO 22  | オレンジ/黄色 | 外部5V | 共通GND |
-| 5       | GPIO 23  | オレンジ/黄色 | 外部5V | 共通GND |
-| 6       | GPIO 24  | オレンジ/黄色 | 外部5V | 共通GND |
-| 7       | GPIO 25  | オレンジ/黄色 | 外部5V | 共通GND |
+| 1       | GPIO 20  | オレンジ/黄色 | 外部5V | 共通GND |
+| 2       | GPIO 21  | オレンジ/黄色 | 外部5V | 共通GND |
+| 3       | GPIO 22  | オレンジ/黄色 | 外部5V | 共通GND |
+| 4       | GPIO 23  | オレンジ/黄色 | 外部5V | 共通GND |
+| 5       | GPIO 24  | オレンジ/黄色 | 外部5V | 共通GND |
+| 6       | GPIO 25  | オレンジ/黄色 | 外部5V | 共通GND |
+| 7       | GPIO 26  | オレンジ/黄色 | 外部5V | 共通GND |
 | 8       | GPIO 27  | オレンジ/黄色 | 外部5V | 共通GND |
 
 > [!IMPORTANT]
@@ -828,13 +817,14 @@ Raspberry Pi Zero 2W GPIOピン配置（40ピンヘッダー）
 
 | ディスプレイピン | Raspberry Piピン | 説明 |
 |-------------|------------------|------|
-| VCC         | ピン17（3.3V）    | 電源 |
-| GND         | ピン14（GND）     | グラウンド |
-| SCL（CLK）   | ピン23（GPIO 11 - SPI0 SCLK） | SPIクロック |
-| SDA（MOSI）  | ピン19（GPIO 10 - SPI0 MOSI） | SPIデータ |
-| DC          | ピン12（GPIO 18） | データ/コマンド切り替え |
-| RST         | ピン35（GPIO 19） | リセット |
-| BLK         | ピン38（GPIO 20） | バックライト |
+| VCC         | 3.3V             | 電源 |
+| GND         | GND              | グラウンド |
+| DIN（MOSI） | SPI0 MOSI        | SPIデータ |
+| CLK（SCL）  | SPI0 SCLK        | SPIクロック |
+| CS          | SPI0 CE0         | チップセレクト |
+| DC          | GPIO 14          | データ/コマンド |
+| RST         | GPIO 15          | リセット |
+| BLK         | GPIO 16          | バックライト |
 
 #### VL53L0X距離センサー（I2C接続）
 
@@ -849,18 +839,18 @@ Raspberry Pi Zero 2W GPIOピン配置（40ピンヘッダー）
 
 | ブザーピン | Raspberry Piピン | 説明 |
 |------------|------------------|------|
-| プラス（+） | ピン37（GPIO 26） | 信号 |
-| マイナス（-） | ピン39（GND）     | グラウンド |
+| プラス（+） | ピン11（GPIO 17） | 信号 |
+| マイナス（-） | GND               | グラウンド |
 
 ### 配線チェックリスト
 
 続行する前に、以下を確認してください:
-- [ ] すべてのサーボ信号線が正しいGPIOピンに接続されている
+- [ ] すべてのサーボ信号線が正しいGPIOピンに接続されている（20-27）
 - [ ] サーボの電源は外部5V電源から供給されている（Piからではない）
 - [ ] Piとサーボ外部電源の間で共通グラウンドが共有されている
-- [ ] ディスプレイがSPI経由で接続されている（ピン19、23、12、35、38）
-- [ ] 距離センサーがI2C経由で接続されている（ピン3、5）
-- [ ] ブザーがGPIO 26に接続されている
+- [ ] ディスプレイがSPI経由で接続されている（SCLK, MOSI, CE0）およびGPIO 14, 15, 16
+- [ ] 距離センサーがI2C経由で接続されている（SCL, SDA）
+- [ ] ブザーがGPIO 17に接続されている
 - [ ] 緩んだワイヤーやショート（短絡）がない
 
 ---
@@ -1081,7 +1071,7 @@ ninja_core --help
 ブザーが接続されているGPIOピンをシステムに伝えます:
 
 ```bash
-uv run pi0buzzer init 26
+uv run pi0buzzer init 17
 ```
 
 ブザーをテスト:
@@ -1109,7 +1099,7 @@ uv run pi0vl53l0x get --count 5 --interval 1.0
 各サーボについて（GPIO 17の例）:
 
 ```bash
-uv run pi0servo calib 17
+uv run pi0servo calib 20
 ```
 
 画面の指示に従ってください:
@@ -1120,7 +1110,7 @@ uv run pi0servo calib 17
 5. `x`を押して**Max**（最大）位置を選択、調整して**Enter**を押す
 6. `q`を押して終了
 
-**これを8つすべてのサーボで繰り返してください**（GPIOピン: 5、17、21、22、23、24、25、27）
+**これを8つすべてのサーボで繰り返してください**（GPIOピン: 20から27）
 
 ### ステップ7.4: ハードウェア設定のインポート
 
@@ -1174,17 +1164,17 @@ uv run pi0disp ball_anime --num-balls 5
 サーボを中央位置に移動:
 
 ```bash
-uv run pi0servo servo 17 center
+uv run pi0servo servo 20 center
 ```
 
-GPIO 17のサーボが0度に移動するはずです。
+GPIO 20のサーボが0度に移動するはずです。
 
 他の位置を試す:
 
 ```bash
-uv run pi0servo servo 17 45
-uv run pi0servo servo 17 -45
-uv run pi0servo servo 17 max
+uv run pi0servo servo 20 45
+uv run pi0servo servo 20 -45
+uv run pi0servo servo 20 max
 ```
 
 ### テスト8.3: サウンドテスト

@@ -206,7 +206,7 @@ uv run ruff format <file_path>
 **Running CLI Tools:**
 ```bash
 uv run ninja_core --help
-uv run pi0servo calib 17
+uv run pi0servo calib 20
 uv run pi0disp image test.jpg
 ```
 
@@ -392,7 +392,7 @@ import pigpio
 from pi0buzzer.driver import Buzzer
 
 pi = pigpio.pi()
-buzzer = Buzzer(pi, pin=26)
+buzzer = Buzzer(pi, pin=17)
 
 buzzer.play_sound(440, 0.5)  # A4 note for 0.5 seconds
 buzzer.off()
@@ -424,7 +424,7 @@ def __init__(self, pi: pigpio.pi, pin: int)
 ```python
 from pi0buzzer.driver import MusicBuzzer
 
-buzzer = MusicBuzzer(pi, pin=26)
+buzzer = MusicBuzzer(pi, pin=17)
 
 # Define a melody
 melody = [
@@ -449,7 +449,7 @@ buzzer.play_song(melody)
 
 **`init <pin>`**
 - Creates `buzzer.json` with the specified GPIO pin
-- **Example:** `uv run pi0buzzer init 26`
+- **Example:** `uv run pi0buzzer init 17`
 
 **`beep`**
 - Plays a short test beep
@@ -622,9 +622,9 @@ def __init__(
     self,
     pi: pigpio.pi,
     channel: int = 0,
-    dc_pin: int = 18,
-    rst_pin: int = 19,
-    backlight_pin: int = 20,
+    dc_pin: int = 14,
+    rst_pin: int = 15,
+    backlight_pin: int = 16,
     width: int = 240,
     height: int = 240
 )
@@ -663,7 +663,7 @@ from PIL import Image
 from pi0disp.disp.st7789v import ST7789V
 
 pi = pigpio.pi()
-display = ST7789V(pi, channel=0, dc_pin=18, rst_pin=19, backlight_pin=20)
+display = ST7789V(pi, channel=0, dc_pin=14, rst_pin=15, backlight_pin=16)
 
 # Display an image
 img = Image.open("face.jpg")
@@ -806,7 +806,7 @@ import pigpio
 from pi0servo.core.piservo import PiServo
 
 pi = pigpio.pi()
-servo = PiServo(pi, pin=17)
+servo = PiServo(pi, pin=20)
 
 servo.set_angle(0)    # Center
 servo.set_angle(45)   # Right
@@ -899,7 +899,7 @@ import pigpio
 from pi0servo.core.multi_servo import MultiServo
 
 pi = pigpio.pi()
-multi = MultiServo(pi, pins=[17, 22, 27], conf_file="servo.json")
+multi = MultiServo(pi, pins=[20, 21, 22], conf_file="servo.json")
 
 # Move all servos instantly
 multi.move_all_angles([0, 45, -30])
@@ -943,7 +943,7 @@ def __init__(
 ```python
 from pi0servo.helper.thread_multi_servo import ThreadMultiServo
 
-multi = ThreadMultiServo(pi, pins=[17, 22, 27])
+multi = ThreadMultiServo(pi, pins=[20, 21, 22])
 
 # Non-blocking movement
 multi.move_all_angles_async([0, 45, -30])
@@ -962,8 +962,8 @@ multi.stop_thread()
 
 **`servo <pin> <angle|min|center|max>`**
 - Moves a single servo
-- **Example:** `uv run pi0servo servo 17 center`
-- **Example:** `uv run pi0servo servo 17 45`
+- **Example:** `uv run pi0servo servo 20 center`
+- **Example:** `uv run pi0servo servo 20 45`
 
 **`calib <pin>`**
 - Interactive TUI calibration tool
@@ -1017,9 +1017,9 @@ class BuzzerConfig(BaseModel):
 **`DisplayConfig`** (Pydantic BaseModel)
 ```python
 class DisplayConfig(BaseModel):
-    dc: Optional[int] = 18
-    rst: Optional[int] = 19
-    blk: Optional[int] = 20
+    dc: Optional[int] = 14
+    rst: Optional[int] = 15
+    blk: Optional[int] = 16
 ```
 
 **`SensorConfig`** (Pydantic BaseModel)
@@ -1243,7 +1243,7 @@ from ninja_core.movement_controller import MovementController
 controller = MovementController(hal, config)
 
 # Execute single movement
-controller.move_servos({17: 45, 22: -30}, speed="M")
+controller.move_servos({20: 45, 21: -30}, speed="M")
 
 # Execute named sequence
 controller.execute_movement("wave")
