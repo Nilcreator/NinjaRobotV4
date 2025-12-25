@@ -3,6 +3,7 @@ import os
 import sys
 import socket
 import subprocess
+import threading
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -185,8 +186,8 @@ def safety_check(app_state: AppState) -> bool:
                 app_state.faces.play("scary", duration_s=2.0)
             
             if app_state.sound:
-                # Play scary sound (non-blocking)
-                asyncio.create_task(asyncio.to_thread(app_state.sound.play, "scary"))
+                # Play scary sound (non-blocking via thread, safe for callbacks)
+                threading.Thread(target=app_state.sound.play, args=("scary",), daemon=True).start()
             
             # Return False so we DO NOT stop the servos
             return False

@@ -14,7 +14,8 @@
 - **Behavior**:
     1. Triggers "Scary" face and sound.
     2. **Does NOT stop the servos**. Movement continues.
-    3. Throttled to trigger at most once every 5 seconds.
+- **Startle Behavior Fix**: Resolved `RuntimeError: no running event loop` when Startle Response triggered during web movements.
+    - Used `threading.Thread` instead of `asyncio.create_task` for sound playback in synchronous callbacks.
 
 ### Developer Tooling
 - **Movement Tool Isolation**: The `ninja_core movement-tool` now purely initializes the servos. The display and buzzer correctly remain off during movement recording, reducing power usage and distraction.
