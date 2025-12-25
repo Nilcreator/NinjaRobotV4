@@ -75,7 +75,7 @@ def chat():
         
         # Initialize Distance Monitor
         distance_monitor = DistanceMonitor(hal)
-        distance_monitor.start_continuous(interval=0.01)
+        distance_monitor.start_continuous(interval=0.05)
         
         # Initialize Controllers (declare outside try for finally access)
         faces = None
@@ -108,8 +108,8 @@ def chat():
                 display_dist = dist if dist != -1 else "---"
                 print(f"Dist: {display_dist}mm | Vel: {vel:.1f}mm/s   ", end="\r", flush=True)
 
-                # Check if valid reading (>=0), within 50mm, AND approaching rapidly
-                if 0 <= dist <= 50 and vel < -50:
+                # Use robust emergency check
+                if distance_monitor.check_emergency_stop():
                     print()  # Newline so the emergency message is on a new line
                     print(f"!!! EMERGENCY STOP !!! Dist: {dist}mm, Vel: {vel:.2f}mm/s")
                     return True

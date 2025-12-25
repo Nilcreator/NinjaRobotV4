@@ -166,12 +166,9 @@ def safety_check(app_state: AppState) -> bool:
     """
     if not app_state.distance_monitor:
         return False
-    dist = app_state.distance_monitor.get_continuous_distance()
-    vel = app_state.distance_monitor.get_velocity()
-    
-    # Check if object is close (<= 50mm) AND approaching fast
-    # Velocity is negative when approaching.
-    if 0 <= dist <= 50 and vel < -50:
+    if app_state.distance_monitor.check_emergency_stop():
+        dist = app_state.distance_monitor.get_continuous_distance()
+        vel = app_state.distance_monitor.get_velocity()
         print(f"!!! EMERGENCY STOP TRIGGERED !!! Distance: {dist}mm, Velocity: {vel:.2f}mm/s")
         return True
     return False

@@ -100,6 +100,27 @@ class DistanceMonitor:
         with self._lock:
             return self._current_velocity
 
+    def check_emergency_stop(self, distance_threshold: int = 50, velocity_threshold: float = -50.0, consecutive_frames: int = 5) -> bool:
+        """
+        Checks if emergency stop conditions are met.
+        
+        Condition:
+        1. Last `consecutive_frames` continuous distance readings are <= `distance_threshold`.
+        2. AND Current velocity is < `velocity_threshold` (approaching rapidly).
+        """
+        with self._lock:
+            if len(self._history) < consecutive_frames:
+                return False
+                
+            # Check continuous distance
+            recent_readings = list(self._history)[-consecutive_frames:]
+            all_close = all(dist <= distance_threshold for _, dist in recent_readings)
+            
+            # Check velocity
+            approaching_fast = self._current_velocity < velocity_threshold
+            
+            return all_close and approaching_fast
+
     def _monitor_loop(self, interval: float):
         """
         The internal loop that runs in a thread to continuously get readings.
