@@ -7,9 +7,10 @@
 
 ### Agent Enhancements (Gemini 3.0, Search & Emotions)
 - **Model Upgrade**: Updated `NinjaAgent` to use **Gemini 3.0 Flash** for improved reasoning and speed.
-- **Google Search Refinement**:
-    - Fixed `400` error by switching tool to `google_search` (Gemini 2.0+ standard).
-    - Restricted search to only trigger when user says "**search**" to prevent unnecessary queries.
+- **Google Search Removed**:
+    - Reverted Google Search integration due to incompatibility between `google-generativeai` 0.8.5 library (expects `google_search_retrieval`) and Gemini 3.0 API (expects `google_search`).
+    - Attempted fix with `tools=[{'google_search': {}}]` caused "Unknown field" error in local library validation.
+    - Removed to ensure agent stability.
 - **Emotional & Movement Chaining**:
     - Agent can now execute sequential movements (e.g., "Walk 5 times").
     - Implemented `face_chain` and `sound_chain` for complex reactions (e.g., "Confused" then "Speaking").
