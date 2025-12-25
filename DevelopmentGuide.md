@@ -119,7 +119,7 @@ NinjaRobotV4/
         ├── __init__.py
         ├── __main__.py         # CLI entry point
         ├── config.py           # Centralized configuration
-        ├── hal.py              # Hardware Abstraction Layer
+        ├── hal.py              # Hardware Abstraction Layer (supports partial init)
         ├── ninja_agent.py      # AI agent (Gemini)
         ├── movement_controller.py  # Motion system
         ├── movement_cli.py     # Movement recording tool
@@ -1089,9 +1089,12 @@ def __init__(self, config: NinjaConfig)
 
 **Methods:**
 
-**`initialize() -> None`**
+**`initialize(components: list[str] = None) -> None`**
 - Connects to `pigpiod`
-- Initializes all hardware based on config
+- Initializes hardware based on config.
+- **Parameters:**
+  - `components`: Optional list of keys ("servos", "buzzer", "display", "sensors"). If None, initializes all.
+- **Note:** Fault-tolerant; logs warnings if individual components fail.
 - **Raises:** `ConnectionError` if pigpiod not running
 
 **`shutdown() -> None`**
@@ -1401,6 +1404,10 @@ def __init__(self, hal: HardwareAbstractionLayer)
 **`get_continuous_distance() -> int`**
 - Returns latest distance from background thread (non-blocking)
 - **Returns:** `0` if continuous mode not started
+
+**`get_velocity() -> float`**
+- Returns estimated approach velocity in mm/s
+- **Returns:** Negative value = approaching, Positive = retreating
 
 **`stop_continuous() -> None`**
 - Stops background thread

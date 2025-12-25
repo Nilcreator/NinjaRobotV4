@@ -39,6 +39,15 @@ class MovementController:
             speed: A character representing speed ('S'low, 'M'edium, 'F'ast).
             abort_check: An optional function that returns True if the movement should stop.
         """
+        if abort_check:
+            # We must be able to support abort checks even without servos, though meaningless.
+            pass
+
+        if not self.servos:
+            # If servos aren't initialized, we can't move them.
+            # But we shouldn't crash. Just log/print (optional) and return.
+            return
+
         duration_map = {"S": 1.0, "M": 0.5, "F": 0.2}
         duration = duration_map.get(speed, 0.5)
 
@@ -89,6 +98,10 @@ class MovementController:
         Returns a dictionary of {pin: current_angle} by mapping the list
         from the driver to its corresponding pins.
         """
+        if not self.servos:
+            # Return 0 for all known pins if driver is missing
+            return {int(pin): 0.0 for pin in self.servo_definitions.keys()}
+
         angle_list = self.servos.get_all_angles()
         pin_list = self.servos.pins
         return {pin_list[i]: angle_list[i] for i in range(len(pin_list))}

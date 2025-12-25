@@ -160,11 +160,21 @@ async def trigger_welcome(app_state: AppState):
             app_state.faces.play("idle", duration_s=float('inf'))
 
 def safety_check(app_state: AppState) -> bool:
-    """Returns True if obstacle is detected (<= 50mm)."""
+    """
+    Returns True if obstacle is detected within 50mm AND approaching rapidly.
+    Rapid approach threshold: -50 mm/s (moving towards sensor at > 5cm/s).
+    """
     if not app_state.distance_monitor:
         return False
     dist = app_state.distance_monitor.get_continuous_distance()
-    return 0 <= dist <= 50
+    vel = app_state.distance_monitor.get_velocity()
+    
+    # Check if object is close (<= 50mm) AND approaching fast
+    # Velocity is negative when approaching.
+    if 0 <= dist <= 50 and vel < -50:
+        print(f"!!! EMERGENCY STOP TRIGGERED !!! Distance: {dist}mm, Velocity: {vel:.2f}mm/s")
+        return True
+    return False
 
 async def execute_action_plan(app_state: AppState, action_plan: dict):
     tasks = []

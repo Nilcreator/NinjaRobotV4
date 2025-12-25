@@ -61,7 +61,7 @@ NinjaRobotV4 is a small, friendly robot powered by a **Raspberry Pi Zero 2W** th
 
 #### 👁️ **Environmental Awareness**
 - **Distance Sensing**: Uses a VL53L0X Time-of-Flight sensor to detect objects up to 2 meters away
-- **Obstacle Avoidance**: Automatically stops and reacts when objects come within 50mm, preventing collisions
+- **Smart Obstacle Avoidance**: Triggers emergency stop ONLY if an object is within 50mm **AND** approaching rapidly, ignoring static objects.
 - **Real-Time Monitoring**: Continuously streams distance data to the web interface
 
 #### 🌐 **Accessible Control**

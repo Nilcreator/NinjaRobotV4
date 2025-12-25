@@ -41,10 +41,15 @@ class HardwareAbstractionLayer:
         self.distance_sensor: VL53L0X | None = None
         log.info("Hardware Abstraction Layer created.")
 
-    def initialize(self):
+    def initialize(self, components: list[str] = None):
         """
         Connects to the pigpio daemon and initializes all hardware components
         based on the provided configuration.
+
+        Args:
+            components: A list of component names to initialize. 
+                        Options: "servos", "buzzer", "display", "sensors".
+                        If None, all components are initialized.
         """
         log.info("Initializing hardware components...")
         try:
@@ -57,65 +62,80 @@ class HardwareAbstractionLayer:
             log.error("Please ensure the pigpio daemon is running (`sudo pigpiod`).")
             raise
 
-        # --- Initialize Servos ---
-        # This logic is designed to be compatible with the original pi0servo library.
-        # It derives the pins to use from the master config, but tells the MultiServo
-        # class to use the original 'servo.json' for its calibration data.
-        if self.config.servos and self.config.servos.calibration:
-            # Get a list of integer pins from the calibration data keys
-            pin_list = [
-                int(pin_str) for pin_str in self.config.servos.calibration.keys()
-            ]
+        # --- Filter components if specified ---
+        if components is None:
+            # Default to all available components
+            components = ["servos", "buzzer", "display", "sensors"]
 
-            if pin_list:
-                log.info(f"Found pins {pin_list} in config. Initializing MultiServo.")
-                # Instantiate MultiServo the way it expects: with a list of pins
-                # and a path to its own config file.
-                self.servos = MultiServo(
-                    pi=self.pi,
-                    pins=pin_list,
-                    conf_file="servo.json",  # Instruct it to use the original file
-                )
-                log.info("MultiServo controller initialized using 'servo.json'.")
-            else:
-                log.info(
-                    "No servo calibration data found. Skipping servo initialization."
-                )
-        else:
-            log.info("No servo calibration data found. Skipping servo initialization.")
+        # --- Initialize Servos ---
+        if "servos" in components and self.config.servos and self.config.servos.calibration:
+            try:
+                # Get a list of integer pins from the calibration data keys
+                pin_list = [
+                    int(pin_str) for pin_str in self.config.servos.calibration.keys()
+                ]
+
+                if pin_list:
+                    log.info(f"Found pins {pin_list} in config. Initializing MultiServo.")
+                    self.servos = MultiServo(
+                        pi=self.pi,
+                        pins=pin_list,
+                        conf_file="servo.json",
+                    )
+                    log.info("MultiServo controller initialized using 'servo.json'.")
+                else:
+                    log.info(
+                        "No servo calibration data found. Skipping servo initialization."
+                    )
+            except Exception as e:
+                log.error(f"Failed to initialize Servos: {e}")
+                log.warning("Continuing without Servos.")
+                self.servos = None
+        elif "servos" in components:
+            log.info("No servo calibration data found or skipped.")
 
         # --- Initialize Buzzer ---
-        if self.config.buzzer and self.config.buzzer.pin:
-            self.buzzer = MusicBuzzer(pin=self.config.buzzer.pin, pi=self.pi)
-            log.info(f"Buzzer initialized on pin {self.config.buzzer.pin}.")
-        else:
-            log.info("No buzzer pin configured. Skipping buzzer initialization.")
+        if "buzzer" in components and self.config.buzzer and self.config.buzzer.pin:
+            try:
+                self.buzzer = MusicBuzzer(pin=self.config.buzzer.pin, pi=self.pi)
+                log.info(f"Buzzer initialized on pin {self.config.buzzer.pin}.")
+            except Exception as e:
+                log.error(f"Failed to initialize Buzzer: {e}")
+                log.warning("Continuing without Buzzer.")
+                self.buzzer = None
+        elif "buzzer" in components:
+            log.info("No buzzer pin configured or skipped.")
 
         # --- Initialize Display ---
-        if self.config.display and self.config.display.dc is not None:
-            log.info("Initializing display...")
-            self.display = ST7789V(
-                pi=self.pi,
-                channel=0,  # SPI channel 0
-                dc_pin=self.config.display.dc,
-                rst_pin=self.config.display.rst,
-                backlight_pin=self.config.display.blk,
-            )
-            log.info("Display initialized.")
-        else:
-            log.info("No display pins configured. Skipping display initialization.")
+        if "display" in components and self.config.display and self.config.display.dc is not None:
+            try:
+                log.info("Initializing display...")
+                self.display = ST7789V(
+                    pi=self.pi,
+                    channel=0,  # SPI channel 0
+                    dc_pin=self.config.display.dc,
+                    rst_pin=self.config.display.rst,
+                    backlight_pin=self.config.display.blk,
+                )
+                log.info("Display initialized.")
+            except Exception as e:
+                log.error(f"Failed to initialize Display: {e}")
+                log.warning("Continuing without Display.")
+                self.display = None
+        elif "display" in components:
+            log.info("No display pins configured or skipped.")
 
         # --- Initialize Distance Sensor ---
-        if self.config.sensors:
-            log.info("Initializing distance sensor...")
+        if "sensors" in components and self.config.sensors:
             try:
+                log.info("Initializing distance sensor...")
                 self.distance_sensor = VL53L0X(pi=self.pi)
                 log.info("Distance sensor initialized.")
             except Exception as e:
                 log.error(f"Failed to initialize distance sensor: {e}")
                 log.warning("Continuing without distance sensor. Obstacle avoidance will be disabled.")
                 self.distance_sensor = None
-        else:
+        elif "sensors" in components:
             log.info("No sensor config found. Skipping distance sensor.")
 
         log.info("Hardware initialization process complete.")

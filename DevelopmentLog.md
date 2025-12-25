@@ -1,3 +1,23 @@
+## 2025-12-25: Hardware Interactions Refinements
+
+### Fault Tolerance & Robustness
+- **Partial Hardware Initialization**: Updated `hal.py` to allow initializing specific components (e.g., `hal.initialize(components=["servos"])`).
+- **Driver Error Handling**: Wrapped hardware driver initialization in `try...except` blocks. The system now logs warnings and proceeds if a component (like the distance sensor or display) is missing or faulty, rather than crashing.
+- **Controller Safety**: Updated `MovementController`, `AnimatedFaces`, and `RobotSoundPlayer` to check for component availability before attempting operations.
+
+### Emergency Stop Refinement (Velocity-Based)
+- **Problem**: The previous static distance check (< 50mm) was too sensitive, triggering stops for stationary objects.
+- **Solution**: Implemented a **Rapid Approach** algorithm.
+    - Updated `perception.py` to calculate approach velocity (`get_velocity()`) using a sliding window of recent measurements.
+    - Updated `web_server.py` and `__main__.py` safety checks. The emergency stop now triggers **only if**:
+        1. Distance is ≤ 50mm **AND**
+        2. Velocity is < -50 mm/s (approaching rapidly).
+
+### Developer Tooling
+- **Movement Tool Isolation**: The `ninja_core movement-tool` now purely initializes the servos. The display and buzzer correctly remain off during movement recording, reducing power usage and distraction.
+
+---
+
 ## 2025-12-22: Hardware Configuration Update
 
 ### Hardware Changes

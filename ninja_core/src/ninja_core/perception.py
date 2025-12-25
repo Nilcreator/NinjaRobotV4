@@ -22,6 +22,11 @@ class DistanceMonitor:
         self._stop_event = threading.Event()
         self._current_distance = -1
         self._lock = threading.Lock()
+        
+        # Velocity Tracking
+        from collections import deque
+        self._history = deque(maxlen=5) # Store recent (time, distance) tuples
+        self._current_velocity = 0.0 # mm/s
 
     def get_distance(self) -> int:
         """
@@ -32,7 +37,7 @@ class DistanceMonitor:
             is not available.
         """
         if not self.sensor:
-            print("Distance sensor is not available in the HAL.")
+            # print("Distance sensor is not available in the HAL.") # Reduce spam
             return -1
         return self.sensor.get_range()
 
@@ -87,6 +92,14 @@ class DistanceMonitor:
         with self._lock:
             return self._current_distance
 
+    def get_velocity(self) -> float:
+        """
+        Gets the estimated velocity in mm/s.
+        Negative = Approaching. Positive = Retreating.
+        """
+        with self._lock:
+            return self._current_velocity
+
     def _monitor_loop(self, interval: float):
         """
         The internal loop that runs in a thread to continuously get readings.
@@ -94,12 +107,31 @@ class DistanceMonitor:
         while not self._stop_event.is_set():
             try:
                 distance = self.sensor.get_range()
+                now = time.time()
+                
                 with self._lock:
                     self._current_distance = distance
+                    self._history.append((now, distance))
+                    
+                    if len(self._history) >= 2:
+                        # Calculate velocity based on oldest and newest sample in deque
+                        t1, d1 = self._history[0]
+                        t2, d2 = self._history[-1]
+                        time_diff = t2 - t1
+                        dist_diff = d2 - d1
+                        
+                        if time_diff > 0:
+                            self._current_velocity = dist_diff / time_diff
+                        else:
+                            self._current_velocity = 0.0
+                    else:
+                        self._current_velocity = 0.0
+
             except Exception as e:
                 print(f"Error in distance monitoring loop: {e}")
                 # In case of sensor error, stop the loop
                 with self._lock:
                     self._current_distance = -1
+                    self._current_velocity = 0.0
                 break
             time.sleep(interval)

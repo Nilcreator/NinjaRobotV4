@@ -90,6 +90,11 @@ class AnimatedFaces:
         """The actual loop that runs in a thread to draw frames."""
         start_time = time.time()
         while not self._stop_event.is_set() and (time.time() - start_time < duration_s):
+            if self.lcd is None:
+                # If no display, just sleep to simulate timing or break
+                time.sleep(1 / 60)
+                continue
+
             image = self._get_blank_image()
             draw = ImageDraw.Draw(image)
             frame_logic(draw, time.time() - start_time)

@@ -664,6 +664,11 @@ cd ~/NinjaRobotV4
 uv pip install -e . --force-reinstall
 ```
 
+### Problem: "Component Initialization Failed" Warning
+
+**Cause**: One hardware component (like the sensor or display) is disconnected or faulty.
+**Solution**: The robot is designed to be **fault-tolerant**. It will log a warning and continue starting up with the working components. You can check connections later.
+
 ### Problem: Web server won't start
 
 **Checks**:

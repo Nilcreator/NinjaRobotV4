@@ -465,7 +465,7 @@ def run_calibration(hal: HardwareAbstractionLayer):
     finally:
         # Re-acquire hardware control
         print("\nCalibration tool exited. Re-initializing hardware...")
-        hal.initialize()
+        hal.initialize(components=["servos"])
         print("Hardware re-initialized.")
 
 
@@ -475,7 +475,8 @@ def run_cli():
     hal = HardwareAbstractionLayer(config)
 
     try:
-        hal.initialize()
+        # Only initialize servos to prevent display/buzzer activation
+        hal.initialize(components=["servos"])
         controller = MovementController(hal, config)
 
         while True:

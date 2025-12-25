@@ -102,14 +102,16 @@ def chat():
             # --- Safety Check Function ---
             def safety_check() -> bool:
                 dist = distance_monitor.get_continuous_distance()
+                vel = distance_monitor.get_velocity()
                 
                 # Display distance (flush=True to ensure immediate output)
                 display_dist = dist if dist != -1 else "---"
-                print(f"Distance: {display_dist}mm   ", end="\r", flush=True)
+                print(f"Dist: {display_dist}mm | Vel: {vel:.1f}mm/s   ", end="\r", flush=True)
 
-                # Check if valid reading (>=0) and within 50mm (inclusive)
-                if 0 <= dist <= 50:
+                # Check if valid reading (>=0), within 50mm, AND approaching rapidly
+                if 0 <= dist <= 50 and vel < -50:
                     print()  # Newline so the emergency message is on a new line
+                    print(f"!!! EMERGENCY STOP !!! Dist: {dist}mm, Vel: {vel:.2f}mm/s")
                     return True
                 return False
             # -----------------------------
