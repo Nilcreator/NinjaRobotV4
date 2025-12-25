@@ -167,7 +167,7 @@ def safety_check(app_state: AppState) -> bool:
     """
     if not app_state.distance_monitor:
         return False
-    if app_state.distance_monitor.check_emergency_stop(distance_threshold=70):
+    if app_state.distance_monitor.check_emergency_stop(distance_threshold=100):
         import time
         current_time = time.time()
         

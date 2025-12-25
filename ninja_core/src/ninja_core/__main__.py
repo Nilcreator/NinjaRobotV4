@@ -112,8 +112,8 @@ def chat():
                 display_dist = dist if dist != -1 else "---"
                 print(f"Dist: {display_dist}mm | Vel: {vel:.1f}mm/s   ", end="\r", flush=True)
 
-                # Startle Response Check (Threshold 70mm)
-                if distance_monitor.check_emergency_stop(distance_threshold=70):
+                # Startle Response Check (Threshold 100mm)
+                if distance_monitor.check_emergency_stop(distance_threshold=100):
                     current_time = time.time()
                     if current_time - last_reaction_time > 5.0:
                         last_reaction_time = current_time

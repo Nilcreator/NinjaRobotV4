@@ -100,7 +100,7 @@ class DistanceMonitor:
         with self._lock:
             return self._current_velocity
 
-    def check_emergency_stop(self, distance_threshold: int = 70, velocity_threshold: float = -50.0, consecutive_frames: int = 5) -> bool:
+    def check_emergency_stop(self, distance_threshold: int = 100, velocity_threshold: float = -10.0, consecutive_frames: int = 5) -> bool:
         """
         Checks if emergency stop conditions are met.
         

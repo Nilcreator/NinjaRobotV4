@@ -10,7 +10,7 @@
 - **Solution**: Implemented a **Rapid Approach & Robustness** algorithm.
 ### Startle Response (Was: Emergency Stop)
 - **Change**: Changed mechanism from "Stop" to "Startle".
-- **Trigger**: Object ≤ 70mm (was 50mm) approaching rapidly (< -50mm/s).
+- **Trigger**: Object ≤ **100mm** (was 50/70mm) approaching at **< -30mm/s** (was -50mm/s).
 - **Behavior**:
     1. Triggers "Scary" face and sound.
     2. **Does NOT stop the servos**. Movement continues.

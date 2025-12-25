@@ -1409,9 +1409,9 @@ def __init__(self, hal: HardwareAbstractionLayer)
 - Returns estimated approach velocity in mm/s
 - **Returns:** Negative value = approaching, Positive = retreating
 
-**`check_emergency_stop(distance_threshold: int = 70, velocity_threshold: float = -50.0, consecutive_frames: int = 5) -> bool`**
+**`check_emergency_stop(distance_threshold: int = 100, velocity_threshold: float = -30.0, consecutive_frames: int = 5) -> bool`**
 - Checks if startle/emergency condition is met.
-- **Default Threshold**: 70mm (increased from 50mm).
+- **Default Threshold**: 100mm (Distance), -30mm/s (Velocity).
 - **Returns**: `True` if condition is met (caller determines action).
 
 **`stop_continuous() -> None`**
