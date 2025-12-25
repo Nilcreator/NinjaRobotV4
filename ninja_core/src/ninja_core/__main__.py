@@ -162,12 +162,22 @@ def chat():
                 if action_plan.get("sound"):
                     sound.play(action_plan["sound"])
                     
-                if action_plan.get("movement"):
+                if action_plan.get("chain") or action_plan.get("movement"):
                     try:
-                        movement.execute_movement(
-                            action_plan["movement"], 
-                            abort_check=safety_check
-                        )
+                        # Chain Logic
+                        chain = action_plan.get("chain", [])
+                        if not chain and action_plan.get("movement"):
+                            chain = [{"name": action_plan["movement"], "repetitions": 1}]
+
+                        for item in chain:
+                            name = item.get("name")
+                            repetitions = item.get("repetitions", 1)
+                            if name:
+                                for _ in range(repetitions):
+                                    movement.execute_movement(
+                                        name, 
+                                        abort_check=safety_check
+                                    )
                     except EmergencyStop:
                         print("!!! OBSTACLE DETECTED - STOPPING !!!")
                         # Reaction: Frightened

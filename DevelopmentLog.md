@@ -5,9 +5,12 @@
 - **Driver Error Handling**: Wrapped hardware driver initialization in `try...except` blocks. The system now logs warnings and proceeds if a component (like the distance sensor or display) is missing or faulty, rather than crashing.
 - **Controller Safety**: Updated `MovementController`, `AnimatedFaces`, and `RobotSoundPlayer` to check for component availability before attempting operations.
 
-### Emergency Stop Refinement (Velocity-Based)
-- **Problem**: The previous static distance check (< 50mm) was too sensitive, triggering stops for stationary objects.
-- **Solution**: Implemented a **Rapid Approach & Robustness** algorithm.
+### Agent Enhancements (Gemini 3.0 & Chaining)
+- **Model Upgrade**: Updated `NinjaAgent` to use **Gemini 3.0 Flash** for improved reasoning and speed.
+- **Movement Chaining**:
+    - Agent can now execute sequential movements (e.g., "Walk 5 times then turn left").
+    - Updated `ninja_agent.py` to output a `chain` JSON structure.
+    - Updated `web_server.py` and `__main__.py` to execute these chains loop-by-loop.
 ### Startle Response (Was: Emergency Stop)
 - **Change**: Changed mechanism from "Stop" to "Startle".
 - **Trigger**: Object ≤ **100mm** (was 50/70mm) approaching at **< -30mm/s** (was -50mm/s).

@@ -55,7 +55,7 @@ class NinjaAgent:
         )
 
         self.model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
+            model_name="gemini-3.0-flash",
             generation_config=GenerationConfig(temperature=0.7),
             tools=[self.search_tool],
             system_instruction=self.system_prompt,
@@ -85,19 +85,36 @@ Your Capabilities:
 Instructions for Responses:
 -   **Semantic Nuance**: You must map the user's intent to the closest available action.
     -   Example: "I'm joyful" -> Use "happy" face/sound.
-    -   Example: "That's hilarious" -> Use "laughing" face/sound.
-    -   Example: "Look at me" -> Use "center" movement (if available) or "speaking" face.
+    -   Example: "Walk forward five steps" -> Chain "walk_forward" 5 times.
 -   **JSON Output**: To perform actions, your response MUST contain a valid JSON object.
-    -   Format: {{"movement": "...", "face": "...", "sound": "...", "response": "..."}}
-    -   "movement", "face", "sound": Use the EXACT names listed above, or null if no action is needed.
+    -   Format:
+        {{
+            "chain": [
+                {{"name": "movement_name", "repetitions": 1}},
+                {{"name": "another_movement", "repetitions": 3}}
+            ],
+            "face": "...",
+            "sound": "...",
+            "response": "..."
+        }}
+    -   "chain": A list of movements to execute IN ORDER. Use "repetitions" for repeated actions (default 1).
+    -   "face", "sound": Use the EXACT names listed above, or null if no action is needed. These play concurrently with the start of the chain.
     -   "response": Your spoken reply to the user (in their language).
 -   **Personality**: Be helpful, concise, and expressive.
 
 Example Interactions:
--   User (En): "How are you?" -> {{"face": "happy", "sound": "happy", "response": "I'm doing great! Ready to help."}}
+-   User (En): "Walk forward 3 times then backward." ->
+    {{
+        "chain": [
+            {{"name": "walk_forward", "repetitions": 3}},
+            {{"name": "walk_backward", "repetitions": 1}}
+        ],
+        "face": null,
+        "sound": "happy",
+        "response": "Here I go! One, two, three, and back!"
+    }}
 -   User (Jp): "こんにちは" -> {{"face": "happy", "sound": "happy", "response": "こんにちは！元気ですか？"}}
 -   User (Zh-CN): "你会做什么？" -> {{"face": "speaking", "sound": "speaking", "response": "我会动，会做表情，还能帮你查资料。"}}
--   User (Zh-TW): "你會做什麼？" -> {{"face": "speaking", "sound": "speaking", "response": "我會動，會做表情，還能幫你查資料。"}}
 """
 
     def web_search(self, query: str) -> List[str]:
@@ -113,7 +130,10 @@ Example Interactions:
         log_messages = []
         try:
             chat = self.model.start_chat()
+            # Note: 3.0-flash might handle tools differently, but standard method usually works.
             response = await chat.send_message_async(user_input)
+            
+            # ... tool handling ...
 
             # Handle function calls (Tools)
             if response.candidates[0].content.parts[0].function_call:

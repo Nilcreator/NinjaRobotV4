@@ -1162,14 +1162,21 @@ def __init__(self, config: NinjaConfig)
 
 **`async process_command(user_input: str) -> dict`**
 - Main method to process text commands
+- Uses **Gemini 3.0 Flash** to interpret intent.
 - **Parameters:**
   - `user_input` (str): User's message
 - **Returns:** Dict with keys:
-  - `movement` (str | None): Movement name to execute
-  - `face` (str | None): Facial expression to show
-  - `sound` (str | None): Sound to play
+  - `action_plan` (dict): JSON action plan.
+    ```json
+    {
+      "chain": [{"name": "move_name", "repetitions": 1}, ...], 
+      "face": "face_name",
+      "sound": "sound_name", 
+      "response": "text"
+    }
+    ```
   - `response` (str): AI's text response
-  - `logs` (list[str]): Debug log messages
+  - `logs` (str): Debug log messages
 
 **`async process_audio_command(audio_file_path: str) -> dict`**
 - Processes voice commands from audio file

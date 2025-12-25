@@ -214,20 +214,39 @@ async def execute_action_plan(app_state: AppState, action_plan: dict):
         tasks.append(asyncio.to_thread(app_state.sound.play, sound_name))
 
     # Movement
-    if action_plan.get("movement") and app_state.movement:
-        move_name = action_plan["movement"]
+    if (action_plan.get("chain") or action_plan.get("movement")) and app_state.movement:
+        
         def run_move():
             try:
-                app_state.movement.execute_movement(
-                    move_name, 
-                    abort_check=lambda: safety_check(app_state)
-                )
+                # Support new "chain" format
+                chain = action_plan.get("chain", [])
+                
+                # Backward compatibility for old "movement" field
+                if not chain and action_plan.get("movement"):
+                    chain = [{"name": action_plan.get("movement"), "repetitions": 1}]
+
+                for item in chain:
+                    name = item.get("name")
+                    repetitions = item.get("repetitions", 1)
+                    
+                    if name:
+                        for _ in range(repetitions):
+                            app_state.movement.execute_movement(
+                                name, 
+                                abort_check=lambda: safety_check(app_state)
+                            )
             except EmergencyStop:
                 print("Emergency Stop triggered via Web!")
                 if app_state.faces:
                     app_state.faces.play("scary")
                 if app_state.sound:
+                    # Threading used inside safety_check, so just play blocking here?
+                    # No, we are in a thread here (run_move is run in thread).
+                    # Actually, run_move is executed via to_thread. So it IS a thread.
+                    # AppState.sound.play is blocking? Yes.
+                    # We can clear the queue to stop previous sounds if we want priority.
                     app_state.sound.play("scary")
+        
         tasks.append(asyncio.to_thread(run_move))
 
     if tasks:
