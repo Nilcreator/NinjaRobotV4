@@ -98,7 +98,11 @@ class AnimatedFaces:
             image = self._get_blank_image()
             draw = ImageDraw.Draw(image)
             frame_logic(draw, time.time() - start_time)
-            self.lcd.display(image)
+            try:
+                self.lcd.display(image)
+            except (AttributeError, Exception):
+                # If display fails (likely during shutdown), exit loop cleanly
+                break
             time.sleep(1 / 60)  # ~60 FPS
 
     def _start_animation(self, duration_s, frame_logic):

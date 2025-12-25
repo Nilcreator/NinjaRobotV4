@@ -407,7 +407,13 @@ async def system_shutdown(request: Request):
         # Run shutdown command in a separate thread to avoid blocking the response
         # giving time for the response to be sent back to the client.
         async def delayed_shutdown():
-            # 1. Clear display to black (so even if backlight flickers back on, it's black)
+            # 1. Stop high-level threads first (Critical to prevent race condition)
+            if request.app.state.ninja.faces:
+                request.app.state.ninja.faces.stop()
+            if request.app.state.ninja.distance_monitor:
+                request.app.state.ninja.distance_monitor.stop_continuous()
+
+            # 2. Clear display to black (so even if backlight flickers back on, it's black)
             if request.app.state.ninja.hal and request.app.state.ninja.hal.display:
                 try:
                     from PIL import Image
@@ -419,7 +425,7 @@ async def system_shutdown(request: Request):
                 except Exception as e:
                     print(f"Failed to clear display: {e}")
 
-            # 2. Shutdown HAL (turns off backlight, servos, buzzer)
+            # 3. Shutdown HAL (turns off backlight, servos, buzzer)
             if request.app.state.ninja.hal:
                 request.app.state.ninja.hal.shutdown()
 
