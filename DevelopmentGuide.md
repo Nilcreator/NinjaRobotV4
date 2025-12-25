@@ -1156,10 +1156,6 @@ def __init__(self, config: NinjaConfig)
 - Private method to generate the AI system prompt
 - Includes multilingual instructions and JSON output format
 
-**`web_search(query: str) -> list[str]`**
-- Performs a Google search and returns top 3 results
-- **Returns:** List of search result strings
-
 **`async process_command(user_input: str) -> dict`**
 - Main method to process text commands
 - Uses **Gemini 3.0 Flash** to interpret intent.
@@ -1169,9 +1165,12 @@ def __init__(self, config: NinjaConfig)
   - `action_plan` (dict): JSON action plan.
     ```json
     {
-      "chain": [{"name": "move_name", "repetitions": 1}, ...], 
-      "face": "face_name",
-      "sound": "sound_name", 
+      "chain": [{"name": "move_name", "repetitions": 1}, ...],
+      "face_chain": [{"name": "face_name", "duration": 2.0}, ...],
+      "sound_chain": ["sound1", "sound2"],
+      "face": "face_name", # (Legacy)
+      "sound": "sound_name", # (Legacy)
+      "movement": "move_name", # (Legacy)
       "response": "text"
     }
     ```
@@ -1195,12 +1194,15 @@ config = load_config()
 agent = NinjaAgent(config)
 
 async def main():
-    result = await agent.process_command("Show me a happy face")
+    result = await agent.process_command("Walking forward 3 times")
     print(result["response"])
-    print(f"Face: {result['face']}, Sound: {result['sound']}")
+    # result['action_plan']['chain'] contains movement steps
 
 asyncio.run(main())
 ```
+
+> [!NOTE]
+> **Post-Task Reset**: The agent is designed to be state-less regarding mechanical position. The `web_server.py` and `__main__.py` executors automatically center all servos and reset the facial expression to "idle" upon completion of an action plan.
 
 ---
 

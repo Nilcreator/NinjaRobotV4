@@ -48,16 +48,17 @@ NinjaRobotV4 is a small, friendly robot powered by a **Raspberry Pi Zero 2W** th
 ### Key Features
 
 #### 🧠 **AI-Powered Intelligence**
-- **Natural Language Understanding**: Powered by **Google Gemini 2.5 Flash**, the robot understands conversational commands with semantic nuance (e.g., "I'm joyful" → shows happy face)
+- **Natural Language Understanding**: Powered by **Google Gemini 3.0 Flash**, the robot understands conversational commands with semantic nuance (e.g., "I'm joyful" → shows happy face)
 - **Multilingual Communication**: Supports **English, Japanese, Traditional Chinese, and Simplified Chinese** with automatic language detection
-- **Real-Time Web Search**: Can answer questions about current events, weather, and facts by searching the internet
 - **Context-Aware Responses**: Generates appropriate emotional expressions and movements based on conversation context
 
 #### 🎭 **Expressive Interactions**
 - **Animated Facial Expressions**: Displays emotions (happy, sad, surprised, thinking, etc.) on a 240x240 color LCD screen
 - **Emotion Sounds**: Plays melodic tones matching its emotional state through a passive buzzer
 - **Physical Movements**: Controls up to 8 servo motors for gestures, head movements, and choreographed routines
+- **Action Chaining**: Executes complex sequences of movements, faces, and sounds (e.g., "Walk forward 3 times then look happy")
 - **Dynamic Reactions**: Automatically shows a "speaking" face during conversations and "scared" face when obstacles are too close
+- **Post-Task Reset**: Automatically returns servos to center and face to idle state after completing actions
 
 #### 👁️ **Environmental Awareness**
 - **Distance Sensing**: Uses a VL53L0X Time-of-Flight sensor to detect objects up to 2 meters away
@@ -68,7 +69,6 @@ NinjaRobotV4 is a small, friendly robot powered by a **Raspberry Pi Zero 2W** th
 - **Web-Based Interface**: Control the robot from any device (phone, tablet, computer) through a responsive web app
 - **Remote Access**: Automatic public URL generation via **ngrok** with QR code display for instant connection
 - **Voice & Text Input**: Interact using your voice (via Web Speech API) or typed messages
-- **Manual Controls**: Direct buttons for servo movements, facial expressions, and sounds
 - **Manual Controls**: Direct buttons for servo movements, facial expressions, and sounds
 - **Safe Shutdown**: Power off the robot safely directly from the web interface
 - **Automatic Startup**: Optional systemd service to start the robot automatically on boot
@@ -256,7 +256,6 @@ NinjaRobotV4 consists of **6 Python packages** organized by responsibility. Each
   - Google Gemini integration for NLP
   - Semantic understanding and intent mapping
   - Auto-emotion generation
-  - Web search capability
   - Multilingual support (EN/JP/ZH-TW/ZH-CN)
 
   **`movement_controller.py`** - Motion System
@@ -333,18 +332,19 @@ The **Web Server & Remote Access** module has been successfully implemented. The
 - ✅ All hardware libraries (`pi0servo`, `pi0disp`, `pi0buzzer`, `pi0vl53l0x`, `ninja_utils`)
 - ✅ Hardware Abstraction Layer (HAL)
 - ✅ Centralized Configuration System
-- ✅ AI Agent with Gemini 2.5 Flash integration
+- ✅ **AI Agent with Gemini 3.0 Flash integration**
 - ✅ Multilingual support (4 languages)
 - ✅ Web server with voice and text input
 - ✅ Remote access via ngrok with QR code
 - ✅ Real-time distance monitoring via WebSocket
 - ✅ Obstacle avoidance safety system
 - ✅ Facial expressions and emotion sounds
-- ✅ Motion system with interpolated movements
+- ✅ **Action chaining (Movements, Faces, Sounds)**
+- ✅ **Post-task auto-reset (Servos center, Face idle)**
 - ✅ Automatic startup service with safe shutdown
 
 **Previous Milestones:**
-- The **AI Agent** (`ninja_agent.py`) has been successfully implemented with nuanced semantic understanding, multilingual communication, and real-time web search
+- The **AI Agent** (`ninja_agent.py`) has been successfully implemented with nuanced semantic understanding and multilingual communication
 - The **Motion System** (`movement_controller.py`) was ported and refactored with HAL integration
 - All core modules (`perception.py`, `robot_sound.py`, `facial_expressions.py`) are integrated and tested
 - All foundational hardware libraries are complete and verified
@@ -442,16 +442,17 @@ NinjaRobotV4は、**Raspberry Pi Zero 2W**（小型で安価なコンピュー�
 ### 主な機能
 
 #### 🧠 **AI搭載の知能**
-- **自然言語理解** - **Google Gemini 2.5 Flash**（Googleの最新AI）を搭載し、会話的なコマンドを意味のニュアンスまで理解します（例:「嬉しい」→ハッピーな顔を表示）
+- **自然言語理解** - **Google Gemini 3.0 Flash**（Googleの最新AI）を搭載し、会話的なコマンドを意味のニュアンスまで理解します（例:「嬉しい」→ハッピーな顔を表示）
 - **多言語コミュニケーション** - **日本語、英語、繁体字中国語、簡体字中国語**に対応し、自動的に言語を検出します
-- **リアルタイムWeb検索** - インターネットを検索して、現在のニュース、天気、事実についての質問に答えることができます
 - **文脈を理解した応答** - 会話の文脈に基づいて、適切な感情表現や動きを生成します
 
 #### 🎭 **表現豊かなインタラクション**
 - **アニメーション化された表情** - 240x240ピクセルのカラー液晶画面に感情（嬉しい、悲しい、驚き、考え中など）を表示します
 - **感情音** - パッシブブザー（電子音を出す部品）を通じて、感情状態に合ったメロディックな音を再生します
 - **物理的な動き** - 最大8個のサーボモーターを制御して、ジェスチャー、頭の動き、振り付けられたルーチン（決まった動作）を実行します
+- **アクションチェーン** - 動き、表情、音の複雑なシーケンスを実行できます（例:「3回前に歩いてから喜ぶ」）
 - **ダイナミックな反応** - 会話中は自動的に「話している」顔を表示し、障害物が近すぎると「怖がっている」顔を表示します
+- **タスク後のリセット** - アクション完了後、自動的にサーボを中央に戻し、表情をアイドル状態に戻します
 
 #### 👁️ **環境認識**
 - **距離センシング** - VL53L0X ToF（Time-of-Flight：光の飛行時間で距離を測る）センサーを使用して、最大2メートル離れた物体を検出します
