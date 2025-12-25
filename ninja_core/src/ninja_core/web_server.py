@@ -45,6 +45,7 @@ class AppState:
         self.distance_monitor: Optional[DistanceMonitor] = None
         self.first_interaction: bool = True
         self.has_greeted: bool = False
+        self.last_reaction_time: float = 0.0
 
 # --- Lifecycle ---
 @asynccontextmanager
@@ -166,11 +167,30 @@ def safety_check(app_state: AppState) -> bool:
     """
     if not app_state.distance_monitor:
         return False
-    if app_state.distance_monitor.check_emergency_stop():
-        dist = app_state.distance_monitor.get_continuous_distance()
-        vel = app_state.distance_monitor.get_velocity()
-        print(f"!!! EMERGENCY STOP TRIGGERED !!! Distance: {dist}mm, Velocity: {vel:.2f}mm/s")
-        return True
+    if app_state.distance_monitor.check_emergency_stop(distance_threshold=70):
+        import time
+        current_time = time.time()
+        
+        # Throttling to avoid spamming the reaction (e.g., every 5 seconds)
+        if current_time - app_state.last_reaction_time > 5.0:
+            app_state.last_reaction_time = current_time
+            dist = app_state.distance_monitor.get_continuous_distance()
+            vel = app_state.distance_monitor.get_velocity()
+            print(f"!!! STARTLE RESPONSE !!! Dist: {dist}mm, Vel: {vel:.2f}mm/s")
+            
+            # Reaction: Scary Face & Sound
+            if app_state.faces:
+                # Play scary face for 2 seconds (non-blocking call usually, but we want it to interrupt)
+                # But we are inside a callback. Just fire and forget.
+                app_state.faces.play("scary", duration_s=2.0)
+            
+            if app_state.sound:
+                # Play scary sound (non-blocking)
+                asyncio.create_task(asyncio.to_thread(app_state.sound.play, "scary"))
+            
+            # Return False so we DO NOT stop the servos
+            return False
+            
     return False
 
 async def execute_action_plan(app_state: AppState, action_plan: dict):

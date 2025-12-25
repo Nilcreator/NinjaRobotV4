@@ -8,10 +8,13 @@
 ### Emergency Stop Refinement (Velocity-Based)
 - **Problem**: The previous static distance check (< 50mm) was too sensitive, triggering stops for stationary objects.
 - **Solution**: Implemented a **Rapid Approach & Robustness** algorithm.
-    - Updated `perception.py` to calculate approach velocity (`get_velocity()`) and introduced `check_emergency_stop()`.
-    - **Logic**: Emergency stop triggers ONLY if:
-        1. Distance is ≤ 50mm for **5 consecutive readings** (eliminating noise).
-        2. AND Velocity is < -50 mm/s (approaching rapidly).
+### Startle Response (Was: Emergency Stop)
+- **Change**: Changed mechanism from "Stop" to "Startle".
+- **Trigger**: Object ≤ 70mm (was 50mm) approaching rapidly (< -50mm/s).
+- **Behavior**:
+    1. Triggers "Scary" face and sound.
+    2. **Does NOT stop the servos**. Movement continues.
+    3. Throttled to trigger at most once every 5 seconds.
 
 ### Developer Tooling
 - **Movement Tool Isolation**: The `ninja_core movement-tool` now purely initializes the servos. The display and buzzer correctly remain off during movement recording, reducing power usage and distraction.

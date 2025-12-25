@@ -59,6 +59,7 @@ def chat():
     """
     import asyncio
     import time
+    import threading
     from .config import load_config
     from .hal import HardwareAbstractionLayer
     from .ninja_agent import NinjaAgent
@@ -100,19 +101,46 @@ def chat():
             # ------------------------
 
             # --- Safety Check Function ---
+            last_reaction_time = 0.0
+            
             def safety_check() -> bool:
+                nonlocal last_reaction_time
                 dist = distance_monitor.get_continuous_distance()
                 vel = distance_monitor.get_velocity()
                 
-                # Display distance (flush=True to ensure immediate output)
+                # Display distance
                 display_dist = dist if dist != -1 else "---"
                 print(f"Dist: {display_dist}mm | Vel: {vel:.1f}mm/s   ", end="\r", flush=True)
 
-                # Use robust emergency check
-                if distance_monitor.check_emergency_stop():
-                    print()  # Newline so the emergency message is on a new line
-                    print(f"!!! EMERGENCY STOP !!! Dist: {dist}mm, Vel: {vel:.2f}mm/s")
-                    return True
+                # Startle Response Check (Threshold 70mm)
+                if distance_monitor.check_emergency_stop(distance_threshold=70):
+                    current_time = time.time()
+                    if current_time - last_reaction_time > 5.0:
+                        last_reaction_time = current_time
+                        print()
+                        print(f"!!! STARTLE RESPONSE !!! Dist: {dist}mm, Vel: {vel:.2f}mm/s")
+                        
+                        # Reaction
+                        if faces:
+                            faces.play("scary", duration_s=2.0)
+                        if sound:
+                            sound.play("scary") # Blocking in main thread? No, sound.play IS blocking.
+                            # We need to run sound in a thread here too or it blocks movement.
+                            # But __main__ is sync. We can just let it block for a moment or use threading.
+                            # The user said "do not stop servo movements".
+                            # If sound.play blocks, servos might stutter if movement is interpolated.
+                            # However, MovementController handles interpolation.
+                            # But wait, sound.play IS blocking in robot_sound.py?
+                            # Let's check robot_sound.py.
+                            pass 
+
+                        # We should probably run sound in bg thread if possible, 
+                        # but robot_sound.play usually blocks. 
+                        # For now, let's just trigger face and return False.
+                        # If sound blocks, it stops servos. So we must put sound in thread.
+                        threading.Thread(target=sound.play, args=("scary",), daemon=True).start()
+                        
+                    return False # Do not stop
                 return False
             # -----------------------------
             
