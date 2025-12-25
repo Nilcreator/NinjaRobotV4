@@ -4,6 +4,7 @@ import sys
 import socket
 import subprocess
 import threading
+import time
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -197,21 +198,48 @@ def safety_check(app_state: AppState) -> bool:
 async def execute_action_plan(app_state: AppState, action_plan: dict):
     tasks = []
 
-    # Face
-    if action_plan.get("face") and app_state.faces:
-        face_name = action_plan["face"]
-        # Play face for 3s then return to idle
-        async def play_face():
-            app_state.faces.play(face_name, duration_s=3.0)
-            await asyncio.sleep(3.0)
-            app_state.faces.play("idle", duration_s=float('inf'))
-        tasks.append(asyncio.create_task(play_face()))
+    # Faces
+    if (action_plan.get("face_chain") or action_plan.get("face")) and app_state.faces:
+        def run_faces():
+             # Support new "face_chain" format
+            chain = action_plan.get("face_chain", [])
+            
+            # Backward compatibility
+            if not chain and action_plan.get("face"):
+                chain = [{"name": action_plan.get("face"), "duration": 2.0}]
+
+            for item in chain:
+                name = item.get("name")
+                duration = item.get("duration")
+                if duration is None:
+                    duration = float('inf')
+                
+                # If infinity, plays until stopped or replaced (effectively just starts it).
+                # But since we are looping, we need to decide if we block.
+                # If duration is specific, we block.
+                # If infinite, we just start it and move to next? No, infinite usually implies "end state".
+                # If infinite is NOT last, maybe assume 2s? No, let's treat infinite as "start and return".
+                
+                app_state.faces.play(name)
+                if duration != float('inf'):
+                     time.sleep(duration)
+        
+        tasks.append(asyncio.to_thread(run_faces))
 
     # Sound
-    if action_plan.get("sound") and app_state.sound:
-        sound_name = action_plan["sound"]
-        # Sound is blocking in current impl, run in thread
-        tasks.append(asyncio.to_thread(app_state.sound.play, sound_name))
+    if (action_plan.get("sound_chain") or action_plan.get("sound")) and app_state.sound:
+        def run_sounds():
+            # Support new "sound_chain" format
+            chain = action_plan.get("sound_chain", [])
+            
+            # Backward compatibility
+            if not chain and action_plan.get("sound"):
+                chain = [action_plan.get("sound")]
+
+            for name in chain:
+                app_state.sound.play(name) # play is blocking, so this sequences them naturally
+        
+        tasks.append(asyncio.to_thread(run_sounds))
 
     # Movement
     if (action_plan.get("chain") or action_plan.get("movement")) and app_state.movement:

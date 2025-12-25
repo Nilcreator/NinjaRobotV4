@@ -5,12 +5,14 @@
 - **Driver Error Handling**: Wrapped hardware driver initialization in `try...except` blocks. The system now logs warnings and proceeds if a component (like the distance sensor or display) is missing or faulty, rather than crashing.
 - **Controller Safety**: Updated `MovementController`, `AnimatedFaces`, and `RobotSoundPlayer` to check for component availability before attempting operations.
 
-### Agent Enhancements (Gemini 3.0 & Chaining)
+### Agent Enhancements (Gemini 3.0, Search & Emotions)
 - **Model Upgrade**: Updated `NinjaAgent` to use **Gemini 3.0 Flash** for improved reasoning and speed.
-- **Movement Chaining**:
-    - Agent can now execute sequential movements (e.g., "Walk 5 times then turn left").
-    - Updated `ninja_agent.py` to output a `chain` JSON structure.
-    - Updated `web_server.py` and `__main__.py` to execute these chains loop-by-loop.
+- **Google Search Grounding**: Enabled built-in Google Search tool (`google_search_retrieval`) for reliable, up-to-date answers.
+- **Emotional & Movement Chaining**:
+    - Agent can now execute sequential movements (e.g., "Walk 5 times").
+    - Implemented `face_chain` and `sound_chain` for complex reactions (e.g., "Confused" then "Speaking").
+    - Updated `ninja_agent.py` to output new JSON structure.
+    - Updated `web_server.py` and `__main__.py` to execute chains.
 ### Startle Response (Was: Emergency Stop)
 - **Change**: Changed mechanism from "Stop" to "Startle".
 - **Trigger**: Object ≤ **100mm** (was 50/70mm) approaching at **< -30mm/s** (was -50mm/s).

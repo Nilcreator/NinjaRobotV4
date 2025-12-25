@@ -156,12 +156,29 @@ def chat():
                 response_text = result["response"]
                 
                 # Execute Actions
-                if action_plan.get("face"):
-                    faces.play(action_plan["face"])
-                
-                if action_plan.get("sound"):
-                    sound.play(action_plan["sound"])
+                # Sound
+                if (action_plan.get("sound_chain") or action_plan.get("sound")):
+                    chain = action_plan.get("sound_chain", [])
+                    if not chain and action_plan.get("sound"):
+                        chain = [action_plan.get("sound")]
+                    for name in chain:
+                        sound.play(name)
+
+                # Face (CLI doesn't run faces in background usually, but here we can)
+                # For simplicity in CLI, we might just play the first or iterate blocking?
+                # AnimatedFaces.play is non-blocking (starts thread).
+                if (action_plan.get("face_chain") or action_plan.get("face")):
+                    chain = action_plan.get("face_chain", [])
+                    if not chain and action_plan.get("face"):
+                        chain = [{"name": action_plan["face"], "duration": 2.0}]
                     
+                    for item in chain:
+                        name = item.get("name")
+                        duration = item.get("duration")
+                        faces.play(name)
+                        if duration:
+                            time.sleep(duration)
+                
                 if action_plan.get("chain") or action_plan.get("movement"):
                     try:
                         # Chain Logic

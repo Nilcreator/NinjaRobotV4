@@ -4,7 +4,6 @@ from typing import Dict, List
 
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig, Tool
-from googlesearch import search
 
 from .config import NinjaConfig
 from .facial_expressions import AnimatedFaces
@@ -57,7 +56,7 @@ class NinjaAgent:
         self.model = genai.GenerativeModel(
             model_name="gemini-3-flash-preview",
             generation_config=GenerationConfig(temperature=0.7),
-            tools=[self.search_tool],
+            tools={"google_search_retrieval": {}},
             system_instruction=self.system_prompt,
         )
 
@@ -80,90 +79,53 @@ Your Capabilities:
     -   **Faces**: {self.robot_capabilities["faces"]}
     -   **Sounds**: {self.robot_capabilities["sounds"]}
 
-2.  **Web Search**: For questions about current events, weather, or facts you don't know, use the `web_search` tool.
+2.  **Web Search**: You have built-in access to Google Search. Use it for questions about current events, weather, or facts you don't know.
 
 Instructions for Responses:
--   **Semantic Nuance**: You must map the user's intent to the closest available action.
+-   **Semantic Nuance**: Map intent to actions.
     -   Example: "I'm joyful" -> Use "happy" face/sound.
     -   Example: "Walk forward five steps" -> Chain "walk_forward" 5 times.
+    -   Example: "Weather?" -> Search, show "confused" face while thinking, then "speaking".
 -   **JSON Output**: To perform actions, your response MUST contain a valid JSON object.
     -   Format:
         {{
             "chain": [
-                {{"name": "movement_name", "repetitions": 1}},
-                {{"name": "another_movement", "repetitions": 3}}
+                {{"name": "movement_name", "repetitions": 1}}
             ],
-            "face": "...",
-            "sound": "...",
+            "face_chain": [
+                {{"name": "face_name", "duration": 2.0}},
+                {{"name": "another_face", "duration": null}}
+            ],
+            "sound_chain": ["sound1", "sound2"],
             "response": "..."
         }}
-    -   "chain": A list of movements to execute IN ORDER. Use "repetitions" for repeated actions (default 1).
-    -   "face", "sound": Use the EXACT names listed above, or null if no action is needed. These play concurrently with the start of the chain.
-    -   "response": Your spoken reply to the user (in their language).
+    -   "chain": Movement sequence (optional).
+    -   "face_chain": List of faces to play in order. "duration" is in seconds (null = infinite/until next). Use this for reactions (e.g., "confused" -> "speaking").
+    -   "sound_chain": List of sounds to play in order.
+    -   "response": Your spoken reply.
 -   **Personality**: Be helpful, concise, and expressive.
 
 Example Interactions:
--   User (En): "Walk forward 3 times then backward." ->
+-   User (En): "What is the capital of France?" ->
     {{
-        "chain": [
-            {{"name": "walk_forward", "repetitions": 3}},
-            {{"name": "walk_backward", "repetitions": 1}}
+        "face_chain": [
+            {{"name": "thinking", "duration": 1.5}},
+            {{"name": "speaking", "duration": null}}
         ],
-        "face": null,
-        "sound": "happy",
-        "response": "Here I go! One, two, three, and back!"
+        "response": "The capital of France is Paris."
     }}
--   User (Jp): "こんにちは" -> {{"face": "happy", "sound": "happy", "response": "こんにちは！元気ですか？"}}
--   User (Zh-CN): "你会做什么？" -> {{"face": "speaking", "sound": "speaking", "response": "我会动，会做表情，还能帮你查资料。"}}
 """
-
-    def web_search(self, query: str) -> List[str]:
-        """Performs a web search and returns the results."""
-        try:
-            return list(search(query, num_results=3, advanced=True))
-        except Exception as e:
-            print(f"Error during web search: {e}")
-            return ["Search failed."]
 
     async def process_command(self, user_input: str) -> dict:
         """Processes a text-based user command."""
         log_messages = []
         try:
             chat = self.model.start_chat()
-            # Note: 3.0-flash might handle tools differently, but standard method usually works.
             response = await chat.send_message_async(user_input)
             
-            # ... tool handling ...
-
-            # Handle function calls (Tools)
-            if response.candidates[0].content.parts[0].function_call:
-                function_call = response.candidates[0].content.parts[0].function_call
-                if function_call.name == "web_search":
-                    query = function_call.args["query"]
-                    log_messages.append(f"AI searching for: {query}")
-
-                    # Execute search
-                    search_results = self.web_search(query=query)
-                    log_messages.append("Search executed.")
-
-                    # Send results back to model
-                    response = await chat.send_message_async(
-                        content={
-                            "parts": [
-                                {
-                                    "function_response": {
-                                        "name": "web_search",
-                                        "response": {
-                                            "results": [str(r) for r in search_results]
-                                        },
-                                    }
-                                }
-                            ]
-                        }
-                    )
-                else:
-                    raise ValueError(f"Unknown function call: {function_call.name}")
-
+            # Built-in search is handled automatically by the model/API.
+            # No manual function call handling needed for google_search_retrieval in standard mode.
+            
             # Parse the final response
             cleaned_response_text = response.text.strip()
 
