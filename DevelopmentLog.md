@@ -7,7 +7,9 @@
 
 ### Agent Enhancements (Gemini 3.0, Search & Emotions)
 - **Model Upgrade**: Updated `NinjaAgent` to use **Gemini 3.0 Flash** for improved reasoning and speed.
-- **Google Search Grounding**: Enabled built-in Google Search tool (`google_search_retrieval`) for reliable, up-to-date answers.
+- **Google Search Refinement**:
+    - Fixed `400` error by switching tool to `google_search` (Gemini 2.0+ standard).
+    - Restricted search to only trigger when user says "**search**" to prevent unnecessary queries.
 - **Emotional & Movement Chaining**:
     - Agent can now execute sequential movements (e.g., "Walk 5 times").
     - Implemented `face_chain` and `sound_chain` for complex reactions (e.g., "Confused" then "Speaking").

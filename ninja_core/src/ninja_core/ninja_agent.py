@@ -56,7 +56,7 @@ class NinjaAgent:
         self.model = genai.GenerativeModel(
             model_name="gemini-3-flash-preview",
             generation_config=GenerationConfig(temperature=0.7),
-            tools={"google_search_retrieval": {}},
+            tools=[{"google_search": {}}], # Using list syntax often safer for tools
             system_instruction=self.system_prompt,
         )
 
@@ -79,7 +79,9 @@ Your Capabilities:
     -   **Faces**: {self.robot_capabilities["faces"]}
     -   **Sounds**: {self.robot_capabilities["sounds"]}
 
-2.  **Web Search**: You have built-in access to Google Search. Use it for questions about current events, weather, or facts you don't know.
+2.  **Web Search**: You have built-in access to Google Search.
+    -   **CONSTRAINT**: You may ONLY use the `google_search` tool if the user's input explicitly contains the word "**search**" (case-insensitive).
+    -   If the word "search" is NOT present, do NOT use the search tool. Answer from your internal knowledge.
 
 Instructions for Responses:
 -   **Semantic Nuance**: Map intent to actions.
