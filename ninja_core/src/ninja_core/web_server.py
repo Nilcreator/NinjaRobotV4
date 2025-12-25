@@ -280,6 +280,16 @@ async def execute_action_plan(app_state: AppState, action_plan: dict):
     if tasks:
         await asyncio.gather(*tasks)
 
+    # Post-Task Reset
+    # 1. Center Servos
+    if app_state.movement:
+        await asyncio.to_thread(app_state.movement.center_all_servos)
+    
+    # 2. Reset Face to Idle (Looping)
+    if app_state.faces:
+        # play("idle", float('inf')) is non-blocking (starts a background thread)
+        app_state.faces.play("idle", float('inf'))
+
 # --- API Router ---
 api_router = APIRouter(prefix="/api")
 

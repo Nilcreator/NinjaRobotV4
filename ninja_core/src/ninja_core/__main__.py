@@ -187,20 +187,26 @@ def chat():
                             chain = [{"name": action_plan["movement"], "repetitions": 1}]
 
                         for item in chain:
-                            name = item.get("name")
-                            repetitions = item.get("repetitions", 1)
-                            if name:
-                                for _ in range(repetitions):
-                                    movement.execute_movement(
-                                        name, 
-                                        abort_check=safety_check
-                                    )
+                            move_name = item["name"]
+                            reps = item.get("repetitions", 1)
+                            for _ in range(reps):
+                                if safety_check():
+                                     break
+                                movement.execute_movement(move_name, abort_check=safety_check)
                     except EmergencyStop:
                         print("!!! OBSTACLE DETECTED - STOPPING !!!")
                         # Reaction: Frightened
-                        faces.play("scary")  # Using 'scary' as frightened
-                        sound.play("scary")
+                        if faces:
+                            faces.play("scary")
+                        if sound:
+                            sound.play("scary")
                         print("Ninja: Whoa! Too close!")
+                
+                # Post-Task Reset
+                if movement:
+                    movement.center_all_servos()
+                if faces:
+                    faces.play("idle", float('inf'))
 
                 print(f"Ninja: {response_text}")
                 
